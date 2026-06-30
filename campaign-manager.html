@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<script>(function(){if(window.opener&&location.hash.includes('access_token=')){var p=new URLSearchParams(location.hash.replace(/^#/,''));var t=p.get('access_token');if(t){window.opener.postMessage({fbToken:t},location.origin);window.close();}}}());</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campaign Manager | Think Digital</title>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#090a10;--bg2:#0f1018;--bg3:#13151f;
+  --border:#1a1d2a;--border2:#252840;
+  --accent:#4f6ef7;--accent2:#7c3aed;
+  --green:#22c55e;--amber:#eab308;--red:#ef4444;
+  --t1:#e4e6f0;--t2:#6b7280;--t3:#3d4358;
+  --font:'Assistant',system-ui,sans-serif;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100vh;direction:rtl;overflow-x:hidden}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+
+/* ── TOAST ── */
+#toast-wrap{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+.toast{background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:11px 20px;font-size:13px;font-weight:700;color:var(--t1);white-space:nowrap;animation:toastIn .2s ease;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+.toast.ok{border-color:rgba(34,197,94,.4);color:#4ade80}
+.toast.err{border-color:rgba(239,68,68,.4);color:#f87171}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:1000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px)}
+.modal-box{background:var(--bg3);border:1px solid var(--border2);border-radius:18px;padding:28px;width:90%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.6)}
+.modal-title{font-size:17px;font-weight:800;margin-bottom:6px}
+.modal-sub{font-size:13px;color:var(--t2);margin-bottom:22px;line-height:1.6}
+.modal-label{font-size:12px;color:var(--t2);font-weight:700;margin-bottom:6px;display:block}
+.modal-input{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:9px;color:var(--t1);font-size:14px;font-family:var(--font);padding:10px 13px;outline:none;margin-bottom:18px;transition:border-color .15s}
+.modal-input:focus{border-color:var(--accent)}
+.modal-btns{display:flex;gap:10px;justify-content:flex-end}
+.mbtn{padding:10px 20px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .15s;border:none}
+.mbtn.cancel{background:transparent;border:1px solid var(--border2);color:var(--t2)}
+.mbtn.cancel:hover{border-color:var(--border2);color:var(--t1)}
+.mbtn.confirm{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+.mbtn.confirm:hover{opacity:.88}
+.mbtn.danger{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff}
+.mbtn.danger:hover{opacity:.88}
+
+/* ── LOGIN ── */
+#scr-login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 20px;
+  background:radial-gradient(ellipse 65% 50% at 50% 0%,rgba(79,110,247,.16) 0%,transparent 65%)}
+.login-card{background:var(--bg3);border:1px solid var(--border2);border-radius:22px;
+  padding:48px 40px;width:100%;max-width:400px;text-align:center;
+  box-shadow:0 40px 100px rgba(0,0,0,.6)}
+.login-badge{font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;
+  color:var(--accent);margin-bottom:14px;opacity:.8}
+.login-icon{width:62px;height:62px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;
+  margin:0 auto 18px;box-shadow:0 8px 24px rgba(79,110,247,.35)}
+.login-card h2{font-size:26px;font-weight:800;margin-bottom:8px;letter-spacing:-.5px}
+.login-card p{font-size:13px;color:var(--t2);margin-bottom:32px;line-height:1.7}
+.btn-fb{display:flex;align-items:center;justify-content:center;gap:10px;
+  background:#1877f2;border:none;border-radius:12px;padding:15px 24px;
+  font-family:var(--font);font-size:15px;font-weight:700;color:#fff;cursor:pointer;
+  width:100%;transition:all .2s;box-shadow:0 6px 20px rgba(24,119,242,.35)}
+.btn-fb:hover{background:#1564d3;transform:translateY(-1px);box-shadow:0 10px 28px rgba(24,119,242,.45)}
+.btn-fb:disabled{opacity:.55;cursor:not-allowed;transform:none}
+
+/* ── APP SHELL ── */
+#scr-app{display:none;min-height:100vh;flex-direction:row-reverse}
+.sidebar{width:216px;background:var(--bg2);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;flex-shrink:0;position:fixed;right:0;top:0;bottom:0;z-index:50}
+.s-logo{padding:20px 16px 18px;border-bottom:1px solid var(--border)}
+.s-logo-brand{display:flex;align-items:center;gap:9px}
+.s-logo-ico{width:34px;height:34px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.s-logo-name{font-size:14px;font-weight:800;letter-spacing:-.3px;line-height:1.2}
+.s-logo-sub{font-size:10px;color:var(--t3);margin-top:2px;letter-spacing:.3px}
+.s-nav{flex:1;padding:12px 8px;display:flex;flex-direction:column;gap:3px}
+.s-btn{padding:9px 11px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;
+  color:var(--t2);border:none;background:transparent;width:100%;text-align:right;
+  display:flex;align-items:center;gap:8px;font-family:var(--font);transition:all .15s}
+.s-btn:hover{background:rgba(255,255,255,.04);color:var(--t1)}
+.s-btn.active{background:rgba(79,110,247,.13);color:#818cf8}
+.s-ico{font-size:16px;width:22px;text-align:center;flex-shrink:0}
+.s-foot{padding:12px;border-top:1px solid var(--border)}
+.s-user{display:flex;align-items:center;gap:9px}
+.s-avatar{width:34px;height:34px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:800;flex-shrink:0}
+.s-info{flex:1;min-width:0}
+.s-name{font-size:12px;font-weight:700;color:#c8cad6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.s-role{font-size:10px;color:var(--t3)}
+.s-logout{background:transparent;border:none;color:var(--t3);font-size:17px;cursor:pointer;
+  line-height:1;transition:color .15s;flex-shrink:0;padding:2px}
+.s-logout:hover{color:var(--red)}
+
+.main-area{margin-right:216px;min-height:100vh;padding:28px;overflow:auto;background:var(--bg)}
+.page{display:none}.page.active{display:block}
+.page-title{font-size:20px;font-weight:800;letter-spacing:-.4px;margin-bottom:3px}
+.page-sub{font-size:12px;color:var(--t2);margin-bottom:22px}
+
+/* ── DATE BAR ── */
+.dr-bar{display:flex;flex-wrap:wrap;align-items:center;gap:5px;
+  padding:10px 14px;background:var(--bg3);border:1px solid var(--border);
+  border-radius:11px;margin-bottom:20px}
+.dr-label{font-size:10px;color:var(--t2);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-left:4px}
+.dr-btn{padding:5px 11px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;
+  color:var(--t2);border:1px solid transparent;background:transparent;font-family:var(--font);transition:all .15s}
+.dr-btn:hover{color:var(--t1);background:var(--border)}
+.dr-btn.active{background:rgba(79,110,247,.14);color:#818cf8;border-color:rgba(79,110,247,.3)}
+.dr-custom{display:flex;align-items:center;gap:5px;margin-right:auto}
+.dr-in{background:var(--border);border:1px solid var(--border2);border-radius:7px;
+  color:var(--t1);font-size:11px;padding:4px 8px;font-family:var(--font);outline:none;transition:border-color .15s}
+.dr-in:focus{border-color:var(--accent)}
+.dr-apply{padding:5px 11px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;font-family:var(--font)}
+
+/* ── ACCOUNT LIST ── */
+.acc-list{display:flex;flex-direction:column;gap:6px}
+.acc-row{display:flex;align-items:center;gap:12px;padding:15px 17px;
+  background:var(--bg3);border:1px solid var(--border);border-radius:13px;
+  cursor:pointer;transition:all .15s}
+.acc-row:hover{border-color:var(--border2);background:#161828}
+.dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.dot.green{background:var(--green);box-shadow:0 0 7px rgba(34,197,94,.5)}
+.dot.amber{background:var(--amber);box-shadow:0 0 7px rgba(234,179,8,.5)}
+.dot.red{background:var(--red);box-shadow:0 0 7px rgba(239,68,68,.5)}
+.dot.grey{background:var(--t3)}
+.acc-body{flex:1;min-width:0}
+.acc-name{font-size:14px;font-weight:800;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.2px}
+.acc-status-txt{font-size:11px;color:var(--t2);margin-top:2px}
+.acc-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.badge{border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;display:inline-block}
+.badge.purple{background:rgba(79,110,247,.13);color:#818cf8;border:1px solid rgba(79,110,247,.22)}
+.badge.green{background:rgba(34,197,94,.1);color:#4ade80;border:1px solid rgba(34,197,94,.2)}
+.acc-date{font-size:10px;color:var(--t3)}
+.acc-arrow{color:var(--t3);font-size:18px;flex-shrink:0;transition:color .15s}
+.acc-row:hover .acc-arrow{color:#818cf8}
+
+/* ── BACK ── */
+.back-btn{color:var(--t2);font-size:12px;cursor:pointer;display:inline-flex;align-items:center;
+  gap:5px;margin-bottom:18px;transition:color .15s;font-weight:600;background:none;border:none;
+  font-family:var(--font);padding:0}
+.back-btn:hover{color:var(--t1)}
+
+/* ── METRICS ── */
+.metrics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:16px}
+.metric{background:var(--bg3);border:1px solid var(--border);border-radius:11px;padding:13px 15px}
+.metric.hi{background:rgba(79,110,247,.07);border-color:rgba(79,110,247,.24)}
+.metric-label{font-size:9px;color:var(--t2);text-transform:uppercase;letter-spacing:.6px;font-weight:700;margin-bottom:6px}
+.metric-val{font-size:19px;font-weight:800;letter-spacing:-.4px}
+.metric.hi .metric-val{color:#818cf8}
+.metric-chg{font-size:10px;font-weight:700;margin-top:4px}
+.up{color:var(--green)}.dn{color:var(--red)}.flat{color:var(--t2)}
+
+/* ── ALERTS ── */
+.alerts{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.alert{border-radius:9px;padding:10px 14px;font-size:12px;font-weight:600;
+  display:flex;align-items:flex-start;gap:8px;line-height:1.55}
+.alert.amber{background:rgba(234,179,8,.07);border:1px solid rgba(234,179,8,.22);color:#fef08a}
+.alert.red{background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.22);color:#fca5a5}
+
+/* ── SECTION TITLE ── */
+.sec-title{font-size:11px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.7px;
+  margin-bottom:11px;display:flex;align-items:center;gap:8px}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── CAMPAIGN CARDS ── */
+.camp-list{display:flex;flex-direction:column;gap:7px}
+.camp-card{background:var(--bg3);border:1px solid var(--border);border-radius:13px;overflow:hidden;transition:border-color .15s}
+.camp-card:hover{border-color:var(--border2)}
+.camp-header{display:flex;align-items:center;gap:10px;padding:13px 15px;cursor:pointer;user-select:none}
+.camp-chevron{color:var(--t3);font-size:12px;transition:transform .2s;flex-shrink:0}
+.camp-card.open .camp-chevron{transform:rotate(90deg)}
+.camp-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:var(--green);box-shadow:0 0 5px rgba(34,197,94,.5)}
+.camp-dot.paused{background:var(--t3);box-shadow:none}
+.camp-name{font-size:12px;font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.camp-obj{font-size:10px;color:var(--t2);background:var(--border);padding:2px 7px;border-radius:5px;white-space:nowrap}
+.camp-spend{font-size:12px;font-weight:800;color:#c8cad6;flex-shrink:0}
+.camp-actions{display:flex;gap:4px;flex-shrink:0}
+.camp-act{padding:4px 9px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;font-family:var(--font);border:1px solid;transition:all .15s}
+.camp-act.pause{background:rgba(239,68,68,.07);border-color:rgba(239,68,68,.28);color:#f87171}
+.camp-act.pause:hover{background:rgba(239,68,68,.16)}
+.camp-act.resume{background:rgba(34,197,94,.07);border-color:rgba(34,197,94,.28);color:#4ade80}
+.camp-act.resume:hover{background:rgba(34,197,94,.16)}
+.camp-act.budget{background:rgba(79,110,247,.07);border-color:rgba(79,110,247,.25);color:#818cf8}
+.camp-act.budget:hover{background:rgba(79,110,247,.16)}
+.camp-body{display:none;padding:0 15px 15px;border-top:1px solid var(--border);background:#0c0d13}
+.camp-card.open .camp-body{display:block}
+.camp-mets{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:6px;padding-top:12px}
+.camp-met{padding:9px 11px;background:var(--bg3);border:1px solid var(--border);border-radius:9px}
+.camp-met.hi{background:rgba(79,110,247,.07);border-color:rgba(79,110,247,.2)}
+.camp-met-lbl{font-size:9px;color:var(--t2);text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin-bottom:4px}
+.camp-met-val{font-size:15px;font-weight:800;letter-spacing:-.3px}
+.camp-met.hi .camp-met-val{color:#818cf8}
+
+/* ── CARD ── */
+.card{background:var(--bg3);border:1px solid var(--border);border-radius:13px;padding:18px;margin-bottom:14px}
+.card-title{font-size:14px;font-weight:800;margin-bottom:3px}
+.card-sub{font-size:11px;color:var(--t2);margin-bottom:13px}
+
+/* ── AI SECTION ── */
+.ai-btn{display:flex;align-items:center;justify-content:center;gap:8px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;
+  border-radius:12px;padding:13px 24px;font-size:14px;font-weight:700;cursor:pointer;
+  width:100%;font-family:var(--font);transition:all .2s;letter-spacing:-.1px}
+.ai-btn:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 8px 22px rgba(79,110,247,.3)}
+.ai-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.report-text{font-size:13px;line-height:1.85;white-space:pre-wrap;color:#c8cad6}
+.copy-btn{background:transparent;border:1px solid rgba(79,110,247,.35);border-radius:8px;
+  padding:8px;color:#818cf8;font-size:12px;font-weight:700;cursor:pointer;
+  width:100%;margin-top:10px;font-family:var(--font);transition:all .15s}
+.copy-btn:hover{background:rgba(79,110,247,.1)}
+.regen-btn{background:transparent;border:1px solid var(--border2);border-radius:8px;
+  padding:8px;color:var(--t2);font-size:12px;font-weight:700;cursor:pointer;
+  width:100%;margin-top:10px;font-family:var(--font);transition:all .15s}
+.regen-btn:hover{border-color:var(--accent);color:#818cf8}
+.rec-item{padding:12px 0;border-bottom:1px solid var(--border)}
+.rec-item:last-child{border-bottom:none}
+.rec-head{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-bottom:5px}
+.rec-exec{margin-right:auto;padding:4px 10px;background:rgba(79,110,247,.1);
+  border:1px solid rgba(79,110,247,.25);border-radius:6px;color:#818cf8;
+  font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .15s}
+.rec-exec:hover{background:rgba(79,110,247,.2)}
+.rec-reason{font-size:12px;color:var(--t2);line-height:1.6}
+.pill{border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700;display:inline-block}
+.pill.green{background:rgba(34,197,94,.1);color:#4ade80}
+.pill.amber{background:rgba(234,179,8,.1);color:#eab308}
+.pill.blue{background:rgba(79,110,247,.1);color:#818cf8}
+
+/* ── LOADING / EMPTY ── */
+.loading{text-align:center;padding:44px 20px;color:var(--t2);font-size:13px}
+.spin{display:inline-block;width:26px;height:26px;border:2px solid var(--border2);
+  border-top-color:var(--accent);border-radius:50%;animation:spn .65s linear infinite;margin-bottom:10px}
+@keyframes spn{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:40px 20px;color:var(--t2);font-size:13px}
+
+@media(max-width:680px){
+  .sidebar{width:100%;position:relative;height:auto}
+  #scr-app{flex-direction:column}
+  .main-area{margin-right:0}
+}
+</style>
+</head>
+<body>
+
+<div id="toast-wrap"></div>
+
+<!-- LOGIN -->
+<div id="scr-login">
+  <div class="login-card">
+    <div class="login-badge">META ADS · THINK DIGITAL</div>
+    <div class="login-icon">📊</div>
+    <h2>Campaign Manager</h2>
+    <p>כניסה עם חשבון Facebook Ads לצפייה בכל הלקוחות וניהול קמפיינים בזמן אמת</p>
+    <button class="btn-fb" id="btn-login" onclick="startLogin()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+      כניסה עם Facebook
+    </button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="scr-app">
+  <div class="sidebar">
+    <div class="s-logo">
+      <div class="s-logo-brand">
+        <div class="s-logo-ico">📊</div>
+        <div>
+          <div class="s-logo-name">Campaign Manager</div>
+          <div class="s-logo-sub">Internal Dashboard</div>
+        </div>
+      </div>
+    </div>
+    <nav class="s-nav" id="s-nav">
+      <button class="s-btn active" data-page="accounts" onclick="navTo('accounts')">
+        <span class="s-ico">👥</span>לקוחות
+      </button>
+      <button class="s-btn" data-page="settings" onclick="void(0)">
+        <span class="s-ico">⚙️</span>ניהול
+      </button>
+    </nav>
+    <div class="s-foot">
+      <div class="s-user">
+        <div class="s-avatar" id="s-av">?</div>
+        <div class="s-info">
+          <div class="s-name" id="s-name">...</div>
+          <div class="s-role">מנהל מערכת</div>
+        </div>
+        <button class="s-logout" title="התנתק" onclick="logout()">⏻</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-area">
+    <div class="page active" id="pg-accounts"></div>
+    <div class="page" id="pg-detail"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+const FB_APP_ID   = '4457830191115452';
+const META_API    = 'https://graph.facebook.com/v20.0';
+const GEMINI_KEY  = 'YOUR_GEMINI_API_KEY';
+const GEMINI_URLS = [
+  `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
+  `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,
+  `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
+];
+
+let token = '';
+let currentAcc = null;
+let currentCamps = [];
+let diagnostics = null;
+let DR = { since: daysAgo(7), until: daysAgo(1), label: '7 ימים' };
+
+// ── Utilities ──────────────────────────────────────────────────────────────
+function daysAgo(n){ const d=new Date(); d.setDate(d.getDate()-n); return fmt(d); }
+function fmt(d){ return (d instanceof Date?d:new Date(d)).toISOString().slice(0,10); }
+function n2(n){ return Number(n||0).toLocaleString('he-IL',{maximumFractionDigits:0}); }
+function pct(a,b){ return b?((a-b)/b)*100:(a?100:0); }
+function initials(s){ return (s||'?').trim()[0].toUpperCase(); }
+function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtDate(s){ return s.split('-').reverse().join('.'); }
+
+function chg(v,inv){
+  const x = inv ? -v : v;
+  if(Math.abs(x)<1) return {t:'–',c:'flat'};
+  return {t:(x>0?'+':'')+x.toFixed(1)+'%', c:x>0?'up':'dn'};
+}
+
+// ── Toast ──────────────────────────────────────────────────────────────────
+function toast(msg, type=''){
+  const wrap = document.getElementById('toast-wrap');
+  const el = document.createElement('div');
+  el.className = 'toast' + (type?' '+type:'');
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(()=>{ el.style.transition='opacity .3s'; el.style.opacity='0'; setTimeout(()=>el.remove(),300); }, 3000);
+}
+
+// ── Modal ──────────────────────────────────────────────────────────────────
+function modal({title, sub, confirm, cls, input, onConfirm}){
+  const ov = document.createElement('div');
+  ov.className = 'modal-overlay';
+  let inp = null;
+  ov.innerHTML = `
+    <div class="modal-box">
+      <div class="modal-title">${escH(title)}</div>
+      <div class="modal-sub">${escH(sub)}</div>
+      ${input ? `<label class="modal-label">${escH(input.label)}</label>
+        <input class="modal-input" type="text" value="${escH(input.value||'')}" placeholder="${escH(input.placeholder||'')}">` : ''}
+      <div class="modal-btns">
+        <button class="mbtn cancel">ביטול</button>
+        <button class="mbtn confirm ${cls||''}">${escH(confirm||'אישור')}</button>
+      </div>
+    </div>`;
+  ov.querySelector('.cancel').onclick = ()=>ov.remove();
+  ov.querySelector('.confirm').onclick = ()=>{ ov.remove(); onConfirm(ov.querySelector('.modal-input')?.value); };
+  ov.onclick = e=>{ if(e.target===ov) ov.remove(); };
+  document.body.appendChild(ov);
+  const inp2 = ov.querySelector('.modal-input');
+  if(inp2){ inp2.focus(); inp2.select(); }
+}
+
+// ── DOM Helper ────────────────────────────────────────────────────────────
+function el(tag, attrs, ...kids){
+  const e = document.createElement(tag);
+  Object.entries(attrs||{}).forEach(([k,v])=>{
+    if(k==='cls') e.className=v;
+    else if(k==='html') e.innerHTML=v;
+    else e.setAttribute(k,v);
+  });
+  kids.forEach(c=>{ if(c!=null) e.appendChild(typeof c==='string'?document.createTextNode(c):c); });
+  return e;
+}
+
+// ── Meta API ──────────────────────────────────────────────────────────────
+async function mq(path, params={}){
+  const u = new URL(`${META_API}/${path}`);
+  u.searchParams.set('access_token', token);
+  Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));
+  const r = await fetch(u);
+  const j = await r.json();
+  if(j.error){
+    if(j.error.code===190){ logout(); throw new Error('פג תוקף החיבור — אנא התחבר מחדש'); }
+    throw new Error(j.error.message);
+  }
+  return j;
+}
+
+async function mqAll(path, params={}){
+  let out=[], after=null;
+  do{
+    const p={...params,limit:'200'}; if(after) p.after=after;
+    const d = await mq(path,p);
+    out.push(...(d.data||[]));
+    after = d.paging?.next?(d.paging.cursors?.after||null):null;
+  }while(after);
+  return out;
+}
+
+async function mqPost(path, body={}){
+  const u = new URL(`${META_API}/${path}`);
+  u.searchParams.set('access_token', token);
+  const r = await fetch(u, {method:'POST', body:new URLSearchParams(body)});
+  const j = await r.json();
+  if(j.error) throw new Error(j.error.message);
+  return j;
+}
+
+// ── Auth ──────────────────────────────────────────────────────────────────
+window.addEventListener('message', e=>{
+  if(e.origin!==location.origin) return;
+  if(e.data?.fbToken){ token=e.data.fbToken; localStorage.setItem('cm_tok',token); init(); }
+});
+
+function startLogin(){
+  const btn = document.getElementById('btn-login');
+  const url = `https://www.facebook.com/dialog/oauth?client_id=${FB_APP_ID}`
+    +`&redirect_uri=${encodeURIComponent(location.href.split('#')[0])}`
+    +`&scope=ads_read,ads_management,business_management&response_type=token`;
+  const w = window.open(url,'fb_oauth','width=600,height=660,top=100,left=200');
+  btn.disabled=true; btn.textContent='⏳ מתחבר...';
+  const t = setInterval(()=>{ if(w.closed){ clearInterval(t); if(!token){btn.disabled=false;btn.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>כניסה עם Facebook';} } },500);
+}
+
+function logout(){
+  token=''; localStorage.removeItem('cm_tok');
+  document.getElementById('scr-app').style.display='none';
+  document.getElementById('scr-login').style.display='flex';
+  document.getElementById('btn-login').disabled=false;
+}
+
+function navTo(id){
+  document.querySelectorAll('.s-btn').forEach(b=>b.classList.toggle('active',b.dataset.page===id));
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id==='pg-'+id));
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+async function init(){
+  document.getElementById('scr-login').style.display='none';
+  document.getElementById('scr-app').style.display='flex';
+  mq('me',{fields:'name'}).then(me=>{
+    const n=document.getElementById('s-name'); if(n) n.textContent=me.name||'';
+    const av=document.getElementById('s-av'); if(av) av.textContent=initials(me.name||'U');
+  }).catch(()=>{});
+  renderAccounts();
+}
+
+// ── Accounts Page ─────────────────────────────────────────────────────────
+async function renderAccounts(){
+  navTo('accounts');
+  const pg = document.getElementById('pg-accounts');
+  pg.innerHTML = '';
+  pg.appendChild(el('div',{cls:'page-title'},'לקוחות פעילים'));
+  pg.appendChild(el('div',{cls:'page-sub'},'טוען חשבונות...'));
+  pg.appendChild(el('div',{cls:'loading'},el('div',{cls:'spin'}),el('p',{},'טוען...')));
+
+  try{
+    const [direct, biz] = await Promise.all([
+      mqAll('me/adaccounts',{fields:'id,name,currency,account_status'}),
+      mq('me/businesses',{fields:'id,name'}).catch(()=>({data:[]}))
+    ]);
+    let accs = [...direct];
+    for(const b of biz.data||[]){
+      const [own,cli] = await Promise.all([
+        mqAll(`${b.id}/owned_ad_accounts`,{fields:'id,name,currency,account_status'}).catch(()=>[]),
+        mqAll(`${b.id}/client_ad_accounts`,{fields:'id,name,currency,account_status'}).catch(()=>[])
+      ]);
+      accs.push(...own,...cli);
+    }
+    const seen=new Set();
+    accs = accs.filter(a=>!seen.has(a.id)&&seen.add(a.id)&&a.account_status===1);
+    accs.sort((a,b)=>a.name.localeCompare(b.name,'he-IL',{sensitivity:'base'}));
+
+    pg.innerHTML='';
+    pg.appendChild(el('div',{cls:'page-title'},'לקוחות פעילים'));
+    pg.appendChild(el('div',{cls:'page-sub'},`${accs.length} לקוחות`));
+
+    if(!accs.length){ pg.appendChild(el('div',{cls:'empty'},'לא נמצאו חשבונות פרסום פעילים.')); return; }
+
+    const list = el('div',{cls:'acc-list'});
+    const today = fmtDate(fmt(new Date()));
+
+    accs.forEach(acc=>{
+      const row = el('div',{cls:'acc-row'});
+      const dot = el('div',{cls:'dot grey'});
+      const statusTxt = el('div',{cls:'acc-status-txt'},'טוען...');
+      const badge = el('span',{cls:'badge purple'},'...');
+
+      row.appendChild(dot);
+      row.appendChild(el('div',{cls:'acc-body'},
+        el('div',{cls:'acc-name'},acc.name),
+        statusTxt
+      ));
+      const right = el('div',{cls:'acc-right'});
+      right.appendChild(badge);
+      right.appendChild(el('span',{cls:'acc-date'},'דוח: '+today));
+      row.appendChild(right);
+      row.appendChild(el('span',{cls:'acc-arrow'},'‹'));
+      row.onclick = ()=>renderDetail(acc);
+      list.appendChild(row);
+
+      loadQuickStats(acc, dot, statusTxt, badge);
+    });
+
+    pg.appendChild(list);
+  }catch(e){
+    pg.innerHTML = `<div class="empty" style="color:var(--red)">שגיאה: ${escH(e.message)}</div>`;
+  }
+}
+
+async function loadQuickStats(acc, dotEl, txtEl, badgeEl){
+  try{
+    const tr = JSON.stringify({since:daysAgo(7),until:daysAgo(1)});
+    const ins = await mq(`${acc.id}/insights`,{fields:'ctr,frequency,spend',time_range:tr}).catch(()=>null);
+    const d = ins?.data?.[0];
+    const ctr=parseFloat(d?.ctr||0), freq=parseFloat(d?.frequency||0), spend=parseFloat(d?.spend||0);
+
+    let status='green', recs=0, txt='תקין';
+    if(freq>5){ status='red'; recs+=2; txt='דחוף — שחיקת קהל חמורה'; }
+    else if(freq>3.5){ status='amber'; recs++; txt='דורש תשומת לב'; }
+    if(ctr<0.5&&spend>200){ if(status==='green') status='amber'; recs++; if(txt==='תקין') txt='CTR נמוך'; }
+
+    dotEl.className='dot '+status;
+    txtEl.textContent=txt;
+
+    if(recs===0){ badgeEl.textContent='✓ תקין'; badgeEl.className='badge green'; }
+    else { badgeEl.textContent=`${recs} המלצות`; badgeEl.className='badge purple'; }
+  }catch(e){ badgeEl.textContent='–'; }
+}
+
+// ── Account Detail ─────────────────────────────────────────────────────────
+async function renderDetail(acc){
+  currentAcc = acc;
+  navTo('detail');
+  const pg = document.getElementById('pg-detail');
+  pg.innerHTML='';
+  const back = el('button',{cls:'back-btn'},'← חזרה לכל הלקוחות');
+  back.onclick = ()=>{ navTo('accounts'); document.querySelectorAll('.s-btn').forEach(b=>b.classList.toggle('active',b.dataset.page==='accounts')); };
+  pg.appendChild(back);
+  pg.appendChild(el('div',{cls:'page-title'},acc.name));
+  pg.appendChild(el('div',{cls:'page-sub'},acc.id+' · '+(acc.currency||'ILS')));
+  pg.appendChild(buildDR(()=>renderDetail(acc)));
+
+  const loadEl = el('div',{cls:'loading'},el('div',{cls:'spin'}),el('p',{},'טוען נתונים...'));
+  pg.appendChild(loadEl);
+  await loadDetail(acc, pg, loadEl);
+}
+
+function buildDR(onChange){
+  const bar = el('div',{cls:'dr-bar'});
+  bar.appendChild(el('span',{cls:'dr-label'},'תקופה:'));
+  const presets=[
+    {l:'7 ימים', fn:()=>({since:daysAgo(7),until:daysAgo(1)})},
+    {l:'14 ימים',fn:()=>({since:daysAgo(14),until:daysAgo(1)})},
+    {l:'החודש',  fn:()=>{ const d=new Date(); return{since:fmt(new Date(d.getFullYear(),d.getMonth(),1)),until:daysAgo(1)}; }},
+    {l:'30 ימים',fn:()=>({since:daysAgo(30),until:daysAgo(1)})},
+  ];
+  const btns=[];
+  const sinceIn = el('input',{type:'date',cls:'dr-in',value:DR.since});
+  const untilIn = el('input',{type:'date',cls:'dr-in',value:DR.until});
+
+  presets.forEach(p=>{
+    const b=el('button',{cls:'dr-btn'},p.l);
+    if(DR.label===p.l) b.classList.add('active');
+    b.onclick=()=>{ const r=p.fn(); DR={...r,label:p.l}; btns.forEach(x=>x.classList.remove('active')); b.classList.add('active'); sinceIn.value=DR.since; untilIn.value=DR.until; onChange(); };
+    btns.push(b); bar.appendChild(b);
+  });
+  const cd=el('div',{cls:'dr-custom'});
+  const applyBtn=el('button',{cls:'dr-apply'},'החל');
+  applyBtn.onclick=()=>{ if(!sinceIn.value||!untilIn.value) return; DR={since:sinceIn.value,until:untilIn.value,label:'מותאם'}; btns.forEach(x=>x.classList.remove('active')); onChange(); };
+  cd.appendChild(sinceIn); cd.appendChild(el('span',{style:'color:var(--t3);font-size:11px'},'—')); cd.appendChild(untilIn); cd.appendChild(applyBtn);
+  bar.appendChild(cd);
+  return bar;
+}
+
+async function loadDetail(acc, pg, loadEl){
+  try{
+    const days = Math.round((new Date(DR.until)-new Date(DR.since))/864e5)+1;
+    const prevUntil = fmt(new Date(new Date(DR.since).getTime()-864e5));
+    const prevSince = fmt(new Date(new Date(prevUntil).getTime()-(days-1)*864e5));
+    const trCur  = JSON.stringify({since:DR.since,until:DR.until});
+    const trPrev = JSON.stringify({since:prevSince,until:prevUntil});
+    const fields = 'spend,impressions,reach,ctr,cpm,cpc,actions,action_values,frequency';
+
+    const [insCur,insPrev,camps] = await Promise.all([
+      mq(`${acc.id}/insights`,{fields,time_range:trCur}),
+      mq(`${acc.id}/insights`,{fields,time_range:trPrev}),
+      mqAll(`${acc.id}/campaigns`,{
+        fields:'id,name,status,effective_status,objective,daily_budget,lifetime_budget',
+        filtering:'[{"field":"effective_status","operator":"IN","value":["ACTIVE","PAUSED"]}]'
+      })
+    ]);
+
+    const cur=parseIns(insCur.data?.[0]), prv=parseIns(insPrev.data?.[0]);
+    currentCamps = camps;
+
+    let campIns={};
+    if(camps.length){
+      try{
+        const ci = await mq(`${acc.id}/insights`,{
+          fields:'campaign_id,spend,impressions,reach,ctr,cpm,cpc,actions,action_values',
+          time_range:trCur,level:'campaign',limit:'500'
+        });
+        (ci.data||[]).forEach(d=>{ campIns[d.campaign_id]=d; });
+        let next=ci.paging?.next;
+        while(next){ const m=await fetch(next).then(r=>r.json()); (m.data||[]).forEach(d=>{campIns[d.campaign_id]=d;}); next=m.paging?.next; }
+      }catch(e){}
+    }
+
+    const freqAlerts=[], underdelivery=[];
+    try{
+      const adsets = await mqAll(`${acc.id}/adsets`,{fields:'id,name,daily_budget',filtering:'[{"field":"effective_status","operator":"IN","value":["ACTIVE"]}]'});
+      await Promise.all(adsets.slice(0,30).map(async as=>{
+        try{ const d=(await mq(`${as.id}/insights`,{fields:'frequency',time_range:trCur})).data?.[0]; const f=parseFloat(d?.frequency||0); if(f>3.5) freqAlerts.push({name:as.name,freq:f}); }catch(e){}
+      }));
+      camps.filter(c=>c.daily_budget&&c.effective_status==='ACTIVE').forEach(c=>{
+        const ci=campIns[c.id]; if(!ci) return;
+        const spent=parseFloat(ci.spend||0), budget=parseFloat(c.daily_budget)/100*days;
+        const util=budget>0?spent/budget*100:100;
+        if(util<80) underdelivery.push({name:c.name,util:util.toFixed(0)});
+      });
+    }catch(e){}
+
+    diagnostics = {
+      accountName:acc.name, currency:acc.currency||'ILS', metrics:cur, prev:prv,
+      diag:{
+        spend_pct:pct(cur.spend,prv.spend), ctr_pct:pct(cur.ctr,prv.ctr),
+        cpm_pct:pct(cur.cpm,prv.cpm), cpr_pct:pct(cur.cpr,prv.cpr),
+        freqAlerts, underdelivery
+      }
+    };
+
+    loadEl.remove();
+
+    // Summary metrics
+    pg.appendChild(el('div',{cls:'sec-title'},'סיכום תקופה'));
+    const mg = el('div',{cls:'metrics-grid'});
+    function addMet(label,val,c,hi){
+      const m=el('div',{cls:'metric'+(hi?' hi':'')});
+      m.appendChild(el('div',{cls:'metric-label'},label));
+      m.appendChild(el('div',{cls:'metric-val'},val));
+      if(c?.t) m.appendChild(el('div',{cls:'metric-chg '+c.c},c.t));
+      mg.appendChild(m);
+    }
+    addMet('הוצאה','₪'+n2(cur.spend),chg(pct(cur.spend,prv.spend)));
+    addMet('CTR',cur.ctr.toFixed(2)+'%',chg(pct(cur.ctr,prv.ctr)));
+    addMet('CPM','₪'+n2(cur.cpm),chg(pct(cur.cpm,prv.cpm),true));
+    if(cur.cpr>0) addMet('עלות/תוצאה','₪'+n2(cur.cpr),chg(pct(cur.cpr,prv.cpr),true));
+    if(cur.leads>0)     addMet('לידים',cur.leads+'',null,true);
+    if(cur.purchases>0) addMet('רכישות',cur.purchases+'',null,true);
+    if(cur.roas>0)      addMet('ROAS',cur.roas.toFixed(2),null,true);
+    if(!cur.leads&&!cur.purchases) addMet('תוצאות',cur.results+'',null,true);
+    pg.appendChild(mg);
+
+    // Alerts
+    if(freqAlerts.length||underdelivery.length){
+      const av=el('div',{cls:'alerts'});
+      freqAlerts.forEach(a=>av.appendChild(el('div',{cls:'alert amber'},'🔁  שחיקת קהל: "'+a.name+'" · Frequency '+a.freq.toFixed(1))));
+      underdelivery.forEach(a=>av.appendChild(el('div',{cls:'alert amber'},'💸  תקציב לא מנוצל: "'+a.name+'" · '+a.util+'% ניצול')));
+      pg.appendChild(av);
+    }
+
+    // Active campaigns
+    const active = camps.filter(c=>c.effective_status==='ACTIVE');
+    const paused = camps.filter(c=>c.effective_status==='PAUSED');
+    active.sort((a,b)=>parseFloat(campIns[b.id]?.spend||0)-parseFloat(campIns[a.id]?.spend||0));
+
+    pg.appendChild(el('div',{cls:'sec-title'},'קמפיינים פעילים ('+active.length+')'));
+    pg.appendChild(active.length ? buildCampList(active,campIns,true) : el('div',{cls:'empty'},'אין קמפיינים פעילים.'));
+
+    if(paused.length){
+      pg.appendChild(el('div',{cls:'sec-title'},'מושהים ('+paused.length+')'));
+      pg.appendChild(buildCampList(paused,campIns,false));
+    }
+
+    // AI section
+    const aiSec=el('div',{cls:'card',style:'margin-top:22px',id:'ai-sec'});
+    aiSec.appendChild(el('div',{cls:'card-title'},'ניתוח AI'));
+    aiSec.appendChild(el('div',{cls:'card-sub'},'סיכום אוטומטי + המלצות לפעולה מבוססות נתונים'));
+    const aiBtn=el('button',{cls:'ai-btn'},'✨  הפק דוח AI');
+    aiBtn.onclick=()=>runAI(aiSec,aiBtn);
+    aiSec.appendChild(aiBtn);
+    pg.appendChild(aiSec);
+
+  }catch(e){
+    if(loadEl.parentNode) loadEl.remove();
+    pg.appendChild(el('div',{cls:'empty',style:'color:var(--red)'},'שגיאה: '+e.message));
+  }
+}
+
+function buildCampList(camps, campIns, isActive){
+  const list=el('div',{cls:'camp-list'});
+  camps.forEach(c=>{
+    const ci=campIns[c.id];
+    const spend=parseFloat(ci?.spend||0);
+    const primary=getPrimary(c.objective,ci?.actions,parseFloat(ci?.reach||0));
+    const ctr=parseFloat(ci?.ctr||0), cpm=parseFloat(ci?.cpm||0), cpc=parseFloat(ci?.cpc||0);
+    const roas=getRoas(ci);
+
+    const card=el('div',{cls:'camp-card'});
+    const hdr=el('div',{cls:'camp-header'});
+    hdr.appendChild(el('span',{cls:'camp-chevron'},'›'));
+    hdr.appendChild(el('span',{cls:'camp-dot'+(isActive?'':' paused')}));
+    hdr.appendChild(el('span',{cls:'camp-name'},c.name));
+    hdr.appendChild(el('span',{cls:'camp-obj'},objLbl(c.objective)));
+    hdr.appendChild(el('span',{cls:'camp-spend'},spend>0?'₪'+n2(spend):'–'));
+
+    // Action buttons
+    const acts=el('div',{cls:'camp-actions'});
+    if(isActive){
+      const pb=el('button',{cls:'camp-act pause'},'⏸ השהה');
+      pb.onclick=e=>{ e.stopPropagation(); doAction(c,'pause'); };
+      acts.appendChild(pb);
+    } else {
+      const rb=el('button',{cls:'camp-act resume'},'▶ הפעל');
+      rb.onclick=e=>{ e.stopPropagation(); doAction(c,'resume'); };
+      acts.appendChild(rb);
+    }
+    if(c.daily_budget){
+      const bb=el('button',{cls:'camp-act budget'},'↑ תקציב');
+      bb.onclick=e=>{ e.stopPropagation(); doBudget(c); };
+      acts.appendChild(bb);
+    }
+    hdr.appendChild(acts);
+
+    // Body
+    const body=el('div',{cls:'camp-body'});
+    const mets=el('div',{cls:'camp-mets'});
+    function cm(label,val,hi){ const m=el('div',{cls:'camp-met'+(hi?' hi':'')}); m.appendChild(el('div',{cls:'camp-met-lbl'},label)); m.appendChild(el('div',{cls:'camp-met-val'},val)); mets.appendChild(m); }
+    cm('הוצאה','₪'+n2(spend));
+    cm(primary.label,primary.val>0?primary.val+'':'–',true);
+    if(primary.val>0&&spend>0) cm('עלות/'+primary.label,'₪'+(spend/primary.val).toFixed(0));
+    cm('CTR',ctr.toFixed(2)+'%');
+    cm('CPM','₪'+n2(cpm));
+    if(cpc>0) cm('CPC','₪'+cpc.toFixed(2));
+    if(roas>0) cm('ROAS',roas.toFixed(2));
+    body.appendChild(mets);
+
+    card.appendChild(hdr);
+    card.appendChild(body);
+    hdr.onclick=()=>card.classList.toggle('open');
+    list.appendChild(card);
+  });
+  return list;
+}
+
+// ── Campaign Actions ───────────────────────────────────────────────────────
+function doAction(camp, action){
+  modal({
+    title: action==='pause'?'השהה קמפיין':'הפעל קמפיין',
+    sub: `${action==='pause'?'להשהות':'להפעיל'} את "${camp.name}"?`,
+    confirm: action==='pause'?'השהה':'הפעל',
+    cls: action==='pause'?'danger':'',
+    onConfirm: async ()=>{
+      try{
+        await mqPost(camp.id,{status: action==='pause'?'PAUSED':'ACTIVE'});
+        toast(action==='pause'?`⏸ "${camp.name}" הושהה`:`▶ "${camp.name}" הופעל`,'ok');
+        setTimeout(()=>renderDetail(currentAcc),1200);
+      }catch(e){ toast('שגיאה: '+e.message,'err'); }
+    }
+  });
+}
+
+function doBudget(camp){
+  const cur = camp.daily_budget?Math.round(camp.daily_budget/100):0;
+  modal({
+    title: 'עדכון תקציב יומי',
+    sub: `קמפיין: "${camp.name}"${cur?' · תקציב נוכחי: ₪'+cur:''}`,
+    confirm: 'עדכן',
+    input: {label:'תקציב יומי חדש (₪)', value:cur?String(Math.round(cur*1.2)):'', placeholder:'לדוגמה: 200'},
+    onConfirm: async val=>{
+      const b=parseInt(val);
+      if(!b||b<1){ toast('סכום לא תקין','err'); return; }
+      try{
+        await mqPost(camp.id,{daily_budget:String(b*100)});
+        toast(`✓ תקציב עודכן ל-₪${b}/יום`,'ok');
+      }catch(e){ toast('שגיאה: '+e.message,'err'); }
+    }
+  });
+}
+
+// ── AI ─────────────────────────────────────────────────────────────────────
+async function runAI(sec, btn){
+  if(!diagnostics) return;
+  btn.disabled=true;
+  sec.innerHTML='';
+  sec.appendChild(el('div',{cls:'card-title'},'ניתוח AI'));
+  sec.appendChild(el('div',{cls:'loading'},el('div',{cls:'spin'}),el('p',{},'מנתח נתונים...')));
+
+  try{
+    const d=diagnostics, m=d.metrics, g=d.diag;
+    const ps=v=>(v>0?'+':'')+v.toFixed(1)+'%';
+
+    const prompt=`אתה מנהל קמפיינים בכיר ב-Meta Ads. נתח ביצועי חשבון "${d.accountName}":
+
+הוצאה: ₪${n2(m.spend)} (${ps(g.spend_pct)} vs קודם) | CTR: ${m.ctr.toFixed(2)}% (${ps(g.ctr_pct)}) | CPM: ₪${n2(m.cpm)} (${ps(g.cpm_pct)})
+עלות/תוצאה: ${m.cpr>0?'₪'+n2(m.cpr)+' ('+ps(g.cpr_pct)+')':'N/A'} | תוצאות: ${m.results}${m.leads>0?', לידים: '+m.leads:''}${m.purchases>0?', רכישות: '+m.purchases:''}${m.roas>0?', ROAS: '+m.roas.toFixed(2):''}
+${g.freqAlerts?.length?'שחיקה: '+g.freqAlerts.map(a=>a.name+' ('+a.freq.toFixed(1)+')').join(', '):''}${g.underdelivery?.length?'\nUnderdelivery: '+g.underdelivery.map(a=>a.name+' '+a.util+'%').join(', '):''}
+
+החזר JSON תקני בלבד (ללא markdown, ללא backticks):
+{"client_summary":"3-4 משפטים חיוביים ומקצועיים ללקוח","internal_summary":"ניתוח פנימי: מה עובד, מה בעייתי, הזדמנויות","recommendations":[{"action":"increase_budget","target":"שם קמפיין","reason":"סיבה","confidence":"high"}]}
+action values: increase_budget | pause | refresh_creative | check_landing_page | scale_winner | expand_audience`;
+
+    let result=null, lastErr='';
+    for(const url of GEMINI_URLS){
+      try{
+        const r=await fetch(url,{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.7,maxOutputTokens:1500}})
+        });
+        if(!r.ok){ lastErr=`HTTP ${r.status}`; continue; }
+        const raw=await r.json();
+        if(raw.error){ lastErr=raw.error.message||raw.error.status; continue; }
+        const txt=(raw.candidates?.[0]?.content?.parts?.[0]?.text||'').trim()
+          .replace(/^```(?:json)?\s*/i,'').replace(/\s*```\s*$/,'').trim();
+        if(!txt){ lastErr='תגובה ריקה'; continue; }
+        result=JSON.parse(txt);
+        break;
+      }catch(e){ lastErr=e.message; }
+    }
+
+    if(!result) throw new Error('Gemini API נכשל: '+lastErr);
+    renderAIResult(sec, result);
+  }catch(e){
+    sec.innerHTML='';
+    sec.appendChild(el('div',{cls:'card-title'},'ניתוח AI'));
+    sec.appendChild(el('div',{cls:'empty',style:'color:var(--red)'},'שגיאה: '+e.message));
+    const retry=el('button',{cls:'ai-btn',style:'margin-top:14px'},'↩  נסה שוב');
+    retry.onclick=()=>runAI(sec,retry);
+    sec.appendChild(retry);
+  }
+}
+
+function renderAIResult(sec, data){
+  sec.innerHTML='';
+  sec.appendChild(el('div',{cls:'card-title',style:'margin-bottom:16px'},'ניתוח AI'));
+
+  // Client summary
+  const cs=el('div',{cls:'card',style:'background:#0c0d13;margin-bottom:10px'});
+  cs.appendChild(el('div',{cls:'card-title'},'📨 סיכום ללקוח'));
+  cs.appendChild(el('div',{cls:'card-sub'},'מוכן לשליחה ישירות'));
+  cs.appendChild(el('div',{cls:'report-text'},data.client_summary||''));
+  const cp=el('button',{cls:'copy-btn'},'📋  העתק לקליפבורד');
+  cp.onclick=()=>{ navigator.clipboard?.writeText(data.client_summary||''); cp.textContent='✓ הועתק!'; setTimeout(()=>cp.textContent='📋  העתק לקליפבורד',2500); };
+  cs.appendChild(cp);
+  sec.appendChild(cs);
+
+  // Internal
+  const is=el('div',{cls:'card',style:'background:#0c0d13;margin-bottom:10px'});
+  is.appendChild(el('div',{cls:'card-title'},'🔍 ניתוח פנימי'));
+  is.appendChild(el('div',{cls:'report-text'},data.internal_summary||''));
+  sec.appendChild(is);
+
+  // Recommendations
+  if(data.recommendations?.length){
+    const rc=el('div',{cls:'card',style:'background:#0c0d13;margin-bottom:10px'});
+    rc.appendChild(el('div',{cls:'card-title'},'⚡ המלצות לפעולה'));
+    const LABELS={increase_budget:'הגדל תקציב',pause:'השהה',refresh_creative:'רענן קריאייטיב',check_landing_page:'בדוק דף נחיתה',scale_winner:'הגדל מנצח',expand_audience:'הרחב קהל'};
+    const EXEC=['increase_budget','pause'];
+
+    data.recommendations.forEach(r=>{
+      const cc=r.confidence==='high'?'green':r.confidence==='medium'?'amber':'blue';
+      const cl2=r.confidence==='high'?'ביטחון גבוה':r.confidence==='medium'?'בינוני':'נמוך';
+      const item=el('div',{cls:'rec-item'});
+      const hdr=el('div',{cls:'rec-head'});
+      hdr.appendChild(el('span',{cls:'pill '+cc},cl2));
+      hdr.appendChild(el('span',{cls:'pill blue'},LABELS[r.action]||r.action));
+      hdr.appendChild(el('strong',{style:'font-size:12px;color:var(--t1)'},r.target));
+      if(EXEC.includes(r.action)){
+        const xb=el('button',{cls:'rec-exec'},'⚡ בצע');
+        xb.onclick=()=>execRec(r);
+        hdr.appendChild(xb);
+      }
+      item.appendChild(hdr);
+      item.appendChild(el('div',{cls:'rec-reason'},r.reason));
+      rc.appendChild(item);
+    });
+    sec.appendChild(rc);
+  }
+
+  const rg=el('button',{cls:'regen-btn'},'🔄  צור דוח מחדש');
+  rg.onclick=()=>runAI(sec,rg);
+  sec.appendChild(rg);
+}
+
+function execRec(rec){
+  const camp = currentCamps.find(c=>c.name===rec.target||c.name.includes(rec.target.slice(0,10)));
+  if(!camp){ toast('לא נמצא קמפיין: '+rec.target,'err'); return; }
+  if(rec.action==='pause') doAction(camp,'pause');
+  else if(rec.action==='increase_budget') doBudget(camp);
+}
+
+// ── Parse & helpers ────────────────────────────────────────────────────────
+function parseIns(d){
+  if(!d) return {spend:0,ctr:0,cpm:0,cpc:0,results:0,leads:0,purchases:0,roas:0,cpr:0,reach:0};
+  const ga=(arr,t)=>parseFloat(arr?.find(a=>a.action_type===t)?.value||0);
+  const leads=ga(d.actions,'lead')+ga(d.actions,'onsite_conversion.lead_grouped');
+  const purch=ga(d.actions,'purchase')+ga(d.actions,'omni_purchase');
+  const res=leads||purch||(d.actions?.reduce((s,a)=>s+parseFloat(a.value||0),0)||0);
+  const spend=parseFloat(d.spend||0);
+  const cv=ga(d.action_values,'purchase')+ga(d.action_values,'omni_purchase');
+  return {spend,ctr:parseFloat(d.ctr||0),cpm:parseFloat(d.cpm||0),cpc:parseFloat(d.cpc||0),
+          results:Math.round(res),leads:Math.round(leads),purchases:Math.round(purch),
+          roas:spend>0&&cv>0?cv/spend:0,cpr:res>0?spend/res:0,reach:parseFloat(d.reach||0)};
+}
+
+function getRoas(d){
+  if(!d) return 0;
+  const spend=parseFloat(d.spend||0); if(!spend) return 0;
+  const cv=(d.action_values||[]).filter(a=>['purchase','omni_purchase'].includes(a.action_type)).reduce((s,a)=>s+parseFloat(a.value||0),0);
+  return cv>0?cv/spend:0;
+}
+
+const OBJ={
+  LEAD_GENERATION:{l:'לידים',k:'lead'},OUTCOME_LEADS:{l:'לידים',k:'lead'},
+  OUTCOME_SALES:{l:'רכישות',k:'purchase'},OUTCOME_TRAFFIC:{l:'קליקים',k:'link_click'},
+  LINK_CLICKS:{l:'קליקים',k:'link_click'},OUTCOME_ENGAGEMENT:{l:'מעורבות',k:'post_engagement'},
+  VIDEO_VIEWS:{l:'צפיות',k:'video_view'},OUTCOME_AWARENESS:{l:'חשיפה',k:'_reach'},
+  APP_INSTALLS:{l:'התקנות',k:'app_install'},OUTCOME_APP_PROMOTION:{l:'התקנות',k:'app_install'},
+};
+const AKEYS={lead:['lead','onsite_conversion.lead_grouped'],purchase:['purchase','omni_purchase'],link_click:['link_click'],post_engagement:['post_engagement'],video_view:['video_view'],app_install:['app_install','mobile_app_install']};
+const OLLABELS={LEAD_GENERATION:'לידים',OUTCOME_LEADS:'לידים',OUTCOME_SALES:'מכירות',OUTCOME_TRAFFIC:'תנועה',LINK_CLICKS:'קליקים',OUTCOME_ENGAGEMENT:'מעורבות',VIDEO_VIEWS:'צפיות',OUTCOME_AWARENESS:'מודעות',APP_INSTALLS:'אפליקציה',OUTCOME_APP_PROMOTION:'אפליקציה'};
+
+function getPrimary(obj,actions,reach){
+  const cfg=OBJ[obj]||{l:'תוצאות',k:'_all'};
+  if(cfg.k==='_reach') return {label:cfg.l,val:Math.round(reach||0)};
+  if(cfg.k==='_all') return {label:cfg.l,val:Math.round((actions||[]).reduce((s,a)=>s+parseFloat(a.value||0),0))};
+  const keys=AKEYS[cfg.k]||[cfg.k];
+  return {label:cfg.l,val:Math.round((actions||[]).filter(a=>keys.includes(a.action_type)).reduce((s,a)=>s+parseFloat(a.value||0),0))};
+}
+
+function objLbl(obj){ return OLLABELS[obj]||obj||''; }
+
+// ── Boot ──────────────────────────────────────────────────────────────────
+(function boot(){
+  token = localStorage.getItem('cm_tok')||'';
+  if(token){ init(); }
+})();
+
+// Expose globals
+window.startLogin = startLogin;
+window.logout = logout;
+window.navTo = navTo;
+
+})();
+</script>
+</body>
+</html>

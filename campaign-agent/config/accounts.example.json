@@ -1,0 +1,32 @@
+[
+  {
+    "client_id": "cl_001",
+    "client_name": "לקוח לדוגמה — חנות",
+    "platform": "meta",
+    "ad_account_id": "act_1234567890",
+    "monthly_budget": 30000,
+    "daily_budget": 1000,
+    "main_goal": "purchases",
+    "target_cpa": 25.0,
+    "target_roas": 3.5,
+    "industry": "ecommerce",
+    "campaign_type": "conversions",
+    "assigned_manager": "guy@agency.com",
+    "status": "active"
+  },
+  {
+    "client_id": "cl_002",
+    "client_name": "לקוח לדוגמה — לידים",
+    "platform": "meta",
+    "ad_account_id": "act_2233445566",
+    "monthly_budget": 12000,
+    "daily_budget": 400,
+    "main_goal": "leads",
+    "target_cpa": 60.0,
+    "target_roas": 0,
+    "industry": "services",
+    "campaign_type": "lead_generation",
+    "assigned_manager": "dana@agency.com",
+    "status": "active"
+  }
+]

@@ -1,0 +1,35 @@
+{
+  "_comment": "ספי התראות למנוע החוקים. אפשר override per-account תחת client_overrides לפי client_id. כל הסכומים במטבע חשבון המודעות.",
+
+  "zero_spend_active_hours": 6,
+  "zero_spend_floor": 0.5,
+
+  "spend_no_results_min_spend": 20.0,
+
+  "cpa_over_target_multiplier": 2.0,
+
+  "roas_below_target_ratio": 1.0,
+  "roas_min_spend": 50.0,
+
+  "frequency_threshold": 3.0,
+
+  "ctr_floor_percent": 0.7,
+  "ctr_min_impressions": 1000,
+
+  "cpm_high_multiplier": 1.75,
+  "cpm_min_impressions": 1000,
+
+  "spend_drop_percent": 0.6,
+  "cpa_increase_percent": 0.5,
+
+  "budget_cap_warning_ratio": 0.85,
+
+  "tracking_clicks_without_results_min_clicks": 50,
+
+  "client_overrides": {
+    "cl_002": {
+      "ctr_floor_percent": 0.5,
+      "frequency_threshold": 4.0
+    }
+  }
+}

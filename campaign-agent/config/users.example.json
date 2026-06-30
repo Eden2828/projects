@@ -1,0 +1,16 @@
+[
+  {
+    "username": "guy",
+    "display_name": "גיא",
+    "email": "guy@agency.com",
+    "role": "admin",
+    "password_hash": "REPLACE_ME"
+  },
+  {
+    "username": "dana",
+    "display_name": "דנה",
+    "email": "dana@agency.com",
+    "role": "campaigner",
+    "password_hash": "REPLACE_ME"
+  }
+]

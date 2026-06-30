@@ -1,0 +1,19 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "agency-dashboard",
+      "runtimeExecutable": "C:\\Program Files\\nodejs\\node.exe",
+      "runtimeArgs": ["C:\\Users\\Guy\\OneDrive\\Desktop\\דאשבורד\\.claude\\server.js"],
+      "port": 3334,
+      "autoPort": true
+    },
+    {
+      "name": "adpilot",
+      "runtimeExecutable": "C:\\Program Files\\nodejs\\npm.cmd",
+      "runtimeArgs": ["--prefix", "C:\\Users\\Guy\\OneDrive\\Desktop\\דאשבורד\\campaign-center", "run", "dev"],
+      "port": 3000,
+      "autoPort": true
+    }
+  ]
+}

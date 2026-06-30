@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agency Dashboard | Think Digital</title>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#09030f;--bg2:#0f0820;--bg3:#160b2c;
+  --card:#12092a;--card2:#1a1040;
+  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.13);
+  --accent:#a855f7;--accent2:#7c3aed;--glow:rgba(168,85,247,.22);
+  --green:#22c55e;--gbg:rgba(34,197,94,.1);
+  --amber:#f59e0b;--abg:rgba(245,158,11,.1);
+  --red:#ef4444;--rbg:rgba(239,68,68,.1);
+  --t1:#fff;--t2:rgba(255,255,255,.58);--t3:rgba(255,255,255,.28);
+  --font:'Assistant',system-ui,sans-serif;
+  --r:12px;--rsm:8px;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100vh;direction:rtl}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:rgba(168,85,247,.28);border-radius:4px}
+
+/* ── TOAST ── */
+#toast-wrap{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+.toast{background:var(--card);border:1px solid var(--border2);border-radius:10px;padding:11px 20px;font-size:13px;font-weight:700;white-space:nowrap;animation:tIn .2s ease;box-shadow:0 8px 24px rgba(0,0,0,.55)}
+.toast.ok{border-color:rgba(34,197,94,.4);color:#4ade80}
+.toast.err{border-color:rgba(239,68,68,.4);color:#f87171}
+@keyframes tIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── MODAL ── */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:2000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+.modal-box{background:var(--card);border:1px solid var(--border2);border-radius:18px;padding:28px;width:92%;max-width:420px;box-shadow:0 24px 64px rgba(0,0,0,.7)}
+.modal-title{font-size:17px;font-weight:800;margin-bottom:7px}
+.modal-sub{font-size:13px;color:var(--t2);margin-bottom:22px;line-height:1.65;white-space:pre-wrap}
+.modal-lbl{font-size:11px;color:var(--t2);font-weight:700;margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:.5px}
+.modal-inp{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:9px;color:var(--t1);font-size:14px;font-family:var(--font);padding:11px 14px;outline:none;margin-bottom:18px;transition:border-color .15s}
+.modal-inp:focus{border-color:var(--accent)}
+.modal-btns{display:flex;gap:10px;justify-content:flex-end}
+.mbtn{padding:10px 20px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .15s;border:none}
+.mbtn.cancel{background:transparent;border:1px solid var(--border2);color:var(--t2)}.mbtn.cancel:hover{color:var(--t1)}
+.mbtn.ok{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff}.mbtn.ok:hover{opacity:.88}
+.mbtn.danger{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff}.mbtn.danger:hover{opacity:.88}
+.mbtn.success{background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff}.mbtn.success:hover{opacity:.88}
+
+/* ── LOGIN ── */
+#scr-login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 20px;
+  background:radial-gradient(ellipse 65% 55% at 50% -5%,rgba(124,58,237,.25) 0%,transparent 65%)}
+.login-card{background:var(--card);border:1px solid var(--border2);border-radius:22px;
+  padding:48px 40px;width:100%;max-width:420px;text-align:center;
+  box-shadow:0 40px 100px rgba(0,0,0,.7)}
+.login-eyebrow{font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--accent);margin-bottom:16px}
+.login-icon{width:64px;height:64px;background:linear-gradient(135deg,var(--accent2),var(--accent));
+  border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:28px;
+  margin:0 auto 20px;box-shadow:0 8px 28px var(--glow)}
+.login-card h2{font-size:26px;font-weight:800;letter-spacing:-.5px;margin-bottom:10px;line-height:1.2}
+.login-card p{font-size:13px;color:var(--t2);margin-bottom:32px;line-height:1.7}
+.btn-fb{display:flex;align-items:center;justify-content:center;gap:10px;
+  background:#1877f2;border:none;border-radius:12px;padding:15px 24px;
+  font-family:var(--font);font-size:15px;font-weight:700;color:#fff;cursor:pointer;
+  width:100%;transition:all .2s;box-shadow:0 6px 20px rgba(24,119,242,.35)}
+.btn-fb:hover{background:#1564d3;transform:translateY(-1px);box-shadow:0 10px 28px rgba(24,119,242,.45)}
+.btn-fb:disabled{opacity:.55;cursor:not-allowed;transform:none}
+.login-perms{display:flex;flex-direction:column;gap:8px;margin-bottom:28px;text-align:right}
+.perm-row{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--t2)}
+.perm-dot{width:18px;height:18px;background:var(--gbg);border:1px solid rgba(34,197,94,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}
+
+/* ── APP SHELL ── */
+#scr-app{display:none;min-height:100vh}
+
+/* ── SIDEBAR ── */
+.sidebar{width:222px;background:var(--bg2);border-left:1px solid var(--border);
+  position:fixed;right:0;top:0;bottom:0;z-index:100;
+  display:flex;flex-direction:column}
+.s-logo{padding:18px 16px 16px;border-bottom:1px solid var(--border)}
+.s-brand{display:flex;align-items:center;gap:10px}
+.s-brand-ico{width:36px;height:36px;background:linear-gradient(135deg,var(--accent2),var(--accent));
+  border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.s-brand-name{font-size:14px;font-weight:800;letter-spacing:-.3px}
+.s-brand-sub{font-size:10px;color:var(--t3);letter-spacing:.3px;margin-top:1px}
+.s-nav{flex:1;padding:10px 8px;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
+.s-section{font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;padding:10px 10px 4px;margin-top:4px}
+.nav-btn{display:flex;align-items:center;gap:9px;padding:10px 11px;border-radius:9px;
+  border:none;background:transparent;color:var(--t2);font-size:13px;font-weight:600;
+  cursor:pointer;font-family:var(--font);width:100%;text-align:right;transition:all .15s}
+.nav-btn:hover{background:rgba(255,255,255,.04);color:var(--t1)}
+.nav-btn.active{background:rgba(168,85,247,.13);color:#c084fc}
+.nav-ico{font-size:16px;width:22px;text-align:center;flex-shrink:0}
+.nav-badge{margin-right:auto;background:rgba(168,85,247,.2);color:var(--accent);
+  border-radius:20px;padding:1px 7px;font-size:10px;font-weight:800}
+.s-foot{padding:12px;border-top:1px solid var(--border)}
+.s-user{display:flex;align-items:center;gap:9px}
+.s-av{width:34px;height:34px;background:linear-gradient(135deg,var(--accent2),var(--accent));
+  border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0}
+.s-info{flex:1;min-width:0}
+.s-uname{font-size:12px;font-weight:700;color:#c8cad6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.s-urole{font-size:10px;color:var(--t3)}
+.s-logout{background:transparent;border:none;color:var(--t3);font-size:18px;cursor:pointer;padding:3px;line-height:1;transition:color .15s;flex-shrink:0}
+.s-logout:hover{color:var(--red)}
+
+/* ── WEEKLY BANNER ── */
+#wb-wrap{position:fixed;top:0;right:222px;left:0;z-index:90;
+  background:linear-gradient(135deg,rgba(168,85,247,.15),rgba(124,58,237,.1));
+  border-bottom:1px solid rgba(168,85,247,.28);backdrop-filter:blur(12px);
+  display:none;align-items:center;gap:14px;padding:11px 24px 11px 16px}
+.wb-icon{font-size:24px;flex-shrink:0}
+.wb-body{flex:1;min-width:0}
+.wb-title{font-size:14px;font-weight:800;color:#e9d5ff}
+.wb-sub{font-size:11px;color:rgba(233,213,255,.55)}
+.wb-btn{padding:8px 18px;background:linear-gradient(135deg,var(--accent2),var(--accent));
+  border:none;border-radius:9px;font-family:var(--font);font-size:13px;font-weight:700;
+  color:#fff;cursor:pointer;flex-shrink:0;white-space:nowrap;transition:all .15s}
+.wb-btn:hover{opacity:.88}
+.wb-close{background:transparent;border:none;color:rgba(255,255,255,.35);font-size:22px;cursor:pointer;padding:0 4px;line-height:1;flex-shrink:0;transition:color .15s}
+.wb-close:hover{color:#fff}
+
+/* ── MAIN ── */
+.main-area{margin-right:222px;min-height:100vh;padding:28px 28px 50px;background:var(--bg)}
+.main-area.has-banner{padding-top:64px}
+.page{display:none}.page.active{display:block;animation:fadeUp .25s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.page-hdr{margin-bottom:24px}
+.page-title{font-size:22px;font-weight:800;letter-spacing:-.5px;margin-bottom:4px}
+.page-sub{font-size:13px;color:var(--t2)}
+.back-btn{display:inline-flex;align-items:center;gap:6px;background:transparent;border:none;
+  color:var(--t2);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);
+  padding:0;margin-bottom:16px;transition:color .15s}
+.back-btn:hover{color:var(--t1)}
+
+/* ── CLIENTS GRID ── */
+.clients-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.client-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+  padding:18px;cursor:pointer;transition:all .22s;position:relative;overflow:hidden}
+.client-card::before{content:'';position:absolute;top:-28px;right:-28px;width:80px;height:80px;
+  border-radius:50%;background:var(--glow);opacity:0;transition:opacity .3s}
+.client-card:hover{border-color:rgba(168,85,247,.4);transform:translateY(-3px);
+  box-shadow:0 14px 44px rgba(0,0,0,.45)}
+.client-card:hover::before{opacity:.45}
+.cc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:14px}
+.cc-av{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--accent2),var(--accent));
+  display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;flex-shrink:0}
+.cc-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:6px;transition:all .3s}
+.cc-dot.green{background:var(--green);box-shadow:0 0 8px rgba(34,197,94,.5)}
+.cc-dot.amber{background:var(--amber);box-shadow:0 0 8px rgba(245,158,11,.5)}
+.cc-dot.red{background:var(--red);box-shadow:0 0 8px rgba(239,68,68,.5)}
+.cc-dot.grey{background:rgba(255,255,255,.18)}
+.cc-name{font-size:15px;font-weight:800;letter-spacing:-.2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:3px}
+.cc-id{font-size:11px;color:var(--t3)}
+.cc-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.cc-stat{background:var(--bg2);border-radius:var(--rsm);padding:9px 11px}
+.cc-stat-lbl{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:4px}
+.cc-stat-val{font-size:16px;font-weight:800;letter-spacing:-.3px}
+.cc-footer{display:flex;align-items:center;justify-content:space-between}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.badge.ok{background:var(--gbg);color:#4ade80;border:1px solid rgba(34,197,94,.2)}
+.badge.warn{background:var(--abg);color:#fcd34d;border:1px solid rgba(245,158,11,.2)}
+.badge.err{background:var(--rbg);color:#fca5a5;border:1px solid rgba(239,68,68,.2)}
+.badge.neu{background:rgba(255,255,255,.06);color:var(--t2);border:1px solid var(--border)}
+.badge.purple{background:rgba(168,85,247,.12);color:#c084fc;border:1px solid rgba(168,85,247,.25)}
+.cc-arrow{color:var(--t3);font-size:18px;flex-shrink:0;transition:color .15s}
+.client-card:hover .cc-arrow{color:var(--accent)}
+
+/* ── DATE RANGE BAR ── */
+.dr-bar{display:flex;flex-wrap:wrap;align-items:center;gap:5px;
+  padding:10px 14px;background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);margin-bottom:22px}
+.dr-lbl{font-size:10px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-left:2px}
+.dr-p{padding:5px 12px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;
+  border:1px solid transparent;background:transparent;color:var(--t2);font-family:var(--font);transition:all .15s}
+.dr-p:hover{color:var(--t1);background:rgba(255,255,255,.04)}
+.dr-p.active{background:rgba(168,85,247,.14);color:#c084fc;border-color:rgba(168,85,247,.3)}
+.dr-cust{display:flex;align-items:center;gap:6px;margin-right:auto}
+.dr-in{background:rgba(255,255,255,.06);border:1px solid var(--border2);border-radius:7px;
+  color:var(--t1);font-size:11px;padding:4px 9px;font-family:var(--font);outline:none;
+  transition:border-color .15s;color-scheme:dark}
+.dr-in:focus{border-color:var(--accent)}
+.dr-apply{padding:5px 12px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;
+  background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;border:none;font-family:var(--font)}
+
+/* ── METRICS ── */
+.metrics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:10px;margin-bottom:20px}
+.metric{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px}
+.metric.hi{background:rgba(168,85,247,.07);border-color:rgba(168,85,247,.22)}
+.metric-lbl{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;font-weight:700;margin-bottom:8px}
+.metric-val{font-size:20px;font-weight:800;letter-spacing:-.5px}
+.metric.hi .metric-val{color:#c084fc}
+.metric-chg{font-size:10px;font-weight:700;margin-top:5px}
+.up{color:var(--green)}.dn{color:var(--red)}.flat{color:var(--t3)}
+
+/* ── ALERTS ── */
+.alerts-wrap{display:flex;flex-direction:column;gap:7px;margin-bottom:18px}
+.alert-row{border-radius:var(--rsm);padding:10px 14px;font-size:12px;font-weight:600;
+  display:flex;align-items:flex-start;gap:9px;line-height:1.55}
+.alert-row.amber{background:var(--abg);border:1px solid rgba(245,158,11,.25);color:#fcd34d}
+.alert-row.red{background:var(--rbg);border:1px solid rgba(239,68,68,.25);color:#fca5a5}
+
+/* ── SEC TITLE ── */
+.sec-title{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;
+  display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── CAMPAIGN CARDS ── */
+.camp-list{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.camp-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:border-color .15s}
+.camp-card:hover{border-color:var(--border2)}
+.camp-hdr{display:flex;align-items:center;gap:10px;padding:13px 16px;cursor:pointer;user-select:none}
+.camp-chev{color:var(--t3);font-size:12px;transition:transform .2s;flex-shrink:0}
+.camp-card.open .camp-chev{transform:rotate(90deg)}
+.camp-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--green);box-shadow:0 0 6px rgba(34,197,94,.5)}
+.camp-dot.paused{background:rgba(255,255,255,.18);box-shadow:none}
+.camp-name{font-size:12px;font-weight:700;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.camp-obj{font-size:10px;color:var(--t2);background:rgba(255,255,255,.06);padding:2px 8px;border-radius:5px;white-space:nowrap;flex-shrink:0}
+.camp-spend{font-size:13px;font-weight:800;flex-shrink:0}
+.camp-acts{display:flex;gap:4px;flex-shrink:0}
+.camp-act{padding:4px 9px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;font-family:var(--font);border:1px solid;transition:all .15s}
+.camp-act.pause{background:rgba(239,68,68,.07);border-color:rgba(239,68,68,.28);color:#f87171}
+.camp-act.pause:hover{background:rgba(239,68,68,.18)}
+.camp-act.resume{background:rgba(34,197,94,.07);border-color:rgba(34,197,94,.28);color:#4ade80}
+.camp-act.resume:hover{background:rgba(34,197,94,.18)}
+.camp-act.budget{background:rgba(168,85,247,.07);border-color:rgba(168,85,247,.28);color:#c084fc}
+.camp-act.budget:hover{background:rgba(168,85,247,.18)}
+.camp-body{display:none;padding:0 16px 16px;border-top:1px solid var(--border);background:rgba(0,0,0,.18)}
+.camp-card.open .camp-body{display:block}
+.camp-mets{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:6px;padding-top:12px}
+.camp-met{padding:9px 11px;background:var(--card);border:1px solid var(--border);border-radius:9px}
+.camp-met.hi{background:rgba(168,85,247,.07);border-color:rgba(168,85,247,.2)}
+.camp-met-lbl{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:5px}
+.camp-met-val{font-size:15px;font-weight:800;letter-spacing:-.3px}
+.camp-met.hi .camp-met-val{color:#c084fc}
+
+/* ── CARD ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:16px}
+.card-title{font-size:15px;font-weight:800;letter-spacing:-.2px;margin-bottom:4px}
+.card-sub{font-size:12px;color:var(--t2);margin-bottom:16px}
+.card-inner{background:#0d0723;border-radius:var(--rsm);padding:16px;margin-bottom:10px}
+
+/* ── AI SECTION ── */
+.ai-btn{display:flex;align-items:center;justify-content:center;gap:9px;
+  background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;
+  border:none;border-radius:var(--r);padding:14px 24px;font-size:14px;font-weight:700;
+  cursor:pointer;width:100%;font-family:var(--font);transition:all .2s;
+  box-shadow:0 6px 20px var(--glow)}
+.ai-btn:hover{opacity:.9;transform:translateY(-1px)}
+.ai-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.report-text{font-size:13px;line-height:1.85;white-space:pre-wrap;color:var(--t2)}
+.copy-btn,.regen-btn{background:transparent;border:1px solid;border-radius:var(--rsm);
+  padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;width:100%;margin-top:8px;
+  font-family:var(--font);transition:all .15s}
+.copy-btn{border-color:rgba(168,85,247,.3);color:#c084fc}
+.copy-btn:hover{background:rgba(168,85,247,.1)}
+.regen-btn{border-color:var(--border2);color:var(--t2)}
+.regen-btn:hover{border-color:var(--accent);color:#c084fc}
+
+/* ── RECOMMENDATIONS ── */
+.rec-item{padding:13px 0;border-bottom:1px solid var(--border)}
+.rec-item:last-child{border-bottom:none;padding-bottom:0}
+.rec-top{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:6px}
+.rec-exec{margin-right:auto;padding:5px 12px;background:rgba(168,85,247,.1);
+  border:1px solid rgba(168,85,247,.25);border-radius:7px;color:#c084fc;
+  font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .15s}
+.rec-exec:hover{background:rgba(168,85,247,.22)}
+.rec-reason{font-size:12px;color:var(--t2);line-height:1.65}
+.pill{border-radius:20px;padding:3px 9px;font-size:10px;font-weight:700;display:inline-block}
+.pill.green{background:var(--gbg);color:#4ade80}
+.pill.amber{background:var(--abg);color:#fcd34d}
+.pill.blue{background:rgba(168,85,247,.1);color:#c084fc}
+.pill.red{background:var(--rbg);color:#fca5a5}
+
+/* ── LOADING / EMPTY ── */
+.loading{text-align:center;padding:44px 20px;color:var(--t2);font-size:13px}
+.spinner{display:inline-block;width:26px;height:26px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .65s linear infinite;margin-bottom:10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty-state{text-align:center;padding:40px 20px;color:var(--t3);font-size:13px}
+
+/* ── AI CHAT ── */
+.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 130px);max-height:780px;
+  background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.chat-top{padding:16px 18px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;gap:10px}
+.chat-top-left{display:flex;align-items:center;gap:10px}
+.chat-ico{width:38px;height:38px;background:linear-gradient(135deg,var(--accent2),var(--accent));
+  border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.chat-hdr-name{font-size:15px;font-weight:800}
+.chat-hdr-sub{font-size:11px;color:var(--t3)}
+.chat-top-right{display:flex;gap:8px}
+.chat-act-btn{background:transparent;border:1px solid var(--border2);border-radius:7px;
+  padding:5px 12px;font-size:11px;font-weight:700;color:var(--t3);cursor:pointer;
+  font-family:var(--font);transition:all .15s}
+.chat-act-btn:hover{border-color:var(--red);color:var(--red)}
+.chat-act-btn.context{border-color:rgba(168,85,247,.3);color:#c084fc}
+.chat-act-btn.context:hover{background:rgba(168,85,247,.1)}
+.chat-body{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px;scroll-behavior:smooth}
+.chat-msg{max-width:78%;animation:fadeUp .2s ease}
+.chat-msg.user{align-self:flex-end}
+.chat-msg.ai{align-self:flex-start}
+.chat-bubble{padding:12px 16px;border-radius:14px;font-size:13px;line-height:1.75;word-break:break-word}
+.chat-msg.user .chat-bubble{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;border-radius:14px 14px 0 14px}
+.chat-msg.ai .chat-bubble{background:var(--card2);border:1px solid var(--border);color:var(--t1);border-radius:14px 14px 14px 0;white-space:pre-wrap}
+.chat-ts{font-size:10px;color:var(--t3);margin-top:5px}
+.chat-msg.user .chat-ts{text-align:right}
+.typing-wrap{align-self:flex-start}
+.typing-bubble{display:flex;align-items:center;gap:5px;padding:12px 16px;
+  background:var(--card2);border:1px solid var(--border);border-radius:14px 14px 14px 0;width:60px}
+.typing-bubble span{width:6px;height:6px;background:var(--t3);border-radius:50%;animation:bounce .8s ease infinite}
+.typing-bubble span:nth-child(2){animation-delay:.15s}
+.typing-bubble span:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
+.quick-prompts{display:flex;gap:7px;flex-wrap:wrap;padding:0 16px 12px}
+.qp{padding:5px 12px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.18);
+  border-radius:20px;font-size:11px;font-weight:600;color:#c084fc;cursor:pointer;
+  font-family:var(--font);transition:all .15s;white-space:nowrap}
+.qp:hover{background:rgba(168,85,247,.18)}
+.chat-foot{padding:12px 14px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:flex-end}
+.chat-inp{flex:1;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);
+  color:var(--t1);font-size:13px;font-family:var(--font);padding:11px 15px;
+  outline:none;resize:none;min-height:46px;max-height:120px;overflow-y:auto;
+  line-height:1.4;transition:border-color .15s}
+.chat-inp:focus{border-color:var(--accent)}
+.chat-send{width:46px;height:46px;background:linear-gradient(135deg,var(--accent2),var(--accent));
+  border:none;border-radius:var(--r);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;transition:all .15s}
+.chat-send:hover{opacity:.88;transform:translateY(-1px)}
+.chat-send:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.chat-send svg{width:18px;height:18px;fill:#fff}
+
+/* ── WEEKLY PAGE ── */
+.period-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:20px}
+.period-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.period-lbl{font-size:12px;font-weight:700;color:var(--t2);white-space:nowrap}
+.period-sel{padding:9px 12px;background:var(--card2);border:1px solid var(--border2);
+  border-radius:var(--rsm);font-family:var(--font);font-size:13px;font-weight:600;
+  color:var(--t1);outline:none;cursor:pointer;color-scheme:dark;transition:border-color .15s}
+.period-sel:focus{border-color:var(--accent)}
+.period-sel option{background:#1a0f35}
+.period-custom{display:none;align-items:center;gap:8px}
+.period-custom.show{display:flex}
+.period-date{padding:9px 12px;background:var(--card2);border:1px solid var(--border2);
+  border-radius:var(--rsm);font-family:var(--font);font-size:13px;color:var(--t1);
+  outline:none;color-scheme:dark;width:150px}
+.period-date:focus{border-color:var(--accent)}
+.gen-btn{display:flex;align-items:center;justify-content:center;gap:8px;
+  background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;
+  border:none;border-radius:var(--r);padding:12px 24px;font-size:14px;font-weight:700;
+  cursor:pointer;font-family:var(--font);transition:all .2s;
+  box-shadow:0 4px 18px var(--glow);white-space:nowrap}
+.gen-btn:hover{opacity:.9;transform:translateY(-1px)}
+.gen-btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+.clients-chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.cl-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;
+  background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:20px;
+  font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;user-select:none}
+.cl-chip:hover{border-color:rgba(168,85,247,.4)}
+.cl-chip.selected{background:rgba(168,85,247,.14);border-color:rgba(168,85,247,.35);color:#c084fc}
+.weekly-result{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:22px;margin-top:18px}
+.weekly-result-title{font-size:16px;font-weight:800;margin-bottom:4px}
+.weekly-result-date{font-size:12px;color:var(--t3);margin-bottom:16px}
+.weekly-text{font-size:14px;line-height:1.85;white-space:pre-wrap;color:var(--t1)}
+.weekly-actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+.wact-btn{padding:9px 18px;background:transparent;border:1px solid var(--border2);border-radius:var(--rsm);
+  font-size:12px;font-weight:700;color:var(--t2);cursor:pointer;font-family:var(--font);transition:all .15s}
+.wact-btn:hover{border-color:var(--accent);color:#c084fc}
+.wact-btn.primary{background:rgba(168,85,247,.12);border-color:rgba(168,85,247,.3);color:#c084fc}
+
+/* ── RESPONSIVE ── */
+@media(max-width:720px){
+  .sidebar{transform:translateX(100%);transition:transform .25s ease}
+  .sidebar.open{transform:none}
+  .main-area{margin-right:0;padding:20px 16px 50px}
+  #wb-wrap{right:0}
+  .clients-grid{grid-template-columns:1fr}
+  .metrics-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<div id="toast-wrap"></div>
+
+<!-- ── LOGIN ── -->
+<div id="scr-login">
+  <div class="login-card">
+    <div class="login-eyebrow">META ADS · THINK DIGITAL</div>
+    <div class="login-icon">📊</div>
+    <h2>Agency Dashboard</h2>
+    <p>מערכת ניהול קמפיינים עם AI — בקרה על כל הלקוחות, ניתוח חכם וסיכום שבועי אוטומטי</p>
+    <div class="login-perms">
+      <div class="perm-row"><div class="perm-dot">✓</div><span>צפייה בכל חשבונות המודעות שלך</span></div>
+      <div class="perm-row"><div class="perm-dot">✓</div><span>ניתוח ביצועים וסיכום AI אוטומטי</span></div>
+      <div class="perm-row"><div class="perm-dot">✓</div><span>ניהול תקציבים וקמפיינים בזמן אמת</span></div>
+    </div>
+    <button class="btn-fb" id="btn-login" onclick="startLogin()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+      כניסה עם Facebook
+    </button>
+  </div>
+</div>
+
+<!-- ── APP ── -->
+<div id="scr-app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="s-logo">
+      <div class="s-brand">
+        <div class="s-brand-ico">📊</div>
+        <div>
+          <div class="s-brand-name">Agency Dashboard</div>
+          <div class="s-brand-sub">THINK DIGITAL</div>
+        </div>
+      </div>
+    </div>
+    <nav class="s-nav">
+      <button class="nav-btn active" data-pg="clients" onclick="navTo('clients')">
+        <span class="nav-ico">👥</span>כל הלקוחות
+        <span class="nav-badge" id="nav-count" style="display:none">0</span>
+      </button>
+      <div class="s-section">AI Tools</div>
+      <button class="nav-btn" data-pg="chat" onclick="navTo('chat')">
+        <span class="nav-ico">💬</span>צ'אט AI
+      </button>
+      <button class="nav-btn" data-pg="weekly" onclick="navTo('weekly')">
+        <span class="nav-ico">📋</span>סיכום שבועי
+      </button>
+    </nav>
+    <div class="s-foot">
+      <div class="s-user">
+        <div class="s-av" id="s-av">?</div>
+        <div class="s-info">
+          <div class="s-uname" id="s-name">טוען...</div>
+          <div class="s-urole">קמפיינר</div>
+        </div>
+        <button class="s-logout" title="התנתק" onclick="logout()">⏻</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- WEEKLY BANNER -->
+  <div id="wb-wrap">
+    <div class="wb-icon">☀️</div>
+    <div class="wb-body">
+      <div class="wb-title">בוקר טוב! הסיכום השבועי שלך מוכן</div>
+      <div class="wb-sub">לחץ לצפייה בסיכום שבועי אוטומטי לכל הלקוחות</div>
+    </div>
+    <button class="wb-btn" onclick="openWeeklyAuto()">📋 צפה בסיכום</button>
+    <button class="wb-close" onclick="document.getElementById('wb-wrap').style.display='none';document.querySelector('.main-area').classList.remove('has-banner')">×</button>
+  </div>
+
+  <!-- MAIN -->
+  <main class="main-area" id="main-area">
+
+    <!-- PAGE: CLIENTS -->
+    <div class="page active" id="pg-clients">
+      <div class="page-hdr">
+        <div class="page-title">לקוחות פעילים</div>
+        <div class="page-sub" id="clients-sub">טוען חשבונות...</div>
+      </div>
+      <div class="clients-grid" id="clients-grid">
+        <div class="loading"><div class="spinner"></div><p>מתחבר לפייסבוק...</p></div>
+      </div>
+    </div>
+
+    <!-- PAGE: DETAIL -->
+    <div class="page" id="pg-detail"></div>
+
+    <!-- PAGE: CHAT -->
+    <div class="page" id="pg-chat">
+      <div class="page-hdr">
+        <div class="page-title">צ'אט AI</div>
+        <div class="page-sub">שאל שאלות, בקש ניתוחים, התייעץ על אסטרטגיה</div>
+      </div>
+      <div class="chat-wrap">
+        <div class="chat-top">
+          <div class="chat-top-left">
+            <div class="chat-ico">🤖</div>
+            <div>
+              <div class="chat-hdr-name">AI Assistant</div>
+              <div class="chat-hdr-sub" id="chat-ctx-label">מחובר לכל הלקוחות</div>
+            </div>
+          </div>
+          <div class="chat-top-right">
+            <button class="chat-act-btn context" onclick="injectContext()">📊 הזרק הקשר</button>
+            <button class="chat-act-btn" onclick="clearChat()">מחק שיחה</button>
+          </div>
+        </div>
+        <div class="chat-body" id="chat-body">
+          <div class="chat-msg ai">
+            <div class="chat-bubble">שלום! אני עוזר ה-AI שלך לניהול קמפיינים ב-Meta Ads 👋<br><br>אני יכול לעזור לך:
+• לנתח ביצועי קמפיינים
+• להסביר מדדים ותוצאות
+• להמליץ על שיפורים
+• לדון באסטרטגיית פרסום
+
+מה אתה רוצה לדעת?</div>
+            <div class="chat-ts">זמין 24/7</div>
+          </div>
+        </div>
+        <div class="quick-prompts" id="quick-prompts">
+          <span class="qp" onclick="askQuick('מה המדדים החשובים לבדוק בקמפיין לידים?')">מדדי לידים</span>
+          <span class="qp" onclick="askQuick('מה זה Frequency ומתי זה בעייתי?')">Frequency</span>
+          <span class="qp" onclick="askQuick('איך משפרים CTR נמוך?')">שיפור CTR</span>
+          <span class="qp" onclick="askQuick('מה ההבדל בין CBO ל-ABO?')">CBO vs ABO</span>
+          <span class="qp" onclick="askQuick('מתי כדאי לעצור קמפיין ולהתחיל חדש?')">עצירת קמפיין</span>
+        </div>
+        <div class="chat-foot">
+          <textarea class="chat-inp" id="chat-inp" placeholder="שאל שאלה על הקמפיינים שלך..." rows="1"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"
+            oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"></textarea>
+          <button class="chat-send" id="chat-send-btn" onclick="sendChat()" title="שלח">
+            <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: WEEKLY -->
+    <div class="page" id="pg-weekly">
+      <div class="page-hdr">
+        <div class="page-title">סיכום שבועי</div>
+        <div class="page-sub">סיכום AI אוטומטי של הביצועים — כל יום ראשון בשעה 8:30</div>
+      </div>
+      <div class="period-card">
+        <div class="period-row">
+          <span class="period-lbl">תקופה:</span>
+          <select class="period-sel" id="w-period" onchange="onWPeriodChange()">
+            <option value="">── בחר תקופה ──</option>
+            <option value="last7" selected>7 ימים אחרונים</option>
+            <option value="this_week">השבוע הזה</option>
+            <option value="last14">14 ימים אחרונים</option>
+            <option value="this_month">החודש הזה</option>
+            <option value="last30">30 ימים</option>
+            <option value="custom">תאריכים מותאמים</option>
+          </select>
+          <div class="period-custom" id="w-custom">
+            <span style="font-size:12px;color:var(--t3)">מ:</span>
+            <input type="date" class="period-date" id="w-since">
+            <span style="font-size:12px;color:var(--t3)">עד:</span>
+            <input type="date" class="period-date" id="w-until">
+          </div>
+          <button class="gen-btn" id="w-gen-btn" onclick="generateWeekly()">
+            ✨ הפק סיכום AI
+          </button>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--t3);margin-bottom:8px;font-weight:700;text-transform:uppercase;letter-spacing:.5px">לקוחות לסיכום:</div>
+          <div class="clients-chips" id="weekly-chips">
+            <div style="font-size:12px;color:var(--t3)">טוען לקוחות...</div>
+          </div>
+        </div>
+      </div>
+      <div id="weekly-result" style="display:none"></div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ── CONFIG ── */
+const FB_APP_ID  = '4457830191115452';
+const META_API   = 'https://graph.facebook.com/v20.0';
+const GEMINI_KEY = 'YOUR_GEMINI_API_KEY';
+const GEMINI_URLS = [
+  `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,
+  `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
+  `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
+];
+
+/* ── STATE ── */
+let token = '';
+let G = {
+  user: null,
+  accounts: [],
+  currentAcc: null,
+  currentCamps: [],
+  diagnostics: null,
+  chatHistory: [],
+  selectedWeeklyClients: new Set(),
+  DR: { since: daysAgo(7), until: daysAgo(1), label: '7 ימים' }
+};
+
+/* ── UTILS ── */
+function daysAgo(n){ const d = new Date(); d.setDate(d.getDate()-n); return fmt(d); }
+function fmt(d){ return (d instanceof Date?d:new Date(d)).toISOString().slice(0,10); }
+function fmtHe(iso){ const [y,m,d]=iso.split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'numeric'}); }
+function n2(n){ return Number(n||0).toLocaleString('he-IL',{maximumFractionDigits:0}); }
+function pct(a,b){ return b?((a-b)/b)*100:(a?100:0); }
+function initials(s){ return (s||'?').trim()[0].toUpperCase(); }
+function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function chg(v,inv){
+  const x = inv?-v:v;
+  if(Math.abs(x)<0.5) return {t:'–',c:'flat'};
+  return {t:(x>0?'+':'')+x.toFixed(1)+'%', c:x>0?'up':'dn'};
+}
+function currSym(c){ return {ILS:'₪',USD:'$',EUR:'€',GBP:'£',AUD:'A$',CAD:'C$'}[c]||c+' '; }
+function timeNow(){ return new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'}); }
+function weekKey(){ const d=new Date(); d.setDate(d.getDate()-d.getDay()); return fmt(d); }
+
+/* ── TOAST ── */
+function toast(msg, type=''){
+  const w = document.getElementById('toast-wrap');
+  const el = document.createElement('div');
+  el.className = 'toast'+(type?' '+type:'');
+  el.textContent = msg;
+  w.appendChild(el);
+  setTimeout(()=>{ el.style.transition='opacity .3s'; el.style.opacity='0'; setTimeout(()=>el.remove(),300); }, 3200);
+}
+
+/* ── MODAL ── */
+function modal({title,sub,confirm,cls,input,onConfirm}){
+  const ov = document.createElement('div');
+  ov.className = 'modal-ov';
+  ov.innerHTML = `
+    <div class="modal-box">
+      <div class="modal-title">${escH(title)}</div>
+      <div class="modal-sub">${escH(sub||'')}</div>
+      ${input?`<label class="modal-lbl">${escH(input.label)}</label><input class="modal-inp" type="${input.type||'text'}" value="${escH(input.value||'')}" placeholder="${escH(input.placeholder||'')}">` : ''}
+      <div class="modal-btns">
+        <button class="mbtn cancel">ביטול</button>
+        <button class="mbtn ok ${cls||''}">${escH(confirm||'אישור')}</button>
+      </div>
+    </div>`;
+  ov.querySelector('.cancel').onclick = ()=>ov.remove();
+  ov.querySelector('.ok').onclick = ()=>{ ov.remove(); onConfirm(ov.querySelector('.modal-inp')?.value||''); };
+  ov.onclick = e=>{ if(e.target===ov) ov.remove(); };
+  document.body.appendChild(ov);
+  const inp = ov.querySelector('.modal-inp');
+  if(inp){ inp.focus(); inp.select(); }
+}
+
+/* ── FACEBOOK API ── */
+async function mq(path, params={}){
+  const u = new URL(`${META_API}/${path}`);
+  u.searchParams.set('access_token', token);
+  Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));
+  const r = await fetch(u);
+  const j = await r.json();
+  if(j.error){
+    if(j.error.code===190||j.error.type==='OAuthException'){ logout(); throw new Error('פג תוקף החיבור'); }
+    throw new Error(j.error.message);
+  }
+  return j;
+}
+async function mqAll(path, params={}){
+  let out=[],after=null,guard=0;
+  do{
+    const p={...params,limit:'200'}; if(after) p.after=after;
+    const d = await mq(path,p);
+    out.push(...(d.data||[]));
+    after = d.paging?.cursors?.after||null;
+    guard++;
+  }while(after&&guard<50);
+  return out;
+}
+async function mqPost(path, body={}){
+  const u = new URL(`${META_API}/${path}`);
+  u.searchParams.set('access_token', token);
+  const r = await fetch(u,{method:'POST',body:new URLSearchParams(body)});
+  const j = await r.json();
+  if(j.error) throw new Error(j.error.message);
+  return j;
+}
+
+/* ── GEMINI ── */
+async function callGemini(prompt, opts={}){
+  const body = {
+    contents: opts.messages || [{role:'user',parts:[{text:prompt}]}],
+    generationConfig: {temperature:opts.temp||0.75, maxOutputTokens:opts.maxTokens||2000}
+  };
+  if(opts.system) body.system_instruction = {parts:[{text:opts.system}]};
+  let lastErr = 'אין תגובה';
+  for(const url of GEMINI_URLS){
+    try{
+      const r = await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      if(!r.ok){ lastErr=`HTTP ${r.status}`; continue; }
+      const d = await r.json();
+      if(d.error){ lastErr=d.error.message||d.error.status; continue; }
+      const txt = (d.candidates?.[0]?.content?.parts?.[0]?.text||'').trim();
+      if(!txt){ lastErr='תגובה ריקה'; continue; }
+      return txt;
+    }catch(e){ lastErr=e.message; }
+  }
+  throw new Error('Gemini API נכשל: '+lastErr);
+}
+async function callGeminiJSON(prompt){
+  const raw = await callGemini(prompt);
+  const clean = raw.replace(/^```(?:json)?\s*/i,'').replace(/\s*```\s*$/,'').trim();
+  return JSON.parse(clean);
+}
+
+/* ── AUTH ── */
+window.fbAsyncInit = function(){
+  FB.init({ appId: FB_APP_ID, cookie: true, xfbml: false, version: 'v20.0' });
+  const saved = localStorage.getItem('td_token');
+  if(saved){ token=saved; afterLogin(); return; }
+  FB.getLoginStatus(res=>{
+    if(res.status==='connected'){ token=res.authResponse.accessToken; localStorage.setItem('td_token',token); afterLogin(); }
+  });
+};
+(function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(d.getElementById(id))return;js=d.createElement(s);js.id=id;js.src='https://connect.facebook.net/he_IL/sdk.js';fjs.parentNode.insertBefore(js,fjs);}(document,'script','facebook-jssdk'));
+
+function startLogin(){
+  const btn = document.getElementById('btn-login');
+  btn.disabled=true; btn.textContent='⏳ מתחבר...';
+  FB.login(res=>{
+    if(res.authResponse){ token=res.authResponse.accessToken; localStorage.setItem('td_token',token); afterLogin(); }
+    else{ btn.disabled=false; btn.textContent='כניסה עם Facebook'; }
+  },{ scope:'ads_read,ads_management,business_management', return_scopes:true });
+  const t = setInterval(()=>{ if(popup.closed){ clearInterval(t); if(!token){ btn.disabled=false; btn.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>כניסה עם Facebook'; } } },500);
+}
+
+function logout(){
+  token=''; G={user:null,accounts:[],currentAcc:null,currentCamps:[],diagnostics:null,chatHistory:[],selectedWeeklyClients:new Set(),DR:{since:daysAgo(7),until:daysAgo(1),label:'7 ימים'}};
+  localStorage.removeItem('td_token');
+  try{ FB.logout(()=>{}); }catch(e){}
+  document.getElementById('scr-app').style.display='none';
+  document.getElementById('scr-login').style.display='flex';
+  document.getElementById('btn-login').disabled=false;
+  document.getElementById('btn-login').textContent='כניסה עם Facebook';
+}
+
+async function afterLogin(){
+  document.getElementById('scr-login').style.display='none';
+  document.getElementById('scr-app').style.display='block';
+  mq('me',{fields:'name,id'}).then(me=>{
+    G.user=me;
+    document.getElementById('s-name').textContent=me.name||'';
+    document.getElementById('s-av').textContent=initials(me.name||'U');
+  }).catch(()=>{});
+  await loadAllAccounts();
+  checkAutoWeeklySummary();
+}
+
+/* ── NAVIGATION ── */
+function navTo(id){
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.pg===id));
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id==='pg-'+id));
+}
+
+/* ── CLIENTS PAGE ── */
+async function loadAllAccounts(){
+  const grid = document.getElementById('clients-grid');
+  grid.innerHTML = '<div class="loading"><div class="spinner"></div><p>טוען חשבונות...</p></div>';
+  try{
+    const [direct, biz] = await Promise.all([
+      mqAll('me/adaccounts',{fields:'id,name,currency,account_status'}),
+      mq('me/businesses',{fields:'id,name'}).catch(()=>({data:[]}))
+    ]);
+    let accs = [...direct];
+    for(const b of biz.data||[]){
+      const [own,cli] = await Promise.all([
+        mqAll(`${b.id}/owned_ad_accounts`,{fields:'id,name,currency,account_status'}).catch(()=>[]),
+        mqAll(`${b.id}/client_ad_accounts`,{fields:'id,name,currency,account_status'}).catch(()=>[])
+      ]);
+      accs.push(...own,...cli);
+    }
+    const seen=new Set();
+    accs = accs.filter(a=>!seen.has(a.id)&&seen.add(a.id)&&a.account_status===1);
+    accs.sort((a,b)=>a.name.localeCompare(b.name,'he-IL',{sensitivity:'base'}));
+    G.accounts = accs;
+
+    // Update badges
+    const nb = document.getElementById('nav-count');
+    nb.textContent=accs.length; nb.style.display='';
+
+    document.getElementById('clients-sub').textContent = `${accs.length} לקוחות פעילים · עודכן ${timeNow()}`;
+    renderClientsGrid(accs);
+    updateWeeklyChips();
+  }catch(e){
+    grid.innerHTML = `<div class="empty-state" style="color:var(--red)">שגיאה: ${escH(e.message)}</div>`;
+  }
+}
+
+function renderClientsGrid(accs){
+  const grid = document.getElementById('clients-grid');
+  if(!accs.length){ grid.innerHTML='<div class="empty-state">לא נמצאו חשבונות פרסום פעילים.</div>'; return; }
+  grid.innerHTML = accs.map(acc=>{
+    const av = initials(acc.name);
+    return `<div class="client-card" onclick="openClient(${JSON.stringify(escH(acc.id)).replace(/"/g,"'")})">
+      <div class="cc-top">
+        <div class="cc-av">${av}</div>
+        <div style="flex:1;min-width:0">
+          <div class="cc-name" title="${escH(acc.name)}">${escH(acc.name)}</div>
+          <div class="cc-id">${escH(acc.id)}</div>
+        </div>
+        <div class="cc-dot grey" id="dot-${escH(acc.id)}"></div>
+      </div>
+      <div class="cc-stats">
+        <div class="cc-stat"><div class="cc-stat-lbl">הוצאה 7י׳</div><div class="cc-stat-val" id="spend-${escH(acc.id)}">–</div></div>
+        <div class="cc-stat"><div class="cc-stat-lbl">CTR</div><div class="cc-stat-val" id="ctr-${escH(acc.id)}">–</div></div>
+      </div>
+      <div class="cc-footer">
+        <span class="badge neu" id="badge-${escH(acc.id)}">טוען...</span>
+        <span class="cc-arrow">‹</span>
+      </div>
+    </div>`;
+  }).join('');
+  // Load stats in parallel (no await – fire and forget)
+  accs.forEach(acc=>loadClientQuickStats(acc));
+}
+
+async function loadClientQuickStats(acc){
+  const sid = escH(acc.id);
+  const cur = currSym(acc.currency||'ILS');
+  try{
+    const tr = JSON.stringify({since:daysAgo(7),until:daysAgo(1)});
+    const ins = await mq(`${acc.id}/insights`,{fields:'ctr,frequency,spend,impressions',time_range:tr}).catch(()=>null);
+    const d = ins?.data?.[0];
+    const ctr=parseFloat(d?.ctr||0), freq=parseFloat(d?.frequency||0), spend=parseFloat(d?.spend||0);
+
+    // Update cards
+    const spendEl = document.getElementById('spend-'+sid);
+    const ctrEl = document.getElementById('ctr-'+sid);
+    const dotEl = document.getElementById('dot-'+sid);
+    const badgeEl = document.getElementById('badge-'+sid);
+    if(!spendEl) return;
+
+    spendEl.textContent = cur+n2(spend);
+    ctrEl.textContent = ctr.toFixed(2)+'%';
+
+    let status='green', recs=0, txt='תקין';
+    if(freq>5){ status='red'; recs+=2; txt='שחיקת קהל חמורה'; }
+    else if(freq>3.5){ status='amber'; recs++; txt='Frequency גבוה'; }
+    if(ctr<0.5&&spend>200){ if(status==='green') status='amber'; recs++; if(txt==='תקין') txt='CTR נמוך'; }
+
+    dotEl.className='cc-dot '+status;
+    if(recs===0){ badgeEl.className='badge ok'; badgeEl.textContent='✓ תקין'; }
+    else { badgeEl.className='badge warn'; badgeEl.textContent=recs+' התראות — '+txt; }
+  }catch(e){ /* silent */ }
+}
+
+/* ── CLIENT DETAIL ── */
+function openClient(accId){
+  const acc = G.accounts.find(a=>a.id===accId);
+  if(!acc) return;
+  G.currentAcc = acc;
+  document.getElementById('chat-ctx-label').textContent = 'הקשר: '+acc.name;
+  navTo('detail');
+  renderDetail(acc);
+}
+
+function renderDetail(acc){
+  const pg = document.getElementById('pg-detail');
+  pg.innerHTML = '';
+  const back = document.createElement('button');
+  back.className='back-btn'; back.innerHTML='← חזרה לכל הלקוחות';
+  back.onclick=()=>navTo('clients');
+  pg.appendChild(back);
+
+  const cur = currSym(acc.currency||'ILS');
+  const titleEl = document.createElement('div');
+  titleEl.className='page-hdr';
+  titleEl.innerHTML=`<div class="page-title">${escH(acc.name)}</div><div class="page-sub">${escH(acc.id)} · ${acc.currency||'ILS'}</div>`;
+  pg.appendChild(titleEl);
+  pg.appendChild(buildDR(()=>renderDetail(acc)));
+
+  const loader = document.createElement('div');
+  loader.className='loading';
+  loader.innerHTML='<div class="spinner"></div><p>טוען נתונים...</p>';
+  pg.appendChild(loader);
+
+  loadDetailData(acc, pg, loader, cur);
+}
+
+function buildDR(onChange){
+  const bar = document.createElement('div');
+  bar.className='dr-bar';
+  bar.innerHTML = '<span class="dr-lbl">תקופה:</span>';
+  const presets=[
+    {l:'7 ימים',fn:()=>({since:daysAgo(7),until:daysAgo(1)})},
+    {l:'שבוע זה',fn:()=>{const d=new Date();const s=new Date(d);s.setDate(d.getDate()-d.getDay()==0?0:d.getDay());return{since:fmt(s),until:fmt(new Date())};}},
+    {l:'14 ימים',fn:()=>({since:daysAgo(14),until:daysAgo(1)})},
+    {l:'החודש',fn:()=>{const d=new Date();return{since:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`,until:fmt(new Date())};}},
+  ];
+  const btns=[];
+  const sinceIn = Object.assign(document.createElement('input'),{type:'date',className:'dr-in',value:G.DR.since});
+  const untilIn = Object.assign(document.createElement('input'),{type:'date',className:'dr-in',value:G.DR.until});
+  presets.forEach(p=>{
+    const b=document.createElement('button'); b.className='dr-p'; b.textContent=p.l;
+    if(G.DR.label===p.l) b.classList.add('active');
+    b.onclick=()=>{ const r=p.fn(); G.DR={...r,label:p.l}; btns.forEach(x=>x.classList.remove('active')); b.classList.add('active'); sinceIn.value=G.DR.since; untilIn.value=G.DR.until; onChange(); };
+    btns.push(b); bar.appendChild(b);
+  });
+  const cust=document.createElement('div'); cust.className='dr-cust';
+  const applyBtn=document.createElement('button'); applyBtn.className='dr-apply'; applyBtn.textContent='החל';
+  applyBtn.onclick=()=>{ if(!sinceIn.value||!untilIn.value) return; G.DR={since:sinceIn.value,until:untilIn.value,label:'מותאם'}; btns.forEach(x=>x.classList.remove('active')); onChange(); };
+  cust.appendChild(sinceIn);
+  const sep=document.createElement('span'); sep.textContent='—'; sep.style.cssText='color:var(--t3);font-size:11px';
+  cust.appendChild(sep); cust.appendChild(untilIn); cust.appendChild(applyBtn);
+  bar.appendChild(cust);
+  return bar;
+}
+
+async function loadDetailData(acc, pg, loader, cur){
+  try{
+    const days = Math.round((new Date(G.DR.until)-new Date(G.DR.since))/864e5)+1;
+    const prevUntil = fmt(new Date(new Date(G.DR.since).getTime()-864e5));
+    const prevSince = fmt(new Date(new Date(prevUntil).getTime()-(days-1)*864e5));
+    const trCur  = JSON.stringify({since:G.DR.since,until:G.DR.until});
+    const trPrev = JSON.stringify({since:prevSince,until:prevUntil});
+    const fields = 'spend,impressions,reach,ctr,cpm,cpc,actions,action_values,frequency';
+
+    const [insCur,insPrev,camps] = await Promise.all([
+      mq(`${acc.id}/insights`,{fields,time_range:trCur}),
+      mq(`${acc.id}/insights`,{fields,time_range:trPrev}),
+      mqAll(`${acc.id}/campaigns`,{
+        fields:'id,name,status,effective_status,objective,daily_budget,lifetime_budget',
+        filtering:'[{"field":"effective_status","operator":"IN","value":["ACTIVE","PAUSED"]}]'
+      })
+    ]);
+
+    const cur2=parseIns(insCur.data?.[0]), prv=parseIns(insPrev.data?.[0]);
+    G.currentCamps = camps;
+
+    let campIns={};
+    if(camps.length){
+      try{
+        const ci = await mq(`${acc.id}/insights`,{fields:'campaign_id,spend,impressions,reach,ctr,cpm,cpc,actions,action_values',time_range:trCur,level:'campaign',limit:'500'});
+        (ci.data||[]).forEach(d2=>campIns[d2.campaign_id]=d2);
+        let next=ci.paging?.next;
+        while(next){ const m=await fetch(next).then(r=>r.json()); (m.data||[]).forEach(d2=>campIns[d2.campaign_id]=d2); next=m.paging?.next; }
+      }catch(e){}
+    }
+
+    const freqAlerts=[], underdelivery=[];
+    try{
+      const adsets = await mqAll(`${acc.id}/adsets`,{fields:'id,name,daily_budget',filtering:'[{"field":"effective_status","operator":"IN","value":["ACTIVE"]}]'});
+      await Promise.all(adsets.slice(0,25).map(async as=>{
+        try{ const d2=(await mq(`${as.id}/insights`,{fields:'frequency',time_range:trCur})).data?.[0]; const f=parseFloat(d2?.frequency||0); if(f>3.5) freqAlerts.push({name:as.name,freq:f}); }catch(e){}
+      }));
+      camps.filter(c=>c.daily_budget&&c.effective_status==='ACTIVE').forEach(c=>{
+        const ci=campIns[c.id]; if(!ci) return;
+        const spent=parseFloat(ci.spend||0), budget=parseFloat(c.daily_budget)/100*days;
+        const util=budget>0?spent/budget*100:100;
+        if(util<80) underdelivery.push({name:c.name,util:util.toFixed(0)});
+      });
+    }catch(e){}
+
+    G.diagnostics = {
+      accountName:acc.name, currency:acc.currency||'ILS', metrics:cur2, prev:prv,
+      dr:G.DR, diag:{
+        spend_pct:pct(cur2.spend,prv.spend), ctr_pct:pct(cur2.ctr,prv.ctr),
+        cpm_pct:pct(cur2.cpm,prv.cpm), cpr_pct:pct(cur2.cpr,prv.cpr),
+        freqAlerts, underdelivery
+      }
+    };
+
+    loader.remove();
+
+    // Metrics
+    pg.appendChild(mkSecTitle('סיכום תקופה'));
+    const mg = document.createElement('div'); mg.className='metrics-grid';
+    function addMet(label,val,c,hi){
+      const m=document.createElement('div'); m.className='metric'+(hi?' hi':'');
+      m.innerHTML=`<div class="metric-lbl">${label}</div><div class="metric-val">${val}</div>${c?.t?`<div class="metric-chg ${c.c}">${c.t}</div>`:''}`;
+      mg.appendChild(m);
+    }
+    addMet('הוצאה',cur+n2(cur2.spend),chg(pct(cur2.spend,prv.spend)));
+    addMet('CTR',cur2.ctr.toFixed(2)+'%',chg(pct(cur2.ctr,prv.ctr)));
+    addMet('CPM',cur+n2(cur2.cpm),chg(pct(cur2.cpm,prv.cpm),true));
+    if(cur2.cpr>0) addMet('עלות/תוצאה',cur+n2(cur2.cpr),chg(pct(cur2.cpr,prv.cpr),true));
+    if(cur2.leads>0) addMet('לידים',''+cur2.leads,null,true);
+    if(cur2.purchases>0) addMet('רכישות',''+cur2.purchases,null,true);
+    if(cur2.roas>0) addMet('ROAS',cur2.roas.toFixed(2),null,true);
+    if(!cur2.leads&&!cur2.purchases) addMet('תוצאות',''+cur2.results,null,true);
+    pg.appendChild(mg);
+
+    // Alerts
+    if(freqAlerts.length||underdelivery.length){
+      const aw=document.createElement('div'); aw.className='alerts-wrap';
+      freqAlerts.forEach(a=>{ const el=document.createElement('div'); el.className='alert-row amber'; el.textContent='🔁  שחיקת קהל: "'+a.name+'" · Frequency '+a.freq.toFixed(1); aw.appendChild(el); });
+      underdelivery.forEach(a=>{ const el=document.createElement('div'); el.className='alert-row amber'; el.textContent='💸  תקציב לא מנוצל: "'+a.name+'" · '+a.util+'% ניצול'; aw.appendChild(el); });
+      pg.appendChild(aw);
+    }
+
+    // Campaigns
+    const active = camps.filter(c=>c.effective_status==='ACTIVE');
+    const paused = camps.filter(c=>c.effective_status==='PAUSED');
+    active.sort((a,b)=>parseFloat(campIns[b.id]?.spend||0)-parseFloat(campIns[a.id]?.spend||0));
+
+    pg.appendChild(mkSecTitle(`קמפיינים פעילים (${active.length})`));
+    pg.appendChild(active.length?buildCampList(active,campIns,true,cur):mkEmpty('אין קמפיינים פעילים.'));
+
+    if(paused.length){
+      pg.appendChild(mkSecTitle(`מושהים (${paused.length})`));
+      pg.appendChild(buildCampList(paused,campIns,false,cur));
+    }
+
+    // AI section
+    const aiCard = document.createElement('div'); aiCard.className='card'; aiCard.id='ai-card'; aiCard.style.marginTop='24px';
+    aiCard.innerHTML=`<div class="card-title">✨ ניתוח AI</div><div class="card-sub">סיכום, ניתוח פנימי והמלצות מבוססות-נתונים</div>`;
+    const aiBtn = document.createElement('button'); aiBtn.className='ai-btn'; aiBtn.innerHTML='✨  הפק ניתוח AI';
+    aiBtn.onclick=()=>runAI(aiCard,aiBtn);
+    aiCard.appendChild(aiBtn);
+    pg.appendChild(aiCard);
+
+  }catch(e){
+    if(loader.parentNode) loader.remove();
+    pg.appendChild(mkEmpty('שגיאה: '+e.message));
+  }
+}
+
+/* ── CAMPAIGN LIST ── */
+function buildCampList(camps,campIns,isActive,cur){
+  const list=document.createElement('div'); list.className='camp-list';
+  camps.forEach(c=>{
+    const ci=campIns[c.id];
+    const spend=parseFloat(ci?.spend||0);
+    const primary=getPrimary(c.objective,ci?.actions,parseFloat(ci?.reach||0));
+    const ctr2=parseFloat(ci?.ctr||0), cpm2=parseFloat(ci?.cpm||0), cpc2=parseFloat(ci?.cpc||0);
+    const roas=getRoas(ci);
+
+    const card=document.createElement('div'); card.className='camp-card';
+    const hdr=document.createElement('div'); hdr.className='camp-hdr';
+    hdr.innerHTML=`
+      <span class="camp-chev">›</span>
+      <span class="camp-dot${isActive?'':' paused'}"></span>
+      <span class="camp-name" title="${escH(c.name)}">${escH(c.name)}</span>
+      <span class="camp-obj">${escH(objLbl(c.objective))}</span>
+      <span class="camp-spend">${spend>0?cur+n2(spend):'–'}</span>`;
+
+    const acts=document.createElement('div'); acts.className='camp-acts';
+    if(isActive){
+      const pb=document.createElement('button'); pb.className='camp-act pause'; pb.textContent='⏸ השהה';
+      pb.onclick=e=>{ e.stopPropagation(); doAction(c,'pause'); }; acts.appendChild(pb);
+    }else{
+      const rb=document.createElement('button'); rb.className='camp-act resume'; rb.textContent='▶ הפעל';
+      rb.onclick=e=>{ e.stopPropagation(); doAction(c,'resume'); }; acts.appendChild(rb);
+    }
+    if(c.daily_budget){
+      const bb=document.createElement('button'); bb.className='camp-act budget'; bb.textContent='↑ תקציב';
+      bb.onclick=e=>{ e.stopPropagation(); doBudget(c,cur); }; acts.appendChild(bb);
+    }
+    hdr.appendChild(acts);
+
+    const body=document.createElement('div'); body.className='camp-body';
+    const mets=document.createElement('div'); mets.className='camp-mets';
+    function cm(label,val,hi){
+      const m=document.createElement('div'); m.className='camp-met'+(hi?' hi':'');
+      m.innerHTML=`<div class="camp-met-lbl">${label}</div><div class="camp-met-val">${val}</div>`;
+      mets.appendChild(m);
+    }
+    cm('הוצאה',cur+n2(spend));
+    cm(primary.label,primary.val>0?primary.val+' ':'–',true);
+    if(primary.val>0&&spend>0) cm('עלות/'+primary.label,cur+(spend/primary.val).toFixed(0));
+    cm('CTR',ctr2.toFixed(2)+'%');
+    cm('CPM',cur+n2(cpm2));
+    if(cpc2>0) cm('CPC',cur+cpc2.toFixed(2));
+    if(roas>0) cm('ROAS',roas.toFixed(2),true);
+    body.appendChild(mets);
+
+    card.appendChild(hdr); card.appendChild(body);
+    hdr.onclick=()=>card.classList.toggle('open');
+    list.appendChild(card);
+  });
+  return list;
+}
+
+/* ── CAMPAIGN ACTIONS ── */
+function doAction(camp,action){
+  modal({
+    title:action==='pause'?'השהה קמפיין':'הפעל קמפיין',
+    sub:`${action==='pause'?'להשהות':'להפעיל'} את "${camp.name}"?`,
+    confirm:action==='pause'?'השהה':'הפעל',
+    cls:action==='pause'?'danger':'success',
+    onConfirm:async()=>{
+      try{
+        await mqPost(camp.id,{status:action==='pause'?'PAUSED':'ACTIVE'});
+        toast(action==='pause'?`⏸ "${camp.name}" הושהה`:`▶ "${camp.name}" הופעל`,'ok');
+        setTimeout(()=>renderDetail(G.currentAcc),1200);
+      }catch(e){ toast('שגיאה: '+e.message,'err'); }
+    }
+  });
+}
+function doBudget(camp,cur){
+  const existing = camp.daily_budget?Math.round(camp.daily_budget/100):0;
+  modal({
+    title:'עדכון תקציב יומי',
+    sub:`קמפיין: "${camp.name}"${existing?' · נוכחי: '+cur+existing:''}`,
+    confirm:'עדכן תקציב',
+    cls:'ok',
+    input:{label:'תקציב יומי חדש',value:existing?String(Math.round(existing*1.2)):'',placeholder:'לדוגמה: 200'},
+    onConfirm:async val=>{
+      const b=parseInt(val);
+      if(!b||b<1){ toast('סכום לא תקין','err'); return; }
+      try{
+        await mqPost(camp.id,{daily_budget:String(b*100)});
+        toast(`✓ תקציב עודכן ל-${cur}${b}/יום`,'ok');
+      }catch(e){ toast('שגיאה: '+e.message,'err'); }
+    }
+  });
+}
+
+/* ── AI ANALYSIS ── */
+async function runAI(card,btn){
+  if(!G.diagnostics) return;
+  btn.disabled=true;
+  const d=G.diagnostics, m=d.metrics, g=d.diag;
+  const ps=v=>(v>0?'+':'')+v.toFixed(1)+'%';
+  const cur = currSym(d.currency);
+
+  card.innerHTML='<div class="card-title" style="margin-bottom:16px">✨ ניתוח AI</div>';
+  card.appendChild((() =>{ const l=document.createElement('div'); l.className='loading'; l.innerHTML='<div class="spinner"></div><p>מנתח נתונים עם AI...</p>'; return l; })());
+
+  try{
+    const prompt=`אתה מנהל קמפיינים בכיר ב-Meta Ads של סוכנות פרסום ישראלית.
+
+נתח ביצועי חשבון הפרסום "${d.accountName}" לתקופה ${d.dr.since}–${d.dr.until}:
+
+**מדדים נוכחיים vs תקופה קודמת:**
+הוצאה: ${cur}${n2(m.spend)} (${ps(g.spend_pct)} vs קודם)
+CTR: ${m.ctr.toFixed(2)}% (${ps(g.ctr_pct)})
+CPM: ${cur}${n2(m.cpm)} (${ps(g.cpm_pct)})
+עלות/תוצאה: ${m.cpr>0?cur+n2(m.cpr)+' ('+ps(g.cpr_pct)+')':'N/A'}
+תוצאות: ${m.results}${m.leads>0?', לידים: '+m.leads:''}${m.purchases>0?', רכישות: '+m.purchases:''}${m.roas>0?', ROAS: '+m.roas.toFixed(2):''}
+
+${g.freqAlerts?.length?'**שחיקת קהל:** '+g.freqAlerts.map(a=>a.name+' (Frequency '+a.freq.toFixed(1)+')').join(', '):''}
+${g.underdelivery?.length?'**Underdelivery:** '+g.underdelivery.map(a=>a.name+' '+a.util+'%').join(', '):''}
+
+החזר JSON תקין בלבד (ללא markdown, ללא backticks):
+{
+  "client_summary": "3-4 משפטים חיוביים ומקצועיים ללקוח — מה הושג ומה בפתח",
+  "internal_summary": "ניתוח פנימי מפורט: מה עובד, מה בעייתי, הזדמנויות",
+  "health": "green|amber|red",
+  "recommendations": [
+    {"action":"increase_budget|pause|refresh_creative|check_landing|scale_winner|expand_audience|decrease_budget","target":"שם קמפיין","reason":"סיבה קצרה","confidence":"high|medium|low","executable":true}
+  ]
+}`;
+
+    const result = await callGeminiJSON(prompt);
+    renderAIResult(card, result, cur);
+  }catch(e){
+    card.innerHTML=`<div class="card-title">✨ ניתוח AI</div><div class="empty-state" style="color:var(--red)">שגיאה: ${escH(e.message)}</div>`;
+    const retry=document.createElement('button'); retry.className='ai-btn'; retry.style.marginTop='14px'; retry.textContent='↩ נסה שוב';
+    retry.onclick=()=>runAI(card,retry);
+    card.appendChild(retry);
+  }
+}
+
+function renderAIResult(card,data,cur){
+  card.innerHTML='<div class="card-title" style="margin-bottom:18px">✨ ניתוח AI</div>';
+  const hBadge = {green:'badge ok',amber:'badge warn',red:'badge err'}[data.health||'green']||'badge neu';
+  const hTxt = {green:'תקין',amber:'דורש תשומת לב',red:'דחוף'}[data.health||'green']||'';
+
+  // Client summary
+  const cs=mkCard('📨 סיכום ללקוח','מוכן לשליחה ישירות — העתק ושלח');
+  const csInner=document.createElement('div'); csInner.className='card-inner';
+  const csText=document.createElement('div'); csText.className='report-text'; csText.textContent=data.client_summary||'';
+  csInner.appendChild(csText); cs.appendChild(csInner);
+  const cpBtn=document.createElement('button'); cpBtn.className='copy-btn'; cpBtn.textContent='📋  העתק ללוח';
+  cpBtn.onclick=()=>{ navigator.clipboard?.writeText(data.client_summary||''); cpBtn.textContent='✓ הועתק!'; setTimeout(()=>cpBtn.textContent='📋  העתק ללוח',2500); };
+  cs.appendChild(cpBtn); card.appendChild(cs);
+
+  // Internal
+  const ins=mkCard('🔍 ניתוח פנימי','לשימוש פנים — אל תשלח ללקוח');
+  ins.innerHTML+=`<span class="${hBadge}" style="margin-bottom:12px;display:inline-block">${hTxt}</span>`;
+  const insInner=document.createElement('div'); insInner.className='card-inner';
+  const insText=document.createElement('div'); insText.className='report-text'; insText.textContent=data.internal_summary||'';
+  insInner.appendChild(insText); ins.appendChild(insInner); card.appendChild(ins);
+
+  // Recommendations
+  if(data.recommendations?.length){
+    const rc=mkCard('⚡ המלצות לפעולה',`${data.recommendations.length} פעולות מומלצות מה-AI`);
+    const LABELS={increase_budget:'הגדל תקציב',pause:'השהה',refresh_creative:'רענן קריאייטיב',check_landing:'בדוק דף נחיתה',scale_winner:'הגדל מנצח',expand_audience:'הרחב קהל',decrease_budget:'הפחת תקציב'};
+    data.recommendations.forEach(r=>{
+      const cc=r.confidence==='high'?'green':r.confidence==='medium'?'amber':'blue';
+      const cl2=r.confidence==='high'?'ביטחון גבוה':r.confidence==='medium'?'בינוני':'נמוך';
+      const item=document.createElement('div'); item.className='rec-item';
+      const top=document.createElement('div'); top.className='rec-top';
+      top.innerHTML=`<span class="pill ${cc}">${cl2}</span><span class="pill blue">${LABELS[r.action]||r.action}</span><strong style="font-size:12px">${escH(r.target)}</strong>`;
+      if(r.executable&&(r.action==='increase_budget'||r.action==='pause'||r.action==='resume'||r.action==='decrease_budget')){
+        const xb=document.createElement('button'); xb.className='rec-exec'; xb.textContent='⚡ בצע';
+        xb.onclick=()=>execRec(r,cur);
+        top.appendChild(xb);
+      }
+      item.appendChild(top);
+      const reason=document.createElement('div'); reason.className='rec-reason'; reason.textContent=r.reason||'';
+      item.appendChild(reason); rc.appendChild(item);
+    });
+    card.appendChild(rc);
+  }
+
+  const regenBtn=document.createElement('button'); regenBtn.className='regen-btn'; regenBtn.textContent='🔄  צור ניתוח מחדש';
+  regenBtn.onclick=()=>runAI(card,regenBtn);
+  card.appendChild(regenBtn);
+}
+
+function execRec(rec,cur){
+  const camp = G.currentCamps.find(c=>c.name===rec.target||c.name.toLowerCase().includes((rec.target||'').slice(0,12).toLowerCase()));
+  if(!camp){ toast('לא נמצא קמפיין: '+rec.target,'err'); return; }
+  if(rec.action==='pause') doAction(camp,'pause');
+  else if(rec.action==='resume') doAction(camp,'resume');
+  else if(rec.action==='increase_budget'||rec.action==='decrease_budget') doBudget(camp,cur);
+}
+
+/* ── AI CHAT ── */
+async function sendChat(){
+  const inp = document.getElementById('chat-inp');
+  const msg = inp.value.trim();
+  if(!msg) return;
+  inp.value=''; inp.style.height='48px';
+  document.getElementById('chat-send-btn').disabled=true;
+
+  appendChatMsg('user', msg);
+  const typing = showTyping();
+
+  try{
+    G.chatHistory.push({role:'user',parts:[{text:msg}]});
+    const systemCtx = buildChatContext();
+    const contents = G.chatHistory.slice(-20).map(m=>({role:m.role,parts:m.parts}));
+    const response = await callGemini('', {messages:contents, system:systemCtx, temp:0.8, maxTokens:2000});
+    G.chatHistory.push({role:'model',parts:[{text:response}]});
+    typing.remove();
+    appendChatMsg('ai', response);
+  }catch(e){
+    typing.remove();
+    appendChatMsg('ai','מצטער, אירעה שגיאה: '+e.message);
+    G.chatHistory.pop();
+  }
+  document.getElementById('chat-send-btn').disabled=false;
+}
+
+function appendChatMsg(role, text){
+  const body = document.getElementById('chat-body');
+  const wrap = document.createElement('div'); wrap.className='chat-msg '+role;
+  const bubble = document.createElement('div'); bubble.className='chat-bubble'; bubble.textContent=text;
+  const ts = document.createElement('div'); ts.className='chat-ts'; ts.textContent=timeNow();
+  wrap.appendChild(bubble); wrap.appendChild(ts);
+  body.appendChild(wrap);
+  body.scrollTop=body.scrollHeight;
+}
+
+function showTyping(){
+  const body = document.getElementById('chat-body');
+  const wrap = document.createElement('div'); wrap.className='typing-wrap';
+  wrap.innerHTML='<div class="typing-bubble"><span></span><span></span><span></span></div>';
+  body.appendChild(wrap); body.scrollTop=body.scrollHeight;
+  return wrap;
+}
+
+function clearChat(){
+  G.chatHistory=[];
+  const body=document.getElementById('chat-body');
+  body.innerHTML=`<div class="chat-msg ai"><div class="chat-bubble">השיחה נמחקה. במה אוכל לעזור?</div><div class="chat-ts">${timeNow()}</div></div>`;
+}
+
+function askQuick(q){
+  document.getElementById('chat-inp').value=q;
+  sendChat();
+}
+
+function injectContext(){
+  if(!G.currentAcc&&!G.accounts.length){ toast('אין נתונים להזרקה','err'); return; }
+  const ctx = buildChatContext();
+  const msg = `[הקשר נוכחי]\n${ctx}`;
+  appendChatMsg('user','📊 הזרקת הקשר נוכחי');
+  G.chatHistory.push({role:'user',parts:[{text:msg}]});
+  const typing=showTyping();
+  callGemini('',{messages:G.chatHistory.slice(-20),system:'אתה מנהל קמפיינים ב-Meta Ads.',temp:0.7,maxTokens:800}).then(r=>{
+    typing.remove(); G.chatHistory.push({role:'model',parts:[{text:r}]}); appendChatMsg('ai',r);
+  }).catch(e=>{ typing.remove(); appendChatMsg('ai','שגיאה: '+e.message); });
+}
+
+function buildChatContext(){
+  let ctx = `אתה עוזר AI מומחה ב-Meta Ads לסוכנות Think Digital.\n\n`;
+  if(G.currentAcc){
+    ctx+=`לקוח נוכחי: ${G.currentAcc.name} (${G.currentAcc.id})\nמטבע: ${G.currentAcc.currency||'ILS'}\n`;
+    if(G.currentCamps.length){
+      const active=G.currentCamps.filter(c=>c.effective_status==='ACTIVE');
+      ctx+=`קמפיינים פעילים: ${active.length}\n`;
+      active.slice(0,5).forEach(c=>{ ctx+=`  - ${c.name} (${objLbl(c.objective)})\n`; });
+    }
+    if(G.diagnostics){
+      const m=G.diagnostics.metrics;
+      const cur=currSym(G.diagnostics.currency);
+      ctx+=`\nמדדים (${G.DR.since} עד ${G.DR.until}):\nהוצאה: ${cur}${n2(m.spend)}\nCTR: ${m.ctr.toFixed(2)}%\nCPM: ${cur}${n2(m.cpm)}\n`;
+      if(m.leads>0) ctx+=`לידים: ${m.leads}\n`;
+      if(m.purchases>0) ctx+=`רכישות: ${m.purchases}\n`;
+      if(G.diagnostics.diag.freqAlerts?.length) ctx+=`⚠ שחיקת קהל ב-${G.diagnostics.diag.freqAlerts.length} אד-סטים\n`;
+    }
+  }
+  if(G.accounts.length){
+    ctx+=`\nסוכנות: ${G.accounts.length} חשבונות מודעות פעילים מחוברים.\n`;
+  }
+  ctx+=`\nתגיב תמיד בעברית. היה ממוקד, מקצועי ומעשי.`;
+  return ctx;
+}
+
+/* ── WEEKLY SUMMARY ── */
+function updateWeeklyChips(){
+  const wrap = document.getElementById('weekly-chips');
+  if(!wrap||!G.accounts.length) return;
+  // Default: select all
+  G.selectedWeeklyClients = new Set(G.accounts.map(a=>a.id));
+  wrap.innerHTML = `<span class="cl-chip selected" style="cursor:pointer;font-size:11px;color:var(--t3)" onclick="toggleAllWeekly()">✓ כל הלקוחות</span>` +
+    G.accounts.map(acc=>`
+      <span class="cl-chip selected" id="wchip-${escH(acc.id)}" onclick="toggleWeeklyClient('${escH(acc.id)}')">
+        ✓ ${escH(acc.name.length>18?acc.name.slice(0,18)+'…':acc.name)}
+      </span>`).join('');
+}
+
+function toggleWeeklyClient(id){
+  const chip = document.getElementById('wchip-'+id);
+  if(G.selectedWeeklyClients.has(id)){ G.selectedWeeklyClients.delete(id); chip?.classList.remove('selected'); chip&&(chip.textContent=chip.textContent.replace('✓ ',''));  }
+  else { G.selectedWeeklyClients.add(id); chip?.classList.add('selected'); if(chip&&!chip.textContent.startsWith('✓')) chip.textContent='✓ '+chip.textContent.trim(); }
+}
+
+function toggleAllWeekly(){
+  if(G.selectedWeeklyClients.size===G.accounts.length){
+    G.selectedWeeklyClients.clear();
+    document.querySelectorAll('[id^=wchip-]').forEach(c=>{ c.classList.remove('selected'); });
+  }else{
+    G.accounts.forEach(a=>G.selectedWeeklyClients.add(a.id));
+    document.querySelectorAll('[id^=wchip-]').forEach(c=>{ c.classList.add('selected'); });
+  }
+}
+
+function onWPeriodChange(){
+  const val=document.getElementById('w-period').value;
+  document.getElementById('w-custom').classList.toggle('show',val==='custom');
+}
+
+function getWeeklyPeriod(){
+  const val=document.getElementById('w-period').value||'last7';
+  const today=new Date();
+  let since,until,label;
+  if(val==='last7'){since=daysAgo(7);until=daysAgo(1);label='7 ימים אחרונים';}
+  else if(val==='this_week'){const day=today.getDay();const sun=new Date(today);sun.setDate(today.getDate()-day);since=fmt(sun);until=fmt(today);label='השבוע הזה';}
+  else if(val==='last14'){since=daysAgo(14);until=daysAgo(1);label='14 ימים אחרונים';}
+  else if(val==='this_month'){since=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-01`;until=fmt(today);label='החודש הזה';}
+  else if(val==='last30'){since=daysAgo(30);until=daysAgo(1);label='30 ימים';}
+  else{
+    since=document.getElementById('w-since').value;
+    until=document.getElementById('w-until').value;
+    label='תקופה נבחרת';
+    if(!since||!until) throw new Error('בחר תאריכי התחלה וסיום');
+  }
+  return {since,until,label};
+}
+
+async function generateWeekly(autoMode=false){
+  const btn=document.getElementById('w-gen-btn');
+  const resultWrap=document.getElementById('weekly-result');
+  btn.disabled=true; btn.textContent='⏳ מנתח...';
+  resultWrap.style.display='none';
+
+  try{
+    const period=getWeeklyPeriod();
+    const selected=G.accounts.filter(a=>G.selectedWeeklyClients.has(a.id));
+    if(!selected.length) throw new Error('לא נבחרו לקוחות לסיכום');
+
+    // Fetch data for all selected clients in parallel
+    const fields='spend,impressions,ctr,cpm,cpc,actions,frequency';
+    const tr=JSON.stringify({since:period.since,until:period.until});
+    const clientData = await Promise.all(selected.map(async acc=>{
+      try{
+        const [ins,camps]=await Promise.all([
+          mq(`${acc.id}/insights`,{fields,time_range:tr}).catch(()=>({data:[]})),
+          mqAll(`${acc.id}/campaigns`,{fields:'id,name,effective_status,objective',filtering:'[{"field":"effective_status","operator":"IN","value":["ACTIVE"]}]'}).catch(()=>[])
+        ]);
+        const d=parseIns(ins.data?.[0]);
+        return {name:acc.name,currency:acc.currency||'ILS',metrics:d,activeCamps:camps.length};
+      }catch(e){return {name:acc.name,currency:'ILS',metrics:null,error:e.message};}
+    }));
+
+    // Build summary data string
+    const cur=currSym('ILS');
+    let summaryData='';
+    clientData.forEach((c,i)=>{
+      if(c.error){ summaryData+=`${i+1}. ${c.name}: שגיאה - ${c.error}\n`; return; }
+      const m=c.metrics; const cs=currSym(c.currency);
+      summaryData+=`${i+1}. ${c.name}\n`;
+      summaryData+=`   הוצאה: ${cs}${n2(m.spend)} | CTR: ${m.ctr.toFixed(2)}% | CPM: ${cs}${n2(m.cpm)}\n`;
+      if(m.leads>0) summaryData+=`   לידים: ${m.leads}${m.cpr>0?' | עלות ליד: '+cs+n2(m.cpr):''}\n`;
+      if(m.purchases>0) summaryData+=`   רכישות: ${m.purchases}${m.roas>0?' | ROAS: '+m.roas.toFixed(2):''}\n`;
+      if(!m.leads&&!m.purchases) summaryData+=`   תוצאות: ${m.results}\n`;
+      summaryData+=`   קמפיינים פעילים: ${c.activeCamps}\n\n`;
+    });
+
+    const prompt=`אתה מנהל קמפיינים בכיר ב-Meta Ads בסוכנות Think Digital. כתוב סיכום שבועי מקצועי בעברית.
+
+**תקופה:** ${period.label} (${period.since} – ${period.until})
+**${selected.length} לקוחות:**
+
+${summaryData}
+
+כתוב סיכום שבועי מקיף הכולל:
+1. 📊 **סיכום כללי** — ביצועים בולטים של השבוע
+2. 🏆 **הישגים** — מה עבד מצוין
+3. ⚠️ **נקודות לשיפור** — מה צריך תשומת לב
+4. 🎯 **לקוחות לטיפול מיידי** — מי דורש פעולה דחופה
+5. 📈 **המלצות לשבוע הבא** — 3-5 פעולות קונקרטיות
+
+כתוב בגוף ראשון ("השבוע ניהלנו..."), בצורה מקצועית ולתכלית. השתמש בנקודות ובסדר ברור.`;
+
+    const summary=await callGemini(prompt,{temp:0.7,maxTokens:2500});
+
+    // Render result
+    resultWrap.innerHTML=`
+      <div class="weekly-result">
+        <div class="weekly-result-title">📋 סיכום שבועי — ${escH(period.label)}</div>
+        <div class="weekly-result-date">${escH(period.since)} עד ${escH(period.until)} · ${selected.length} לקוחות · ${new Date().toLocaleDateString('he-IL')}</div>
+        <div class="weekly-text" id="weekly-text">${escH(summary)}</div>
+        <div class="weekly-actions">
+          <button class="wact-btn primary" onclick="copyWeekly()">📋 העתק</button>
+          <button class="wact-btn" onclick="downloadWeekly()">⬇ הורד TXT</button>
+          <button class="wact-btn" onclick="generateWeekly()">🔄 צור מחדש</button>
+        </div>
+      </div>`;
+    resultWrap.style.display='block';
+    resultWrap.scrollIntoView({behavior:'smooth',block:'start'});
+
+    if(autoMode) toast('✨ הסיכום השבועי מוכן!','ok');
+
+  }catch(e){
+    resultWrap.innerHTML=`<div class="card"><div class="empty-state" style="color:var(--red)">שגיאה: ${escH(e.message)}</div></div>`;
+    resultWrap.style.display='block';
+  }finally{
+    btn.disabled=false; btn.textContent='✨ הפק סיכום AI';
+  }
+}
+
+function copyWeekly(){
+  const t=document.getElementById('weekly-text')?.textContent||'';
+  navigator.clipboard?.writeText(t).then(()=>toast('✓ הועתק!','ok'));
+}
+function downloadWeekly(){
+  const t=document.getElementById('weekly-text')?.textContent||'';
+  const blob=new Blob([t],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`סיכום-שבועי-${fmt(new Date())}.txt`; a.click();
+}
+
+/* ── WEEKLY AUTO-TRIGGER ── */
+function checkAutoWeeklySummary(){
+  const now = new Date();
+  if(now.getDay()!==0) return; // רק יום ראשון
+  const h=now.getHours(), min=now.getMinutes();
+  if(h<8||(h===8&&min<30)) return; // רק אחרי 8:30
+  const key='td_wk_auto_'+fmt(now);
+  if(localStorage.getItem(key)==='1') return;
+  localStorage.setItem(key,'1');
+  // הראה banner
+  const wb=document.getElementById('wb-wrap');
+  if(wb){ wb.style.display='flex'; document.getElementById('main-area').classList.add('has-banner'); }
+}
+
+function openWeeklyAuto(){
+  document.getElementById('wb-wrap').style.display='none';
+  document.getElementById('main-area').classList.remove('has-banner');
+  navTo('weekly');
+  // בחר 7 ימים אחרונים אוטומטית וייצר
+  document.getElementById('w-period').value='last7';
+  onWPeriodChange();
+  setTimeout(()=>generateWeekly(true),300);
+}
+
+/* ── PARSE HELPERS ── */
+function parseIns(d){
+  if(!d) return {spend:0,ctr:0,cpm:0,cpc:0,results:0,leads:0,purchases:0,roas:0,cpr:0,reach:0};
+  const ga=(arr,t)=>parseFloat(arr?.find(a=>a.action_type===t)?.value||0);
+  const leads=ga(d.actions,'lead')+ga(d.actions,'onsite_conversion.lead_grouped');
+  const purch=ga(d.actions,'purchase')+ga(d.actions,'omni_purchase');
+  const res=leads||purch||(d.actions?.reduce((s,a)=>s+parseFloat(a.value||0),0)||0);
+  const spend=parseFloat(d.spend||0);
+  const cv=ga(d.action_values,'purchase')+ga(d.action_values,'omni_purchase');
+  return {spend,ctr:parseFloat(d.ctr||0),cpm:parseFloat(d.cpm||0),cpc:parseFloat(d.cpc||0),
+          results:Math.round(res),leads:Math.round(leads),purchases:Math.round(purch),
+          roas:spend>0&&cv>0?cv/spend:0,cpr:res>0?spend/res:0,reach:parseFloat(d.reach||0)};
+}
+function getRoas(d){
+  if(!d) return 0;
+  const spend=parseFloat(d.spend||0); if(!spend) return 0;
+  const cv=(d.action_values||[]).filter(a=>['purchase','omni_purchase'].includes(a.action_type)).reduce((s,a)=>s+parseFloat(a.value||0),0);
+  return cv>0?cv/spend:0;
+}
+const OBJ={LEAD_GENERATION:{l:'לידים',k:'lead'},OUTCOME_LEADS:{l:'לידים',k:'lead'},OUTCOME_SALES:{l:'רכישות',k:'purchase'},OUTCOME_TRAFFIC:{l:'קליקים',k:'link_click'},LINK_CLICKS:{l:'קליקים',k:'link_click'},OUTCOME_ENGAGEMENT:{l:'מעורבות',k:'post_engagement'},VIDEO_VIEWS:{l:'צפיות',k:'video_view'},OUTCOME_AWARENESS:{l:'חשיפה',k:'_reach'},APP_INSTALLS:{l:'התקנות',k:'app_install'},OUTCOME_APP_PROMOTION:{l:'התקנות',k:'app_install'}};
+const AKEYS={lead:['lead','onsite_conversion.lead_grouped'],purchase:['purchase','omni_purchase'],link_click:['link_click'],post_engagement:['post_engagement'],video_view:['video_view'],app_install:['app_install','mobile_app_install']};
+function getPrimary(obj,actions,reach){
+  const cfg=OBJ[obj]||{l:'תוצאות',k:'_all'};
+  if(cfg.k==='_reach') return {label:cfg.l,val:Math.round(reach||0)};
+  if(cfg.k==='_all') return {label:cfg.l,val:Math.round((actions||[]).reduce((s,a)=>s+parseFloat(a.value||0),0))};
+  const keys=AKEYS[cfg.k]||[cfg.k];
+  return {label:cfg.l,val:Math.round((actions||[]).filter(a=>keys.includes(a.action_type)).reduce((s,a)=>s+parseFloat(a.value||0),0))};
+}
+const OLLABELS={LEAD_GENERATION:'לידים',OUTCOME_LEADS:'לידים',OUTCOME_SALES:'מכירות',OUTCOME_TRAFFIC:'תנועה',LINK_CLICKS:'קליקים',OUTCOME_ENGAGEMENT:'מעורבות',VIDEO_VIEWS:'צפיות',OUTCOME_AWARENESS:'מודעות',APP_INSTALLS:'אפליקציה',OUTCOME_APP_PROMOTION:'אפליקציה'};
+function objLbl(obj){ return OLLABELS[obj]||obj||''; }
+
+/* ── DOM HELPERS ── */
+function mkSecTitle(txt){
+  const el=document.createElement('div'); el.className='sec-title'; el.textContent=txt; return el;
+}
+function mkEmpty(txt){
+  const el=document.createElement('div'); el.className='empty-state'; el.textContent=txt; return el;
+}
+function mkCard(title,sub){
+  const c=document.createElement('div'); c.className='card-inner'; c.style.marginBottom='10px';
+  c.innerHTML=`<div class="card-title" style="font-size:13px;margin-bottom:3px">${title}</div><div class="card-sub">${sub}</div>`;
+  return c;
+}
+
+/* ── BOOT handled by fbAsyncInit above ── */
+
+// Expose globals needed by inline handlers
+window.startLogin=startLogin;
+window.logout=logout;
+window.navTo=navTo;
+window.openClient=openClient;
+window.openWeeklyAuto=openWeeklyAuto;
+window.onWPeriodChange=onWPeriodChange;
+window.generateWeekly=generateWeekly;
+window.copyWeekly=copyWeekly;
+window.downloadWeekly=downloadWeekly;
+window.sendChat=sendChat;
+window.clearChat=clearChat;
+window.askQuick=askQuick;
+window.injectContext=injectContext;
+window.toggleWeeklyClient=toggleWeeklyClient;
+window.toggleAllWeekly=toggleAllWeekly;
+
+})();
+</script>
+</body>
+</html>

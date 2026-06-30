@@ -1,0 +1,9 @@
+# Meta Ads Monitoring & QA Agent - Python dependencies
+# Pin to compatible major versions for reproducible, production-ready installs.
+
+requests>=2.31.0,<3.0.0          # HTTP client for the Meta Marketing Graph API (read-only GET calls)
+python-dotenv>=1.0.0,<2.0.0      # Load configuration from a local .env file
+supabase>=2.4.0,<3.0.0           # Supabase Python client (Postgres + REST)
+anthropic>=0.39.0,<1.0.0         # Anthropic Claude API client (reporting / explanation only)
+tenacity>=8.2.0,<9.0.0           # Retry-with-backoff for transient Meta API failures
+schedule>=1.2.0,<2.0.0           # Lightweight in-process cron scheduler

@@ -1,0 +1,50 @@
+{
+  "_comment": "QA thresholds for the rules engine. Per-client overrides can be added under 'client_overrides' keyed by client_id. All monetary values are in the ad account currency.",
+
+  "zero_spend_active_hours": 6,
+  "_zero_spend_active_hours": "Flag an ACTIVE campaign that has spent ~0 for this many hours.",
+  "zero_spend_floor": 0.5,
+  "_zero_spend_floor": "Spend at or below this is treated as effectively zero.",
+
+  "spend_no_results_min_spend": 20.0,
+  "_spend_no_results_min_spend": "Minimum spend before an active entity with 0 results is flagged.",
+
+  "cpa_over_target_multiplier": 2.0,
+  "_cpa_over_target_multiplier": "Flag when CPA exceeds target_cpa multiplied by this factor.",
+
+  "roas_below_target_ratio": 1.0,
+  "_roas_below_target_ratio": "Flag when ROAS < target_roas * this ratio. 1.0 = strictly below target.",
+  "roas_min_spend": 50.0,
+  "_roas_min_spend": "Minimum spend before ROAS underperformance is evaluated.",
+
+  "frequency_threshold": 3.0,
+  "_frequency_threshold": "Flag when frequency (impressions/reach) exceeds this value.",
+
+  "ctr_floor_percent": 0.7,
+  "_ctr_floor_percent": "Flag when CTR (percent) falls below this floor.",
+  "ctr_min_impressions": 1000,
+  "_ctr_min_impressions": "Minimum impressions before CTR is evaluated.",
+
+  "cpm_high_multiplier": 1.75,
+  "_cpm_high_multiplier": "Flag an entity whose CPM exceeds the account-average CPM by this factor.",
+  "cpm_min_impressions": 1000,
+
+  "spend_drop_percent": 0.6,
+  "_spend_drop_percent": "Flag a sudden spend drop of this fraction vs the prior snapshot (0.6 = 60% drop).",
+
+  "cpa_increase_percent": 0.5,
+  "_cpa_increase_percent": "Flag a sudden CPA increase of this fraction vs the prior snapshot.",
+
+  "budget_cap_warning_ratio": 0.85,
+  "_budget_cap_warning_ratio": "Flag when month-to-date spend reaches this fraction of monthly_budget.",
+
+  "tracking_clicks_without_results_min_clicks": 50,
+  "_tracking_clicks_without_results_min_clicks": "Flag suspected tracking issues when clicks exceed this but results are 0.",
+
+  "client_overrides": {
+    "cl_002": {
+      "ctr_floor_percent": 0.5,
+      "frequency_threshold": 4.0
+    }
+  }
+}

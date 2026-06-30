@@ -1,0 +1,2124 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>עורך הצעת מחיר והזמנת עבודה | ThinkDigital</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --black: #0a0a0a;
+  --white: #fff;
+  --accent: #6c3bff;
+  --accent-light: rgba(108,59,255,0.12);
+  --accent-mid: #a98bff;
+  --header-bg: #0a0a0a;
+  --gray-light: #f5f5f7;
+  --gray-mid: #e2e2e8;
+  --gray-text: #6b6b6b;
+  --ink: #1c1c22;
+  --included: #00b37e;
+  --panel: #18181b;
+  --panel-border: #2d2d33;
+  --input-bg: #2a2a32;
+  --input-border: #3a3a45;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Assistant', sans-serif;
+  background: #111;
+  color: var(--white);
+  direction: rtl;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== TOP BAR ===== */
+.topbar {
+  background: var(--panel);
+  border-bottom: 1px solid var(--panel-border);
+  padding: 0 18px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  z-index: 10;
+}
+.topbar-brand { font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+.topbar-brand span { color: var(--accent-mid); }
+.topbar-tag {
+  font-size: 10px; background: var(--accent); color: #fff;
+  padding: 2px 9px; border-radius: 20px; font-weight: 600; letter-spacing: .5px;
+}
+.topbar-actions { display: flex; gap: 8px; align-items: center; }
+.tb-btn {
+  background: var(--input-bg); border: 1px solid var(--input-border);
+  color: rgba(255,255,255,0.75); padding: 7px 15px; border-radius: 8px;
+  font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer;
+  transition: all .15s; display: flex; align-items: center; gap: 6px; white-space: nowrap;
+}
+.tb-btn:hover { background: #33333f; color: #fff; }
+.tb-btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.tb-btn.primary:hover { background: #7a4fff; }
+.tb-btn.lock { background: #ff9f1c22; border-color: #ff9f1c; color: #ffb74d; }
+.tb-btn.lock:hover { background: #ff9f1c33; }
+.tb-btn.link { background: rgba(108,59,255,0.18); border-color: var(--accent); color: var(--accent-mid); }
+.tb-btn.link:hover { background: var(--accent); color: #fff; }
+.link-field { margin-bottom: 14px; }
+.link-field label { display: block; font-size: 11px; font-weight: 700; letter-spacing: .5px; color: rgba(255,255,255,0.5); margin-bottom: 6px; }
+.link-field input, .link-field textarea {
+  width: 100%; background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 8px;
+  padding: 10px 12px; font-size: 13px; color: var(--white); font-family: inherit; direction: ltr; text-align: left; resize: none;
+}
+.link-field input:focus, .link-field textarea:focus { outline: none; border-color: var(--accent); }
+.link-field textarea { min-height: 70px; line-height: 1.45; word-break: break-all; font-family: monospace; font-size: 11.5px; }
+.link-len { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 5px; }
+.link-steps { font-size: 12px; color: rgba(255,255,255,0.55); line-height: 1.7; background: #ffffff0a; padding: 12px 14px; border-radius: 9px; margin-bottom: 14px; }
+.link-steps b { color: var(--accent-mid); }
+.link-gear { background: none; border: none; color: rgba(255,255,255,0.3); font-size: 11px; font-family: inherit; cursor: pointer; padding: 4px 0; }
+.link-gear:hover { color: rgba(255,255,255,0.6); }
+.tb-btn.danger:hover { border-color: #ff4444; color: #ff7676; }
+.save-indicator { font-size: 11px; color: rgba(255,255,255,0.35); display: flex; align-items: center; gap: 5px; }
+.save-dot { width: 6px; height: 6px; background: var(--included); border-radius: 50%; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* ===== MAIN LAYOUT ===== */
+.main { display: flex; flex: 1; overflow: hidden; }
+
+/* ===== EDITOR PANEL ===== */
+.editor-panel {
+  width: 360px; flex-shrink: 0; background: var(--panel);
+  border-left: 1px solid var(--panel-border);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.panel-tabs { display: flex; flex-wrap: wrap; border-bottom: 1px solid var(--panel-border); flex-shrink: 0; }
+.panel-tab {
+  flex: 1 1 33%; padding: 11px 4px; text-align: center; font-size: 11.5px; font-weight: 600;
+  color: rgba(255,255,255,0.4); cursor: pointer; border-bottom: 2px solid transparent; transition: all .15s;
+}
+.panel-tab.active { color: var(--accent-mid); border-bottom-color: var(--accent); }
+.panel-content { flex: 1; overflow-y: auto; padding: 16px; }
+.panel-content::-webkit-scrollbar { width: 5px; }
+.panel-content::-webkit-scrollbar-thumb { background: var(--panel-border); border-radius: 4px; }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+.field-group { margin-bottom: 22px; }
+.field-group-title {
+  font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+  color: rgba(255,255,255,0.32); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--panel-border);
+}
+.field { margin-bottom: 11px; }
+.field label { display: block; font-size: 11px; color: rgba(255,255,255,0.55); margin-bottom: 4px; font-weight: 600; }
+.field input, .field textarea, .field select {
+  width: 100%; background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 8px;
+  padding: 8px 11px; font-size: 13px; color: var(--white); font-family: inherit; direction: rtl;
+  transition: border-color .15s; resize: vertical;
+}
+.field input:focus, .field textarea:focus, .field select:focus { outline: none; border-color: var(--accent); }
+.field textarea { min-height: 72px; line-height: 1.5; }
+.field select option { background: #222; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+.color-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.color-input-wrap {
+  display: flex; align-items: center; gap: 8px; background: var(--input-bg);
+  border: 1px solid var(--input-border); border-radius: 8px; padding: 6px 10px;
+}
+.color-input-wrap input[type="color"] { width: 26px; height: 26px; border: none; background: none; padding: 0; cursor: pointer; border-radius: 4px; flex-shrink: 0; }
+.color-input-wrap input[type="text"] { background: none; border: none; padding: 0; font-size: 12px; color: rgba(255,255,255,0.7); font-family: monospace; width: 100%; }
+
+.logo-upload-area {
+  border: 2px dashed var(--input-border); border-radius: 10px; padding: 16px; text-align: center;
+  cursor: pointer; transition: border-color .2s; position: relative;
+}
+.logo-upload-area:hover { border-color: var(--accent-mid); }
+.logo-preview { max-height: 50px; max-width: 150px; display: none; margin: 0 auto 8px; border-radius: 6px; }
+.logo-upload-text { font-size: 12px; color: rgba(255,255,255,0.4); }
+.btn-logo-remove {
+  background: none; border: none; color: #ff7676; font-size: 11px; cursor: pointer;
+  margin-top: 8px; font-family: inherit; display: none;
+}
+
+/* Dynamic list editor */
+.list-editor { display: flex; flex-direction: column; gap: 8px; }
+.list-item {
+  background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 10px; padding: 10px;
+}
+.list-item-top { display: flex; align-items: center; gap: 7px; }
+.list-num {
+  width: 22px; height: 22px; background: var(--accent-light); color: var(--accent-mid);
+  border-radius: 6px; display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800; flex-shrink: 0;
+}
+.list-item-top input, .list-item-top textarea { flex: 1; }
+.li-actions { display: flex; gap: 2px; flex-shrink: 0; }
+.li-btn {
+  background: none; border: none; color: rgba(255,255,255,0.35); cursor: pointer;
+  font-size: 13px; padding: 3px 5px; border-radius: 5px; transition: all .12s; line-height: 1;
+}
+.li-btn:hover { background: #ffffff14; color: var(--accent-mid); }
+.li-btn.del:hover { color: #ff5b5b; }
+.li-btn:disabled { opacity: .25; cursor: default; }
+.li-btn:disabled:hover { background: none; color: rgba(255,255,255,0.35); }
+.li-fields { margin-top: 7px; display: flex; flex-direction: column; gap: 6px; }
+.btn-add {
+  background: var(--input-bg); border: 1px dashed var(--input-border); border-radius: 8px;
+  padding: 9px; width: 100%; font-size: 12px; color: rgba(255,255,255,0.45);
+  cursor: pointer; font-family: inherit; transition: all .15s; margin-top: 8px;
+}
+.btn-add:hover { border-color: var(--accent-mid); color: var(--accent-mid); }
+
+.lock-hint { font-size: 11px; color: rgba(255,255,255,0.35); line-height: 1.6; margin-top: 10px; background: #ffffff0a; padding: 10px 12px; border-radius: 8px; }
+
+.preset-group { background: var(--accent-light); border: 1px solid var(--accent); border-radius: 12px; padding: 14px; }
+.preset-group .field-group-title { color: var(--accent-mid); border-bottom-color: rgba(255,255,255,0.12); }
+.preset-desc { font-size: 11.5px; color: rgba(255,255,255,0.6); line-height: 1.6; margin-bottom: 12px; }
+.btn-preset {
+  width: 100%; margin-top: 4px; background: var(--accent); color: #fff; border: none; border-radius: 9px;
+  padding: 11px; font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer; transition: background .15s;
+}
+.btn-preset:hover { background: #7a4fff; }
+.biz-preset-group { margin-top: 12px; }
+.biz-preset-btns { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 4px; }
+.btn-biz {
+  background: var(--input-bg); border: 1px solid var(--accent); color: #fff; border-radius: 9px;
+  padding: 11px 13px; font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer;
+  transition: all .15s; text-align: right; display: flex; align-items: center; gap: 9px;
+}
+.btn-biz:hover { background: var(--accent); }
+.btn-biz small { font-weight: 500; color: rgba(255,255,255,0.55); font-size: 11px; }
+.btn-biz:hover small { color: rgba(255,255,255,0.85); }
+
+/* ===== PREVIEW PANEL ===== */
+.preview-panel { flex: 1; overflow-y: auto; background: #e8e8ec; padding: 28px; }
+.preview-panel::-webkit-scrollbar { width: 7px; }
+.preview-panel::-webkit-scrollbar-thumb { background: #c4c4cc; border-radius: 4px; }
+
+/* ===== DOCUMENT ===== */
+.doc {
+  max-width: 820px; margin: 0 auto; background: var(--white); border-radius: 8px; overflow: hidden;
+  box-shadow: 0 6px 50px rgba(0,0,0,0.2); color: var(--ink); direction: rtl;
+}
+
+/* Cover */
+.cover {
+  background: var(--header-bg); color: #fff; padding: 70px 56px 60px; position: relative; overflow: hidden;
+  min-height: 480px; display: flex; flex-direction: column; justify-content: space-between;
+}
+.cover::before {
+  content: ''; position: absolute; top: -120px; left: -100px; width: 380px; height: 380px;
+  background: radial-gradient(circle, var(--accent) 0%, transparent 70%); opacity: .28;
+}
+.cover::after {
+  content: ''; position: absolute; bottom: -90px; right: -40px; width: 280px; height: 280px;
+  background: radial-gradient(circle, var(--accent-mid) 0%, transparent 70%); opacity: .16;
+}
+.cover-top, .cover-mid, .cover-bottom { position: relative; z-index: 1; }
+.cover-logo img { max-height: 56px; max-width: 200px; display: block; }
+.cover-logo-text { font-size: 34px; font-weight: 800; letter-spacing: -1px; line-height: 1; }
+.cover-logo-text span { color: var(--accent-mid); }
+.cover-tagline { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 7px; letter-spacing: 2px; text-transform: uppercase; font-weight: 300; }
+.cover-label { font-size: 11px; color: var(--accent-mid); letter-spacing: 4px; text-transform: uppercase; font-weight: 600; margin-bottom: 14px; }
+.cover-title { font-size: 52px; font-weight: 800; line-height: 1.05; letter-spacing: -1px; }
+.cover-sub { font-size: 19px; color: rgba(255,255,255,0.72); margin-top: 18px; font-weight: 300; line-height: 1.5; }
+.cover-sub b { color: #fff; font-weight: 600; }
+.cover-contact {
+  display: flex; flex-wrap: wrap; gap: 22px; font-size: 12.5px; color: rgba(255,255,255,0.6);
+  border-top: 1px solid rgba(255,255,255,0.12); padding-top: 22px;
+}
+.cover-contact span { display: flex; align-items: center; gap: 6px; }
+.cover-num { font-size: 11px; color: rgba(255,255,255,0.4); letter-spacing: 1px; margin-top: 4px; }
+
+/* Body */
+.body { padding: 50px 56px; }
+.section { margin-bottom: 44px; }
+.section:last-child { margin-bottom: 0; }
+.sec-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 2px solid var(--gray-mid); }
+.sec-kicker { font-size: 11px; font-weight: 800; color: var(--accent); background: var(--accent-light); width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.sec-title { font-size: 22px; font-weight: 700; color: var(--ink); }
+
+.doc-intro-row { display: flex; flex-wrap: wrap; gap: 14px 40px; margin-bottom: 6px; }
+.intro-item { }
+.intro-label { font-size: 10px; font-weight: 700; color: var(--gray-text); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 3px; }
+.intro-val { font-size: 16px; font-weight: 700; color: var(--ink); }
+
+.objective-text { font-size: 15.5px; line-height: 1.85; color: #3a3a42; white-space: pre-wrap; }
+
+/* Goals */
+.goals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.goal {
+  display: flex; align-items: flex-start; gap: 14px; padding: 16px 18px;
+  background: var(--gray-light); border-radius: 12px; border: 1px solid var(--gray-mid);
+}
+.goal-num { font-size: 26px; font-weight: 800; color: var(--accent); opacity: .35; line-height: 1; flex-shrink: 0; }
+.goal-text { font-size: 14px; color: #34343c; font-weight: 500; line-height: 1.45; padding-top: 3px; }
+
+/* Bullet list */
+.scope-intro { font-size: 14.5px; line-height: 1.8; color: #3a3a42; margin-bottom: 18px; white-space: pre-wrap; }
+.bullet-list { display: flex; flex-direction: column; gap: 11px; }
+.bullet { display: flex; align-items: flex-start; gap: 12px; font-size: 14.5px; color: #34343c; line-height: 1.55; }
+.bullet-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; flex-shrink: 0; margin-top: 7px; }
+
+/* Months */
+.months-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.month-card { border: 1.5px solid var(--gray-mid); border-radius: 14px; overflow: hidden; }
+.month-head {
+  background: var(--gray-light); padding: 12px 18px; display: flex; align-items: center; gap: 12px;
+  border-bottom: 1.5px solid var(--gray-mid);
+}
+.month-badge {
+  background: var(--accent); color: #fff; font-size: 12px; font-weight: 800; border-radius: 7px;
+  width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.month-title { font-size: 15px; font-weight: 700; color: var(--ink); }
+.month-body { padding: 14px 18px; font-size: 13.5px; line-height: 1.7; color: #45454d; white-space: pre-wrap; }
+
+/* Price */
+.price-box {
+  background: var(--header-bg); color: #fff; border-radius: 18px; padding: 34px 40px;
+  position: relative; overflow: hidden; text-align: center;
+}
+.price-box::before {
+  content: ''; position: absolute; top: -70px; right: -60px; width: 240px; height: 240px;
+  background: radial-gradient(circle, var(--accent) 0%, transparent 70%); opacity: .25;
+}
+.price-inner { position: relative; z-index: 1; }
+.price-type-label { font-size: 12px; color: var(--accent-mid); letter-spacing: 3px; text-transform: uppercase; font-weight: 700; margin-bottom: 14px; }
+.price-amount { font-size: 46px; font-weight: 800; line-height: 1; letter-spacing: -1px; }
+.price-amount .cur { font-size: 26px; font-weight: 600; color: rgba(255,255,255,0.8); margin-right: 4px; }
+.price-vat { font-size: 15px; color: rgba(255,255,255,0.55); margin-top: 8px; font-weight: 400; }
+.price-note { font-size: 13px; color: rgba(255,255,255,0.6); margin-top: 18px; line-height: 1.6; max-width: 480px; margin-left: auto; margin-right: auto; white-space: pre-wrap; }
+
+/* Terms */
+.terms-list { display: flex; flex-direction: column; gap: 10px; }
+.term { display: flex; align-items: flex-start; gap: 12px; font-size: 14px; color: #3a3a42; line-height: 1.6; }
+.term-check { color: var(--accent); font-weight: 800; flex-shrink: 0; font-size: 15px; }
+
+/* Signature */
+.sig-box { border: 2px solid var(--gray-mid); border-radius: 16px; overflow: hidden; }
+.sig-head { padding: 16px 20px; background: var(--gray-light); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.sig-head-left { display: flex; align-items: center; gap: 10px; }
+.sig-icon { font-size: 20px; }
+.sig-htitle { font-size: 15px; font-weight: 700; }
+.sig-hsub { font-size: 11px; color: var(--gray-text); margin-top: 1px; }
+.sig-status { font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; background: var(--gray-mid); color: var(--gray-text); }
+.sig-status.signed { background: #e6f9f2; color: var(--included); border: 1.5px solid #b3f0d6; }
+.sig-body { padding: 20px; }
+.sig-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.sig-field label { display: block; font-size: 10px; font-weight: 700; color: var(--gray-text); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 5px; }
+.sig-field input { width: 100%; padding: 9px 12px; border: 1.5px solid var(--gray-mid); border-radius: 9px; font-size: 14px; font-family: inherit; direction: rtl; color: var(--ink); }
+.sig-field input:focus { outline: none; border-color: var(--accent); }
+.sig-field input:disabled { background: var(--gray-light); color: var(--ink); }
+.canvas-wrap { border: 2px dashed var(--gray-mid); border-radius: 10px; background: #fefefe; margin-bottom: 14px; cursor: crosshair; position: relative; }
+.canvas-wrap.active { border-color: var(--accent); border-style: solid; }
+#sigCanvas { display: block; width: 100%; height: 140px; touch-action: none; }
+.sig-ph { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; pointer-events: none; }
+.sig-ph-icon { font-size: 24px; opacity: .25; }
+.sig-ph-text { font-size: 12px; color: var(--gray-text); }
+.sig-img { display: none; max-height: 130px; margin: 0 auto 6px; }
+.sig-actions { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+.btn-sig-clear { background: none; border: 1.5px solid var(--gray-mid); padding: 8px 18px; border-radius: 30px; font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; color: var(--gray-text); }
+.btn-sig-clear:hover { border-color: #ff4444; color: #ff4444; }
+.btn-sig-confirm { background: var(--accent); color: #fff; border: none; padding: 10px 24px; border-radius: 30px; font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer; }
+.btn-sig-confirm:disabled { opacity: .4; cursor: not-allowed; }
+.sig-type-hint { font-size: 12px; color: var(--gray-text); text-align: center; margin: -4px 0 12px; }
+.link-sign { background: none; border: none; color: var(--accent); font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer; text-decoration: underline; padding: 0; }
+.sig-browser-hint { font-size: 11.5px; color: var(--gray-text); text-align: center; margin-top: 10px; line-height: 1.5; background: var(--gray-light); border-radius: 8px; padding: 8px 10px; }
+.signed-banner { display: none; background: #e6f9f2; border: 1.5px solid #b3f0d6; border-radius: 12px; padding: 16px 20px; align-items: center; gap: 14px; }
+.signed-banner.show { display: flex; }
+.signed-banner-text { font-size: 15px; color: #007a54; font-weight: 700; }
+.signed-banner-sub { font-size: 12.5px; color: #00956a; margin-top: 3px; }
+
+/* Footer */
+.doc-footer { padding: 26px 56px; border-top: 1px solid var(--gray-mid); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+.footer-note { font-size: 11px; color: var(--gray-text); line-height: 1.7; }
+.footer-brand { font-size: 13px; font-weight: 800; color: var(--accent); }
+
+/* Read-only mode tweaks */
+body.locked .preview-panel { background: #d8d8de; }
+body.locked .editor-panel, body.locked .admin-only { display: none !important; }
+body.locked .preview-panel { padding: 36px 20px; }
+
+/* Hidden admin unlock */
+.admin-unlock {
+  position: fixed; bottom: 16px; left: 16px; z-index: 50; background: var(--panel);
+  border: 1px solid var(--panel-border); color: rgba(255,255,255,0.6); padding: 8px 16px;
+  border-radius: 10px; font-size: 12px; font-weight: 600; font-family: inherit; cursor: pointer;
+  display: none; align-items: center; gap: 6px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+.admin-unlock:hover { color: #fff; border-color: var(--accent); }
+.admin-unlock.show { display: flex; }
+.admin-dot { position: fixed; bottom: 8px; left: 8px; width: 14px; height: 14px; z-index: 49; cursor: default; opacity: 0; }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+  background: #1a1a1a; color: #fff; padding: 13px 26px; border-radius: 30px; font-size: 13px; font-weight: 600;
+  z-index: 999; transition: transform .3s ease; white-space: nowrap; box-shadow: 0 6px 30px rgba(0,0,0,0.4);
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.green { background: #00b37e; }
+.toast.orange { background: #ff9f1c; }
+
+/* Current proposal label in topbar */
+.current-label { font-size: 12px; color: rgba(255,255,255,0.5); display: flex; align-items: center; gap: 6px; max-width: 220px; }
+.current-label b { color: var(--accent-mid); font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ===== LIBRARY MODAL ===== */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200;
+  display: none; align-items: center; justify-content: center; padding: 24px; backdrop-filter: blur(2px);
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: var(--panel); border: 1px solid var(--panel-border); border-radius: 16px;
+  width: 100%; max-width: 640px; max-height: 84vh; display: flex; flex-direction: column; overflow: hidden;
+  box-shadow: 0 20px 80px rgba(0,0,0,0.5);
+}
+.modal-head { padding: 18px 22px; border-bottom: 1px solid var(--panel-border); display: flex; align-items: center; justify-content: space-between; }
+.modal-title { font-size: 17px; font-weight: 800; }
+.modal-close { background: none; border: none; color: rgba(255,255,255,0.5); font-size: 22px; cursor: pointer; line-height: 1; }
+.modal-close:hover { color: #fff; }
+.modal-toolbar { padding: 14px 22px; display: flex; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid var(--panel-border); }
+.modal-body { padding: 14px 22px; overflow-y: auto; flex: 1; }
+.modal-body::-webkit-scrollbar { width: 6px; }
+.modal-body::-webkit-scrollbar-thumb { background: var(--panel-border); border-radius: 4px; }
+.modal-foot { padding: 12px 22px; border-top: 1px solid var(--panel-border); display: flex; justify-content: space-between; align-items: center; }
+.modal-foot small { font-size: 11px; color: rgba(255,255,255,0.35); }
+.link-danger { background: none; border: none; color: #ff7676; font-size: 12px; cursor: pointer; font-family: inherit; }
+.link-danger:hover { text-decoration: underline; }
+
+.lib-empty { text-align: center; color: rgba(255,255,255,0.4); font-size: 13px; padding: 40px 0; }
+.lib-item {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 11px;
+  border: 1px solid var(--panel-border); background: var(--input-bg); margin-bottom: 9px; transition: border-color .15s;
+}
+.lib-item.current { border-color: var(--accent); }
+.lib-main { flex: 1; min-width: 0; cursor: pointer; }
+.lib-client { font-size: 14.5px; font-weight: 700; color: #fff; }
+.lib-meta { font-size: 11.5px; color: rgba(255,255,255,0.45); margin-top: 2px; display: flex; gap: 10px; flex-wrap: wrap; }
+.lib-badge { font-size: 10px; font-weight: 700; padding: 2px 9px; border-radius: 20px; white-space: nowrap; }
+.lib-badge.draft { background: #ffffff14; color: rgba(255,255,255,0.6); }
+.lib-badge.sent { background: #ff9f1c22; color: #ffb74d; }
+.lib-badge.signed { background: #00b37e22; color: #00d49a; }
+.lib-actions { display: flex; gap: 3px; flex-shrink: 0; }
+.lib-btn { background: none; border: none; color: rgba(255,255,255,0.4); cursor: pointer; font-size: 14px; padding: 5px 7px; border-radius: 7px; transition: all .12s; }
+.lib-btn:hover { background: #ffffff14; color: var(--accent-mid); }
+.lib-btn.del:hover { color: #ff5b5b; }
+
+/* ===== PRINT ===== */
+@media print {
+  @page { margin: 0; }
+  body { background: #fff !important; overflow: visible !important; height: auto !important; display: block !important; }
+  .topbar, .editor-panel, .admin-unlock, .admin-dot, .toast, .no-print { display: none !important; }
+  .main { display: block !important; overflow: visible !important; }
+  .preview-panel { background: #fff !important; padding: 0 !important; overflow: visible !important; }
+  .doc { box-shadow: none !important; border-radius: 0 !important; max-width: 100% !important; }
+  .cover { min-height: 100vh; page-break-after: always; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .cover, .price-box, .sec-kicker, .month-badge, .goal, .signed-banner { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .section, .month-card, .goal, .sig-box { page-break-inside: avoid; }
+  .body { padding: 40px 50px; }
+  .sig-section { page-break-before: auto; }
+}
+
+@media (max-width: 1100px) {
+  body { height: auto; overflow: auto; }
+  .main { flex-direction: column; }
+  .editor-panel { width: 100%; max-height: 50vh; border-left: none; border-bottom: 1px solid var(--panel-border); }
+  .goals-grid, .months-grid { grid-template-columns: 1fr; }
+}
+
+/* ===== EMBED MODE (inside an iframe — flows to content height) ===== */
+body.embed { height: auto; overflow: visible; display: block; }
+body.embed .topbar { position: static; }
+body.embed .main { display: block; overflow: visible; }
+body.embed .editor-panel { width: 100%; max-height: none; overflow: visible; display: block; border-left: none; border-bottom: 1px solid var(--panel-border); }
+body.embed .panel-content { overflow: visible; }
+body.embed .preview-panel { overflow: visible; height: auto; }
+body.embed.locked .preview-panel { padding: 28px 16px; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar admin-only">
+  <div class="topbar-brand">Think<span>Digital</span>
+    <span class="topbar-tag">מחולל הצעות</span>
+    <span class="current-label">עורך: <b id="currentLabel">—</b></span>
+  </div>
+  <div class="topbar-actions">
+    <div class="save-indicator" id="syncIndicator"><div class="save-dot" id="syncDot"></div><span id="syncText">נשמר אוטומטית</span></div>
+    <button class="tb-btn" onclick="newProposal()">➕ הצעה חדשה</button>
+    <button class="tb-btn" onclick="openLibrary()">📁 הצעות</button>
+    <button class="tb-btn" onclick="printDoc()">🖨️ PDF</button>
+    <button class="tb-btn primary" onclick="saveNow()">💾 שמור</button>
+    <button class="tb-btn link" onclick="openClientLink()">🔗 קישור ללקוח</button>
+    <button class="tb-btn lock" onclick="lockProposal()">🔒 נעל ושלח קובץ</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- EDITOR PANEL -->
+  <div class="editor-panel admin-only">
+    <div class="panel-tabs">
+      <div class="panel-tab active" data-tab="brand" onclick="switchTab('brand')">🎨 מיתוג</div>
+      <div class="panel-tab" data-tab="details" onclick="switchTab('details')">📋 פרטי הצעה</div>
+      <div class="panel-tab" data-tab="goals" onclick="switchTab('goals')">🎯 מטרות</div>
+      <div class="panel-tab" data-tab="scope" onclick="switchTab('scope')">📦 תכולה</div>
+      <div class="panel-tab" data-tab="plan" onclick="switchTab('plan')">🗓️ תוכנית</div>
+      <div class="panel-tab" data-tab="price" onclick="switchTab('price')">💰 מחיר ותנאים</div>
+    </div>
+
+    <div class="panel-content">
+
+      <!-- BRAND -->
+      <div class="tab-pane active" id="tab-brand">
+        <div class="field-group">
+          <div class="field-group-title">זהות</div>
+          <div class="logo-upload-area" onclick="document.getElementById('logoInput').click()">
+            <input type="file" id="logoInput" accept="image/*" onchange="handleLogo(this)" style="display:none">
+            <img id="logoPreview" class="logo-preview">
+            <div class="logo-upload-text" id="logoUploadText">📁 לחץ להעלאת לוגו<br><small>PNG / SVG / JPG</small></div>
+          </div>
+          <button class="btn-logo-remove" id="btnLogoRemove" onclick="removeLogo(event)">✕ הסר לוגו</button>
+          <div class="field" style="margin-top:11px"><label>שם החברה (אם אין לוגו)</label><input type="text" id="b-company" oninput="bind('brand','company',this.value)"></div>
+          <div class="field"><label>תגית / סלוגן</label><input type="text" id="b-tagline" oninput="bind('brand','tagline',this.value)"></div>
+        </div>
+        <div class="field-group">
+          <div class="field-group-title">פרטי קשר</div>
+          <div class="field"><label>אתר</label><input type="text" id="b-website" oninput="bind('brand','website',this.value)"></div>
+          <div class="field"><label>אימייל</label><input type="text" id="b-email" oninput="bind('brand','email',this.value)"></div>
+          <div class="field"><label>טלפון</label><input type="text" id="b-phone" oninput="bind('brand','phone',this.value)"></div>
+        </div>
+        <div class="field-group">
+          <div class="field-group-title">צבעים</div>
+          <div class="color-row">
+            <div><label class="field" style="font-size:11px;color:rgba(255,255,255,0.55);font-weight:600;margin-bottom:4px;display:block">רקע Header / Cover</label>
+              <div class="color-input-wrap"><input type="color" id="c-header" oninput="syncColor('header',this.value)"><input type="text" id="c-header-hex" oninput="syncColorHex('header',this.value)"></div></div>
+            <div><label style="font-size:11px;color:rgba(255,255,255,0.55);font-weight:600;margin-bottom:4px;display:block">צבע ראשי (Accent)</label>
+              <div class="color-input-wrap"><input type="color" id="c-accent" oninput="syncColor('accent',this.value)"><input type="text" id="c-accent-hex" oninput="syncColorHex('accent',this.value)"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DETAILS -->
+      <div class="tab-pane" id="tab-details">
+        <div class="field-group preset-group">
+          <div class="field-group-title">⚡ תבנית לפי פלטפורמה</div>
+          <div class="preset-desc">בחר פלטפורמה וטען תבנית מלאה ומוכנה — מטרות, תכולה, תכנית עבודה ומחיר. אחר כך רק מתקנים פרטים קטנים.</div>
+          <div class="field"><label>פלטפורמה</label>
+            <select id="d-platform" onchange="bind('details','platform',this.value)">
+              <option value="meta">Meta — Facebook &amp; Instagram</option>
+              <option value="google">Google Ads</option>
+              <option value="both">Meta + Google (משולב)</option>
+            </select>
+          </div>
+          <button class="btn-preset" onclick="loadPreset()">📥 טען תבנית מלאה</button>
+        </div>
+        <div class="field-group preset-group biz-preset-group">
+          <div class="field-group-title">🏢 תבנית לפי סוג עסק · פנימי</div>
+          <div class="preset-desc">בחר סוג עסק וטען תבנית מותאמת מלאה (שירות, מטרות, תכולה, תכנית עבודה, הערת מחיר ותנאים). פיצ'ר פנימי לסוכנות בלבד — הלקוח מקבל הצעה רגילה, זהה במבנה לכל סוגי העסקים, ולא רואה שמדובר בטמפלייט.</div>
+          <div class="biz-preset-btns">
+            <button class="btn-biz" onclick="loadBusinessPreset('restaurant')">🍽️ מסעדות <small>· הזמנות, משלוחים, קהל מקומי</small></button>
+            <button class="btn-biz" onclick="loadBusinessPreset('leads')">🎯 לידים <small>· פניות איכותיות, CPL נמוך</small></button>
+            <button class="btn-biz" onclick="loadBusinessPreset('ecommerce')">🛒 חנות איקומרס <small>· מכירות ו-ROAS, קטלוג</small></button>
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="field-group-title">פרטי ההצעה</div>
+          <div class="field"><label>שם הלקוח</label><input type="text" id="d-client" oninput="bind('details','client',this.value)"></div>
+          <div class="field"><label>שם השירות</label><input type="text" id="d-service" oninput="bind('details','service',this.value)"></div>
+          <div class="field-row">
+            <div class="field"><label>תאריך ההצעה</label><input type="text" id="d-proposalDate" oninput="bind('details','proposalDate',this.value)"></div>
+            <div class="field"><label>מועד תחילת ההתקשרות</label><input type="text" id="d-startDate" oninput="bind('details','startDate',this.value)"></div>
+          </div>
+          <div class="field"><label>מספר הצעה</label><input type="text" id="d-number" oninput="bind('details','proposalNumber',this.value)"></div>
+        </div>
+        <div class="field-group">
+          <div class="field-group-title">מטרת העל</div>
+          <div class="field"><label>כותרת הסעיף</label><input type="text" id="o-heading" oninput="bind('objective','heading',this.value)"></div>
+          <div class="field"><label>טקסט מטרת העל</label><textarea id="o-text" style="min-height:120px" oninput="bind('objective','text',this.value)"></textarea></div>
+        </div>
+      </div>
+
+      <!-- GOALS -->
+      <div class="tab-pane" id="tab-goals">
+        <div class="field-group">
+          <div class="field-group-title">יעדים מרכזיים</div>
+          <div class="field"><label>כותרת הסעיף</label><input type="text" id="g-heading" oninput="bind('goals','heading',this.value)"></div>
+          <div class="list-editor" id="goalsEditor"></div>
+          <button class="btn-add" onclick="addItem('goals')">+ הוסף יעד</button>
+        </div>
+      </div>
+
+      <!-- SCOPE -->
+      <div class="tab-pane" id="tab-scope">
+        <div class="field-group">
+          <div class="field-group-title">תכולת העבודה החודשית</div>
+          <div class="field"><label>כותרת הסעיף</label><input type="text" id="sc-heading" oninput="bind('scope','heading',this.value)"></div>
+          <div class="field"><label>פסקת פתיחה</label><textarea id="sc-intro" oninput="bind('scope','intro',this.value)"></textarea></div>
+          <div class="list-editor" id="scopeEditor"></div>
+          <button class="btn-add" onclick="addItem('scope')">+ הוסף פריט תכולה</button>
+        </div>
+      </div>
+
+      <!-- PLAN -->
+      <div class="tab-pane" id="tab-plan">
+        <div class="field-group">
+          <div class="field-group-title">תכנית עבודה</div>
+          <div class="field"><label>כותרת הסעיף</label><input type="text" id="wp-heading" oninput="bind('workPlan','heading',this.value)"></div>
+          <div class="list-editor" id="planEditor"></div>
+          <button class="btn-add" onclick="addItem('workPlan')">+ הוסף חודש</button>
+        </div>
+      </div>
+
+      <!-- PRICE & TERMS -->
+      <div class="tab-pane" id="tab-price">
+        <div class="field-group">
+          <div class="field-group-title">מחיר</div>
+          <div class="field"><label>כותרת הסעיף</label><input type="text" id="p-heading" oninput="bind('price','heading',this.value)"></div>
+          <div class="field"><label>סוג תמחור</label>
+            <select id="p-type" onchange="bind('price','type',this.value)">
+              <option value="monthly">חודשי (ריטיינר)</option>
+              <option value="onetime">חד-פעמי</option>
+              <option value="package">חבילה</option>
+            </select>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>סכום</label><input type="text" id="p-amount" oninput="bind('price','amount',this.value)"></div>
+            <div class="field"><label>מטבע</label><input type="text" id="p-currency" oninput="bind('price','currency',this.value)"></div>
+          </div>
+          <div class="field"><label>הערת מע״מ (לצד הסכום)</label><input type="text" id="p-vat" oninput="bind('price','vat',this.value)"></div>
+          <div class="field"><label>הערה מתחת למחיר (אופציונלי)</label><textarea id="p-note" oninput="bind('price','note',this.value)"></textarea></div>
+        </div>
+        <div class="field-group">
+          <div class="field-group-title">תנאים כלליים והערות</div>
+          <div class="field"><label>כותרת הסעיף</label><input type="text" id="t-heading" oninput="bind('terms','heading',this.value)"></div>
+          <div class="list-editor" id="termsEditor"></div>
+          <button class="btn-add" onclick="addItem('terms')">+ הוסף תנאי</button>
+        </div>
+        <div class="lock-hint">
+          💡 בסיום העריכה לחץ <b>"נעל הצעה ללקוח"</b> כדי להפוך את ההצעה לקריאה-בלבד ולשלוח ללקוח לחתימה.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PREVIEW / DOCUMENT -->
+  <div class="preview-panel">
+    <div class="doc" id="doc">
+
+      <!-- COVER -->
+      <div class="cover" id="cover">
+        <div class="cover-top">
+          <div class="cover-logo">
+            <img id="cover-logo-img" style="display:none">
+            <div class="cover-logo-text" id="cover-logo-text"></div>
+          </div>
+          <div class="cover-tagline" id="cover-tagline"></div>
+        </div>
+        <div class="cover-mid">
+          <div class="cover-label">הצעת מחיר והזמנת עבודה</div>
+          <div class="cover-title">הצעת מחיר והזמנת עבודה</div>
+          <div class="cover-sub" id="cover-sub"></div>
+          <div class="cover-num" id="cover-num"></div>
+        </div>
+        <div class="cover-bottom">
+          <div class="cover-contact" id="cover-contact"></div>
+        </div>
+      </div>
+
+      <!-- BODY -->
+      <div class="body">
+
+        <!-- Intro / start date -->
+        <div class="section">
+          <div class="sec-head"><div class="sec-kicker">i</div><div class="sec-title" id="doc-main-title"></div></div>
+          <div class="doc-intro-row" id="doc-intro-row"></div>
+        </div>
+
+        <!-- Objective -->
+        <div class="section">
+          <div class="sec-head"><div class="sec-kicker">1</div><div class="sec-title" id="obj-title"></div></div>
+          <div class="objective-text" id="obj-text"></div>
+        </div>
+
+        <!-- Goals -->
+        <div class="section">
+          <div class="sec-head"><div class="sec-kicker">2</div><div class="sec-title" id="goals-title"></div></div>
+          <div class="goals-grid" id="goals-grid"></div>
+        </div>
+
+        <!-- Scope -->
+        <div class="section">
+          <div class="sec-head"><div class="sec-kicker">3</div><div class="sec-title" id="scope-title"></div></div>
+          <div class="scope-intro" id="scope-intro"></div>
+          <div class="bullet-list" id="scope-list"></div>
+        </div>
+
+        <!-- Work Plan -->
+        <div class="section">
+          <div class="sec-head"><div class="sec-kicker">4</div><div class="sec-title" id="plan-title"></div></div>
+          <div class="months-grid" id="months-grid"></div>
+        </div>
+
+        <!-- Price -->
+        <div class="section">
+          <div class="sec-head"><div class="sec-kicker">5</div><div class="sec-title" id="price-title"></div></div>
+          <div class="price-box"><div class="price-inner">
+            <div class="price-type-label" id="price-type-label"></div>
+            <div class="price-amount" id="price-amount"></div>
+            <div class="price-vat" id="price-vat"></div>
+            <div class="price-note" id="price-note"></div>
+          </div></div>
+        </div>
+
+        <!-- Terms -->
+        <div class="section">
+          <div class="sec-head"><div class="sec-kicker">6</div><div class="sec-title" id="terms-title"></div></div>
+          <div class="terms-list" id="terms-list"></div>
+        </div>
+
+        <!-- Signature -->
+        <div class="section sig-section">
+          <div class="sec-head"><div class="sec-kicker">✓</div><div class="sec-title">אישור וחתימה</div></div>
+          <div class="sig-box" id="sigBox">
+            <div class="sig-head">
+              <div class="sig-head-left">
+                <div class="sig-icon">✍️</div>
+                <div><div class="sig-htitle">חתימת הלקוח</div><div class="sig-hsub">על ידי חתימה אני מאשר/ת את תנאי ההצעה</div></div>
+              </div>
+              <div class="sig-status" id="sigStatus">ממתין לחתימה</div>
+            </div>
+            <div class="sig-body">
+              <div class="sig-meta">
+                <div class="sig-field"><label>שם מלא</label><input type="text" id="sigName" placeholder="שם מלא של החותם" oninput="onSigNameInput()"></div>
+                <div class="sig-field"><label>תאריך</label><input type="text" id="sigDate" inputmode="numeric" placeholder="DD/MM/YYYY"></div>
+              </div>
+              <div class="canvas-wrap" id="sigWrap">
+                <canvas id="sigCanvas"></canvas>
+                <img id="sigImg" class="sig-img">
+                <div class="sig-ph" id="sigPh"><div class="sig-ph-icon">✍️</div><div class="sig-ph-text">חתימה (אופציונלי) — ציירו כאן, או פשוט מלאו שם ותאריך ולחצו אישור</div></div>
+              </div>
+              <div class="sig-type-hint no-print" id="sigTypeHint">
+                מעדיפים בלי לצייר? <button type="button" class="link-sign" onclick="typeSignature()">צרו חתימה מהשם המוקלד</button>
+              </div>
+              <div class="sig-actions no-print" id="sigActions">
+                <button class="btn-sig-clear" onclick="clearSig()">נקה</button>
+                <button class="btn-sig-confirm" id="btnConfirm" onclick="confirmSig()" disabled>✓ אשר חתימה</button>
+              </div>
+              <div class="sig-browser-hint no-print" id="sigBrowserHint">💡 אם החתימה לא מגיבה — פתחו את הקובץ בדפדפן (Safari / Chrome) דרך תפריט השיתוף ⋯</div>
+              <div class="signed-banner" id="signedBanner">
+                <span style="font-size:22px">🎉</span>
+                <div><div class="signed-banner-text">ההצעה אושרה ונחתמה</div><div class="signed-banner-sub" id="signedSub"></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="no-print" id="clientExportRow" style="display:none;margin-top:20px">
+            <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+              <button class="tb-btn primary" onclick="exportSigned()">💾 הורד קובץ חתום (לשליחה חזרה)</button>
+              <button class="tb-btn" onclick="printDoc()">🖨️ הורד PDF</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- FOOTER -->
+      <div class="doc-footer">
+        <div class="footer-note" id="footer-note"></div>
+        <div class="footer-brand" id="footer-brand"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Hidden admin unlock -->
+<div class="admin-dot" id="adminDot" title="לחיצה כפולה לפתיחת עריכה (מנהל)"></div>
+<button class="admin-unlock" id="adminUnlock" onclick="unlockProposal()">🔓 פתח לעריכה</button>
+
+<!-- LIBRARY MODAL -->
+<div class="modal-overlay" id="libModal" onclick="if(event.target===this)closeLibrary()">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">📁 הצעות שמורות</div>
+      <button class="modal-close" onclick="closeLibrary()">✕</button>
+    </div>
+    <div class="modal-toolbar">
+      <button class="tb-btn primary" onclick="newProposal()">➕ הצעה חדשה</button>
+      <button class="tb-btn" onclick="cloudPull(true)">🔄 רענן מהענן</button>
+      <button class="tb-btn" onclick="document.getElementById('importInput').click()">📥 ייבוא הצעה חתומה מהלקוח</button>
+      <input type="file" id="importInput" accept=".html,.htm,text/html" style="display:none" onchange="importSignedFile(this)">
+    </div>
+    <div class="modal-body"><div id="libList"></div></div>
+    <div class="modal-foot">
+      <small id="libCount"></small>
+      <button class="link-danger" onclick="resetToDefaults()">אפס הכל ומחק את כל ההצעות</button>
+    </div>
+  </div>
+</div>
+
+<!-- CLIENT LINK MODAL -->
+<div class="modal-overlay" id="linkModal" onclick="if(event.target===this)closeLinkModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">🔗 קישור ללקוח (נפתח בדפדפן)</div>
+      <button class="modal-close" onclick="closeLinkModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="link-steps">
+        הקישור מוכן! לחצ/י <b>"שלח בוואטסאפ"</b> או <b>"העתק"</b> ושלח/י ללקוח. הקישור נפתח אצל הלקוח <b>בדפדפן</b> ומאפשר לצפות ולחתום ישירות מהטלפון.
+      </div>
+      <div class="link-field">
+        <label>הקישור ללקוח</label>
+        <textarea id="linkOut" readonly onclick="this.select()"></textarea>
+        <div class="link-len" id="linkLen"></div>
+      </div>
+      <div class="link-field" id="linkBaseRow" style="display:none">
+        <label>כתובת הדף המתארח (הגדרת מנהל מערכת)</label>
+        <input type="text" id="linkBase" placeholder="https://thinkdigital.co.il/proposal-editor.html" oninput="refreshClientLink()">
+      </div>
+      <button class="link-gear" type="button" onclick="toggleLinkBase()">⚙️ הגדרות מתקדמות</button>
+    </div>
+    <div class="modal-foot">
+      <button class="tb-btn" onclick="copyClientLink()">📋 העתק</button>
+      <button class="tb-btn primary" onclick="sendWhatsApp()">💬 שלח בוואטסאפ</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+
+// Bumped whenever the standard agency terms change. Existing saved proposals
+// with an older (or missing) termsVersion get their standard agency fields
+// (terms, contact email/phone, proposal number) refreshed on load.
+const TD_TERMS_VERSION = 3;
+const TD_AGENCY = { email: 'Keren@thinkdigital.co.il', phone: '0522913035' };
+
+/* ===================== DEFAULTS ===================== */
+function defaults() {
+  return {
+    id: null,
+    mode: 'edit',
+    termsVersion: TD_TERMS_VERSION,
+    brand: {
+      company: 'ThinkDigital',
+      tagline: 'Performance Marketing Agency',
+      logoUrl: null,
+      website: 'www.thinkdigital.co.il',
+      email: TD_AGENCY.email,
+      phone: TD_AGENCY.phone,
+      headerColor: '#0a0a0a',
+      accentColor: '#6c3bff'
+    },
+    details: {
+      client: 'נוי אבשלום',
+      service: 'ניהול קמפיינים ב-Meta (Facebook & Instagram)',
+      platform: 'meta',
+      proposalDate: '13/08/2025',
+      startDate: '01/09/2025',
+      proposalNumber: ''
+    },
+    objective: {
+      heading: 'מטרת העל',
+      text: 'בניית נוכחות דיגיטלית חזקה ויצירת זרם עקבי של לידים איכותיים, תוך מיצוב המותג כשחקן מוביל בתחומו והגדלת המכירות לאורך זמן באמצעות ניהול קמפיינים מבוסס נתונים ואופטימיזציה שוטפת.'
+    },
+    goals: {
+      heading: 'יעדים מרכזיים',
+      items: [
+        'הגדלת כמות הלידים האיכותיים מדי חודש',
+        'הורדת עלות הליד תוך שמירה על איכות',
+        'בניית מודעות למותג בקרב קהל היעד',
+        'יצירת קשר טלפוני עם לקוחות פוטנציאליים',
+        'שיפור שיעור ההמרה באתר ובדפי הנחיתה',
+        'בנייה ובדיקה מתמדת של מודעות (A/B Testing)'
+      ]
+    },
+    scope: {
+      heading: 'תכולת העבודה החודשית',
+      intro: 'מדי חודש נבצע את מכלול הפעולות הבאות לניהול ואופטימיזציה של הקמפיינים, לרבות בקרה שוטפת ודיווח שקוף:',
+      items: [
+        'ניהול קמפיינים שוטף ב-Google Ads ו-Meta',
+        'אופטימיזציה שבועית של תקציבים, קהלים ומודעות',
+        'יצירה ועדכון של מודעות ותכנים שיווקיים',
+        'מעקב המרות והגדרת אירועים ב-Google Analytics + GTM',
+        'דוח ביצועים חודשי מפורט ושיחת סיכום'
+      ]
+    },
+    workPlan: {
+      heading: 'תכנית עבודה ל-4 החודשים הראשונים',
+      months: [
+        { title: 'חודש 1 — הקמה ותשתית', desc: 'פגישת התנעה, אפיון קהלי יעד, הקמת חשבונות ומבנה קמפיינים, הטמעת מעקב המרות (Analytics + GTM) והעלאת הקמפיינים הראשונים לאוויר.' },
+        { title: 'חודש 2 — איסוף נתונים ואופטימיזציה', desc: 'איסוף דאטה ראשוני, זיהוי הקהלים והמודעות המנצחות, אופטימיזציה ראשונית של תקציבים והרחבת הקמפיינים המוצלחים.' },
+        { title: 'חודש 3 — סקייל וביסוס', desc: 'הגדלת תקציבים בקמפיינים בעלי הביצועים הטובים, השקת A/B Testing למודעות ולדפי נחיתה והרחבת קהלי Lookalike ו-Remarketing.' },
+        { title: 'חודש 4 — צמיחה והרחבה', desc: 'ביסוס התוצאות, הרחבה לערוצים ופורמטים נוספים, מיקוד בהורדת עלות הליד והגדלת כמות הלידים האיכותיים בהתאם ליעדים.' }
+      ]
+    },
+    price: {
+      heading: 'השקעה חודשית',
+      type: 'monthly',
+      amount: '3,150',
+      currency: 'ש״ח',
+      vat: '+ מע״מ',
+      note: 'המחיר אינו כולל תקציב מדיה המשולם ישירות לפלטפורמות הפרסום. תקציב מדיה מומלץ ייקבע יחד עם הלקוח.'
+    },
+    terms: {
+      heading: 'תנאים כלליים והערות',
+      items: [
+        'המחירים אינם כוללים מע״מ',
+        'השירות ניתן כריטיינר חודשי, ללא התחייבות מצד הלקוח',
+        'ניתן לסיים את ההתקשרות בהודעה מוקדמת של 20 יום',
+        'מוסכם על הצדדים, כי תקופת ההתקשרות הינה לחודש (לכל הפחות) (להלן: "תקופת היכרות").',
+        'ההצעה תקפה ל-14 יום ממועד שליחתה',
+        'לפני תחילת העבודה נקיים פגישת התנעה',
+        'תנאי תשלום - התשלום יבוצע ביום ה - 10 לחודש קלנדרי באמצעות העברה בנקאית, חודש בחודשו.',
+        'התשלומים יתבצעו ישירות לחשבון בנק מס\' 588469 המתנהל בסניף השקד מס\' 555, בנק הפועלים, ע"ש ע. טינק דיגיטל בע"מ .',
+        'הקמפיינר ו/או נותן השירות, מתחייב בזאת לא לעשות שימוש כלשהו ו/או לגלות את המידע האמור לצד שלישי כלשהו ללא הסכמת המזמין מראש ובכתב.',
+        'הקמפיינר ו/או נותן השירות מצהיר ומתחייב בזאת, כי כל מידע שהגיע לידיו עקב קשריו עם המזמין על פי הסכם זה, לרבות מידע שיוכן על ידו אשר מתייחס לתחום העיסוק של המזמין לרבות פעילויות שונות ו/או דו"חות ו/או נתונים ו/או רישומים ו/או עלויות ו/או תמחירים ו/או כל מידע הקשור בספקים ו/או בלקוחות קיימים ו/או פוטנציאליים ו/או כל מידע הקשור שיטות השיווק של המזמין ו/או הקשור לפעילותו, הינו ויהיה סודי הינו ויהיה תמיד רכושו הבלעדי של המזמין והוא ניתן לידיעתו של הקמפיינר ו/או נותן השירות אך ורק בקשר לקשריו עם המזמין על פי הסכם זה לצורך ביצוע העבודה ו/או השירות.'
+      ]
+    },
+    signature: { signed: false, name: '', dataUrl: null, date: '', time: '' }
+  };
+}
+
+const STORAGE_KEY = 'td_proposal_state';
+let state = {};
+let autoSaveTimer = null;
+let FORCE_ADMIN = false;
+
+/* ===================== EMBED / AUTO-RESIZE ===================== */
+// EMBEDDED = flowing layout that broadcasts its height (for auto-grow iframes).
+// When __TD_FORCE_FULLSCREEN__ is set (self-contained Elementor block), the app
+// runs in its native full-screen layout inside a fixed-height frame with its own scroll.
+const EMBEDDED = (function(){
+  if (window.__TD_FORCE_FULLSCREEN__) return false;
+  try { return window.self !== window.top; } catch(e){ return true; }
+})();
+function postHeight(){
+  if (!EMBEDDED) return;
+  const h = Math.max(
+    document.body.scrollHeight, document.documentElement.scrollHeight,
+    document.body.offsetHeight, document.documentElement.offsetHeight
+  );
+  parent.postMessage({ type:'td-proposal-height', height: h }, '*');
+}
+
+/* ===================== UTIL ===================== */
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* ===================== CLIENT LINK (hosted) ===================== */
+// A client opening a hosted link (…/proposal-editor.html#p=<encoded state>) loads that proposal
+// exactly like an exported file — but it opens in the phone's REAL browser, so signing always works.
+// This bootstrap must run BEFORE the STANDALONE flag below.
+function decodeStateParam(str){
+  try { return JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(str))))); } catch(e){ return null; }
+}
+function encodeStateParam(obj){
+  return encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(obj)))));
+}
+(function loadStateFromHash(){
+  if (window.__TD_STATE__) return;
+  try {
+    const m = (location.hash || '').match(/[#&]p=([^&]+)/);
+    if (m){ const st = decodeStateParam(m[1]); if (st && st.details) window.__TD_STATE__ = st; }
+  } catch(e){}
+})();
+
+/* ===================== PROPOSAL LIBRARY (multi-proposal store) ===================== */
+const LIBRARY_KEY = 'td_proposals_library';
+const HOSTED_URL_KEY = 'td_hosted_url';
+// ⚙️ BUILT-IN hosted address — the office manager never has to set this.
+// Upload proposal-editor.html to exactly this URL. To change the address, edit only this one line.
+const HOSTED_URL = 'https://thinkdigital.co.il/proposal-editor.html';
+let library = { current: null, items: [] };
+const STANDALONE = !!window.__TD_STATE__;  // true inside an exported client/signed file OR a hosted link
+
+// localStorage can throw (mobile Safari, private mode, file://, cookies disabled).
+// A signing client must NEVER be blocked by a storage failure — wrap every access.
+const SafeStore = {
+  get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } },
+  set(k,v){ try { localStorage.setItem(k,v); return true; } catch(e){ return false; } },
+  remove(k){ try { localStorage.removeItem(k); } catch(e){} }
+};
+
+function loadLibrary(){
+  try { const raw = SafeStore.get(LIBRARY_KEY); if (raw) library = JSON.parse(raw); } catch(e){}
+  if (!library || !Array.isArray(library.items)) library = { current:null, items:[] };
+}
+function saveLibraryLocal(){ SafeStore.set(LIBRARY_KEY, JSON.stringify(library)); }
+function saveLibrary(){ saveLibraryLocal(); }   // structural ops save the cache; cloud is pushed explicitly
+
+/* ===================== CLOUD SHARED LIBRARY (WordPress, same site) ===================== */
+// Drafts + signed proposals are stored on the site itself (a WordPress option), so every staff
+// member who opens the password-protected page sees the SAME library on any device. localStorage
+// stays as an instant cache / offline fallback — the editor keeps working with no connection.
+// Requires the companion mu-plugin (td-proposals-store.php) on the WordPress site.
+const TD_CLOUD_KEY = 'YOUR_TD_CLOUD_KEY'; // must match TD_PROPOSALS_KEY in the mu-plugin
+const CLOUD = { enabled: !STANDALONE, ok: false };   // client copies / hosted links never touch the cloud
+let pristineDefault = false;   // true while showing an untouched default draft not yet in the library
+const cloudTimers = {};
+
+function cloudBase(){
+  let origin = '';
+  try {
+    if (window.__TD_HOSTED_URL__) origin = new URL(window.__TD_HOSTED_URL__).origin;
+    else if (/^https?:/i.test(location.href)) origin = location.origin;
+  } catch(e){}
+  if (!origin) origin = 'https://thinkdigital.co.il';
+  return origin + '/wp-json/td/v1';
+}
+// key travels as a query param + text/plain body → CORS-safe (no preflight) even cross-origin.
+function cloudUrl(path){ return cloudBase()+path+(path.indexOf('?')<0?'?':'&')+'key='+encodeURIComponent(TD_CLOUD_KEY); }
+async function cloudGetItems(){
+  const res = await fetch(cloudUrl('/library'), { method:'GET' });
+  if (!res.ok) throw 0;
+  const d = await res.json();
+  return Array.isArray(d.items) ? d.items : [];
+}
+async function cloudUpsert(item){
+  if (!CLOUD.enabled || !item || !item.id) return;
+  const res = await fetch(cloudUrl('/upsert'), { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(item) });
+  if (!res.ok) throw 0; setSync(true); return res.json();
+}
+async function cloudDelete(id){
+  if (!CLOUD.enabled) return;
+  const res = await fetch(cloudUrl('/delete'), { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({ id }) });
+  if (!res.ok) throw 0; setSync(true); return res.json();
+}
+async function cloudClear(){
+  if (!CLOUD.enabled) return;
+  const res = await fetch(cloudUrl('/delete'), { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({ all:true }) });
+  if (!res.ok) throw 0; setSync(true); return res.json();
+}
+// debounced push of the proposal being edited; `item` is a live reference so the timeout sends its latest content.
+function cloudPushItem(item){
+  if (!CLOUD.enabled || !item || !item.id) return;
+  clearTimeout(cloudTimers[item.id]);
+  cloudTimers[item.id] = setTimeout(()=>{ cloudUpsert(item).catch(()=>setSync(false)); }, 800);
+}
+function mergeById(base, incoming){
+  const map = {};
+  base.forEach(it=>{ if (it && it.id) map[it.id] = it; });
+  incoming.forEach(it=>{
+    if (!it || !it.id) return;
+    const cur = map[it.id];
+    if (!cur || String(it.savedAt||'') >= String(cur.savedAt||'')) map[it.id] = it;
+  });
+  return Object.values(map).sort((a,b)=>String(b.savedAt||'').localeCompare(String(a.savedAt||'')));
+}
+let cloudPulling = false;
+async function cloudPull(announce){
+  if (!CLOUD.enabled || cloudPulling) return;
+  cloudPulling = true;
+  try {
+    const serverItems = await cloudGetItems();
+    // Server is the source of truth for the SET of proposals (so deletes propagate to every device),
+    // but never drop the proposal currently open here if it is newer / not yet pushed.
+    let items = serverItems.slice();
+    const cur = library.items.find(i=>i.id===(state && state.id));
+    if (cur) items = mergeById(items, [cur]);
+    library.items = items;
+    saveLibraryLocal();
+    renderLibrary();
+    setSync(true);
+    // first load on a fresh device (nothing was open locally): open the most recent shared proposal
+    if (pristineDefault && library.items[0]) { pristineDefault = false; openProposal(library.items[0].id, true); }
+    if (announce) showToast('🔄 הספרייה עודכנה מהענן', 'green');
+  } catch(e){
+    setSync(false);
+    if (announce) showToast('אין חיבור לענן — מציג גרסה מקומית', 'orange');
+  } finally {
+    cloudPulling = false;
+  }
+}
+function setSync(ok){
+  CLOUD.ok = ok;
+  const t = $('syncText'), d = $('syncDot');
+  if (!CLOUD.enabled || !t) return;
+  t.textContent = ok ? 'מסונכרן בענן ✓' : 'מקומי (אין חיבור)';
+  if (d) d.style.background = ok ? 'var(--included)' : '#ff9f1c';
+}
+function genId(){ return 'p_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function nowStamp(){ return new Date().toISOString(); }
+
+function mergeDefaults(src){
+  const s = Object.assign(defaults(), src||{});
+  const d = defaults();
+  for (const k of Object.keys(d)) if (typeof d[k]==='object' && d[k] && !Array.isArray(d[k]))
+    s[k] = Object.assign(d[k], (src && src[k]) ? src[k] : {});
+  // Refresh the standard agency terms on existing proposals saved before the current
+  // terms version. Skip signed proposals — their terms are part of a finalized contract.
+  const isSigned = s.signature && s.signature.signed;
+  if (!isSigned && (!src || src.termsVersion !== TD_TERMS_VERSION)) {
+    s.terms = { heading: (s.terms && s.terms.heading) || 'תנאים כלליים והערות', items: COMMON_TERMS.slice() };
+    s.brand.email = TD_AGENCY.email;
+    s.brand.phone = TD_AGENCY.phone;
+    s.details.proposalNumber = '';
+    s.termsVersion = TD_TERMS_VERSION;
+  }
+  return s;
+}
+
+// migrate a pre-library single saved proposal into the library
+function migrateOldState(){
+  if (library.items.length) return;
+  try {
+    const raw = SafeStore.get(STORAGE_KEY);
+    if (!raw) return;
+    const old = JSON.parse(raw); const id = genId(); old.id = id;
+    const mMeta = makeMeta(id, old, old.mode==='signed'?'signed':(old.mode!=='edit'?'sent':'draft'));
+    library.items.unshift(mMeta);
+    library.current = id; saveLibrary(); cloudPushItem(mMeta);
+  } catch(e){}
+}
+
+function makeMeta(id, st, status){
+  return {
+    id,
+    client: (st.details && st.details.client) || 'ללא שם',
+    date: (st.details && st.details.proposalDate) || '',
+    platform: st.details && st.details.platform,
+    status: status || 'draft',
+    savedAt: nowStamp(),
+    state: JSON.parse(JSON.stringify(st))
+  };
+}
+
+// upsert the current in-memory state into the library
+function syncCurrentToLibrary(status){
+  if (STANDALONE) { SafeStore.set(STORAGE_KEY, JSON.stringify(state)); return; }
+  if (!state.id) state.id = genId();
+  let item = library.items.find(i=>i.id===state.id);
+  const fresh = makeMeta(state.id, state, status || (item ? item.status : 'draft'));
+  if (item) Object.assign(item, fresh); else library.items.unshift(fresh);
+  library.current = state.id;
+  pristineDefault = false;
+  saveLibraryLocal();
+  cloudPushItem(fresh);
+  updateCurrentLabel();
+}
+
+function updateCurrentLabel(){
+  const el = $('currentLabel'); if (el) el.textContent = (state.details && state.details.client) || '—';
+}
+
+/* ===================== INIT ===================== */
+function init() {
+  if (EMBEDDED) document.body.classList.add('embed');
+  const params = new URLSearchParams(location.search);
+  FORCE_ADMIN = params.get('admin') === '1';
+
+  if (STANDALONE) {
+    // self-contained exported file (client/signed copy) — single embedded proposal
+    state = mergeDefaults(window.__TD_STATE__);
+  } else {
+    loadLibrary();
+    migrateOldState();
+    let item = library.items.find(i=>i.id===library.current) || library.items[0];
+    if (!item) {
+      // fresh device: show a blank default but DON'T push it to the shared library yet —
+      // it joins the library on first real edit, and cloudPull may open a shared proposal instead.
+      state = defaults(); state.id = genId();
+      pristineDefault = true;
+    } else {
+      state = mergeDefaults(item.state); state.id = item.id; library.current = item.id;
+    }
+  }
+
+  if (params.get('mode') === 'locked' && state.mode === 'edit') state.mode = 'locked';
+
+  applyFormFromState();
+  renderListEditors();
+  applyColors();
+  renderDoc();
+  applyMode();
+  updateCurrentLabel();
+  renderLibrary();
+
+  // pull the shared library from the site, then keep it fresh (on focus + light polling)
+  if (CLOUD.enabled) {
+    cloudPull();
+    window.addEventListener('focus', ()=>cloudPull());
+    document.addEventListener('visibilitychange', ()=>{ if (!document.hidden) cloudPull(); });
+    setInterval(()=>{ if (!document.hidden) cloudPull(); }, 25000);
+  }
+}
+
+function applyFormFromState() {
+  const b = state.brand, d = state.details;
+  $('b-company').value = b.company||''; $('b-tagline').value = b.tagline||'';
+  $('b-website').value = b.website||''; $('b-email').value = b.email||''; $('b-phone').value = b.phone||'';
+  $('c-header').value = b.headerColor; $('c-header-hex').value = b.headerColor;
+  $('c-accent').value = b.accentColor; $('c-accent-hex').value = b.accentColor;
+  if (b.logoUrl) showLogoInPanel(b.logoUrl);
+
+  $('d-client').value = d.client||''; $('d-service').value = d.service||'';
+  $('d-platform').value = d.platform||'meta';
+  $('d-proposalDate').value = d.proposalDate||''; $('d-startDate').value = d.startDate||'';
+  $('d-number').value = d.proposalNumber||'';
+
+  $('o-heading').value = state.objective.heading||''; $('o-text').value = state.objective.text||'';
+  $('g-heading').value = state.goals.heading||'';
+  $('sc-heading').value = state.scope.heading||''; $('sc-intro').value = state.scope.intro||'';
+  $('wp-heading').value = state.workPlan.heading||'';
+  $('p-heading').value = state.price.heading||''; $('p-type').value = state.price.type||'monthly';
+  $('p-amount').value = state.price.amount||''; $('p-currency').value = state.price.currency||'';
+  $('p-vat').value = state.price.vat||''; $('p-note').value = state.price.note||'';
+  $('t-heading').value = state.terms.heading||'';
+
+  // restore signature if signed
+  if (state.signature.signed) {
+    $('sigName').value = state.signature.name||'';
+    $('sigDate').value = state.signature.date||'';
+  }
+}
+
+/* ===================== BINDING ===================== */
+function bind(group, key, value) {
+  state[group][key] = value;
+  if (group === 'price' && key === 'type') renderDoc();
+  else renderDoc();
+  scheduleAutoSave();
+}
+
+/* ===================== COLORS ===================== */
+function applyColors() {
+  const r = document.documentElement.style;
+  const accent = state.brand.accentColor || '#6c3bff';
+  const header = state.brand.headerColor || '#0a0a0a';
+  r.setProperty('--accent', accent);
+  r.setProperty('--accent-light', hexToRgba(accent, 0.13));
+  r.setProperty('--accent-mid', lighten(accent, 0.35));
+  r.setProperty('--header-bg', header);
+}
+function syncColor(which, val) {
+  if (which==='header'){ state.brand.headerColor = val; $('c-header-hex').value = val; }
+  else { state.brand.accentColor = val; $('c-accent-hex').value = val; }
+  applyColors(); renderDoc(); scheduleAutoSave();
+}
+function syncColorHex(which, val) {
+  if (!/^#[0-9a-fA-F]{6}$/.test(val)) return;
+  if (which==='header'){ state.brand.headerColor = val; $('c-header').value = val; }
+  else { state.brand.accentColor = val; $('c-accent').value = val; }
+  applyColors(); renderDoc(); scheduleAutoSave();
+}
+function hexToRgba(hex, a){ const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16); return `rgba(${r},${g},${b},${a})`; }
+function lighten(hex, amt){ let r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  r=Math.round(r+(255-r)*amt); g=Math.round(g+(255-g)*amt); b=Math.round(b+(255-b)*amt);
+  return '#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join(''); }
+
+/* ===================== LOGO ===================== */
+function handleLogo(input){
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => { state.brand.logoUrl = e.target.result; showLogoInPanel(e.target.result); renderDoc(); scheduleAutoSave(); };
+  reader.readAsDataURL(file);
+}
+function showLogoInPanel(url){
+  const img=$('logoPreview'); img.src=url; img.style.display='block';
+  $('logoUploadText').style.display='none'; $('btnLogoRemove').style.display='block';
+}
+function removeLogo(e){
+  e.stopPropagation();
+  state.brand.logoUrl=null; $('logoPreview').style.display='none';
+  $('logoUploadText').style.display='block'; $('btnLogoRemove').style.display='none';
+  $('logoInput').value=''; renderDoc(); scheduleAutoSave();
+}
+
+/* ===================== DYNAMIC LISTS ===================== */
+// config: which state path holds the array + how items render in editor
+const LISTS = {
+  goals:    { arr: ()=>state.goals.items,     container:'goalsEditor', type:'text',  placeholder:'תיאור היעד' },
+  scope:    { arr: ()=>state.scope.items,     container:'scopeEditor', type:'text',  placeholder:'פריט תכולה' },
+  terms:    { arr: ()=>state.terms.items,     container:'termsEditor', type:'text',  placeholder:'תנאי' },
+  workPlan: { arr: ()=>state.workPlan.months, container:'planEditor',  type:'month' }
+};
+
+function renderListEditors(){ for (const k of Object.keys(LISTS)) renderList(k); }
+
+function renderList(key){
+  const cfg = LISTS[key]; const arr = cfg.arr(); const c = $(cfg.container);
+  c.innerHTML = '';
+  arr.forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'list-item';
+    const controls = `<div class="li-actions">
+        <button class="li-btn" title="העלה" ${i===0?'disabled':''} onclick="moveItem('${key}',${i},-1)">▲</button>
+        <button class="li-btn" title="הורד" ${i===arr.length-1?'disabled':''} onclick="moveItem('${key}',${i},1)">▼</button>
+        <button class="li-btn del" title="מחק" onclick="removeItem('${key}',${i})">✕</button>
+      </div>`;
+    if (cfg.type === 'month') {
+      div.innerHTML = `<div class="list-item-top">
+          <div class="list-num">${i+1}</div>
+          <input type="text" value="${esc(item.title)}" placeholder="כותרת החודש" oninput="updateItem('${key}',${i},'title',this.value)">
+          ${controls}
+        </div>
+        <div class="li-fields">
+          <textarea placeholder="תיאור הפעילות בחודש זה" oninput="updateItem('${key}',${i},'desc',this.value)">${esc(item.desc)}</textarea>
+        </div>`;
+    } else {
+      div.innerHTML = `<div class="list-item-top">
+          <div class="list-num">${i+1}</div>
+          <input type="text" value="${esc(item)}" placeholder="${cfg.placeholder}" oninput="updateItem('${key}',${i},null,this.value)">
+          ${controls}
+        </div>`;
+    }
+    c.appendChild(div);
+  });
+}
+
+function addItem(key){
+  const arr = LISTS[key].arr();
+  if (LISTS[key].type === 'month') arr.push({ title:'חודש '+(arr.length+1), desc:'' });
+  else arr.push('');
+  renderList(key); renderDoc(); scheduleAutoSave();
+  const inputs = $(LISTS[key].container).querySelectorAll('.list-item-top input');
+  if (inputs.length) inputs[inputs.length-1].focus();
+}
+function removeItem(key, i){
+  LISTS[key].arr().splice(i,1);
+  renderList(key); renderDoc(); scheduleAutoSave();
+}
+function moveItem(key, i, dir){
+  const arr = LISTS[key].arr(); const j = i+dir;
+  if (j<0 || j>=arr.length) return;
+  [arr[i],arr[j]] = [arr[j],arr[i]];
+  renderList(key); renderDoc(); scheduleAutoSave();
+}
+function updateItem(key, i, field, value){
+  const arr = LISTS[key].arr();
+  if (field) arr[i][field] = value; else arr[i] = value;
+  renderDoc(); scheduleAutoSave();
+}
+
+/* ===================== PLATFORM PRESETS ===================== */
+const COMMON_TERMS = [
+  'המחירים אינם כוללים מע״מ',
+  'השירות ניתן כריטיינר חודשי, ללא התחייבות מצד הלקוח',
+  'ניתן לסיים את ההתקשרות בהודעה מוקדמת של 20 יום',
+  'מוסכם על הצדדים, כי תקופת ההתקשרות הינה לחודש (לכל הפחות) (להלן: "תקופת היכרות").',
+  'ההצעה תקפה ל-14 יום ממועד שליחתה',
+  'לפני תחילת העבודה נקיים פגישת התנעה',
+  'תנאי תשלום - התשלום יבוצע ביום ה - 10 לחודש קלנדרי באמצעות העברה בנקאית, חודש בחודשו.',
+  'התשלומים יתבצעו ישירות לחשבון בנק מס\' 588469 המתנהל בסניף השקד מס\' 555, בנק הפועלים, ע"ש ע. טינק דיגיטל בע"מ .',
+  'הקמפיינר ו/או נותן השירות, מתחייב בזאת לא לעשות שימוש כלשהו ו/או לגלות את המידע האמור לצד שלישי כלשהו ללא הסכמת המזמין מראש ובכתב.',
+  'הקמפיינר ו/או נותן השירות מצהיר ומתחייב בזאת, כי כל מידע שהגיע לידיו עקב קשריו עם המזמין על פי הסכם זה, לרבות מידע שיוכן על ידו אשר מתייחס לתחום העיסוק של המזמין לרבות פעילויות שונות ו/או דו"חות ו/או נתונים ו/או רישומים ו/או עלויות ו/או תמחירים ו/או כל מידע הקשור בספקים ו/או בלקוחות קיימים ו/או פוטנציאליים ו/או כל מידע הקשור שיטות השיווק של המזמין ו/או הקשור לפעילותו, הינו ויהיה סודי הינו ויהיה תמיד רכושו הבלעדי של המזמין והוא ניתן לידיעתו של הקמפיינר ו/או נותן השירות אך ורק בקשר לקשריו עם המזמין על פי הסכם זה לצורך ביצוע העבודה ו/או השירות.'
+];
+
+const PRESETS = {
+  meta: {
+    service: 'ניהול קמפיינים ב-Meta (Facebook & Instagram)',
+    objective: 'בניית נוכחות חזקה ברשתות החברתיות, הגדלת המודעות למותג ויצירת זרם עקבי של לידים ומכירות באמצעות קמפיינים ממוקדי קהל ב-Facebook וב-Instagram, מבוססי נתונים ואופטימיזציה שוטפת.',
+    goals: [
+      'הגדלת כמות הלידים האיכותיים מ-Facebook ו-Instagram',
+      'בניית מודעות למותג וחשיפה לקהלים חדשים',
+      'הורדת עלות הליד (CPL) תוך שמירה על איכות',
+      'בניית קהלי Remarketing ו-Lookalike איכותיים',
+      'הגדלת מעורבות (Engagement) בעמודים העסקיים',
+      'בדיקות A/B שוטפות לקריאייטיב ולמסרים'
+    ],
+    scopeIntro: 'מדי חודש ננהל ונבצע אופטימיזציה לקמפיינים ב-Meta, לרבות ניהול קהלים, בקרה שוטפת ודיווח שקוף:',
+    scope: [
+      'ניהול קמפיינים שוטף ב-Facebook ו-Instagram (Meta Ads Manager)',
+      'בניית קהלים: קהלים קרים, Remarketing ו-Lookalike',
+      'יצירה ועיצוב של מודעות וקריאייטיב (תמונה / וידאו / קרוסלה)',
+      'כתיבת קופי שיווקי ומסרים מותאמים לקהל היעד',
+      'אופטימיזציה שבועית של תקציבים, קהלים ומודעות',
+      'הטמעת Meta Pixel ומעקב המרות (Conversions API)',
+      'דוח ביצועים חודשי מפורט ושיחת סיכום'
+    ],
+    months: [
+      { title: 'חודש 1 — הקמה ותשתית', desc: 'פגישת התנעה, אפיון קהלי יעד, הקמת Business Manager ומבנה קמפיינים, הטמעת Meta Pixel ו-Conversions API והעלאת הקמפיינים הראשונים לאוויר.' },
+      { title: 'חודש 2 — איסוף נתונים ואופטימיזציה', desc: 'איסוף דאטה ראשוני, זיהוי הקהלים והקריאייטיבים המנצחים, אופטימיזציה של תקציבים והרחבת ערכות המודעות המוצלחות.' },
+      { title: 'חודש 3 — סקייל וקהלים מתקדמים', desc: 'הגדלת תקציבים בקמפיינים מנצחים, בניית קהלי Lookalike ו-Remarketing מתקדמים והרחבת A/B Testing לקריאייטיב ולמסרים.' },
+      { title: 'חודש 4 — צמיחה והרחבה', desc: 'ביסוס התוצאות, הרחבה לפורמטים נוספים (Reels, Stories), מיקוד בהורדת עלות הליד והגדלת כמות הלידים האיכותיים בהתאם ליעדים.' }
+    ],
+    priceNote: 'המחיר אינו כולל את תקציב המדיה המשולם ישירות ל-Meta. תקציב מדיה מומלץ ייקבע יחד עם הלקוח בהתאם ליעדים.'
+  },
+  google: {
+    service: 'ניהול קמפיינים בגוגל (Google Ads)',
+    objective: 'מיצוב העסק בראש תוצאות החיפוש בגוגל, יצירת לידים ומכירות מלקוחות בעלי כוונת רכישה גבוהה, והגדלת ההחזר על ההשקעה (ROI) באמצעות קמפיינים מבוססי נתונים ואופטימיזציה שוטפת.',
+    goals: [
+      'הופעה בראש תוצאות החיפוש למילות מפתח רלוונטיות',
+      'יצירת לידים ומכירות מקהל בעל כוונת רכישה גבוהה',
+      'הורדת עלות הליד (CPL) ועלות ההמרה',
+      'הגדלת שיעור ההמרה (Conversion Rate) באתר',
+      'הרחבת חשיפה ושיווק מחדש (Remarketing) ברשת המדיה',
+      'אופטימיזציה מתמדת של מילות מפתח והצעות מחיר'
+    ],
+    scopeIntro: 'מדי חודש ננהל ונבצע אופטימיזציה לקמפיינים ב-Google Ads, לרבות מחקר מילות מפתח, בקרה שוטפת ודיווח שקוף:',
+    scope: [
+      'ניהול קמפיינים שוטף ב-Google Ads (Search ו-Performance Max)',
+      'מחקר וניהול מילות מפתח + מילות מפתח שליליות',
+      'כתיבה ואופטימיזציה של מודעות חיפוש (RSA)',
+      'אופטימיזציה שבועית של הצעות מחיר, תקציבים וקהלים',
+      'הקמת קמפייני Remarketing ברשת המדיה (GDN)',
+      'הטמעת מעקב המרות ב-Google Analytics 4 + GTM',
+      'דוח ביצועים חודשי מפורט ושיחת סיכום'
+    ],
+    months: [
+      { title: 'חודש 1 — הקמה ומחקר', desc: 'פגישת התנעה, מחקר מילות מפתח מעמיק, הקמת חשבון Google Ads ומבנה קמפיינים, הטמעת מעקב המרות (GA4 + GTM) והעלאת קמפיין החיפוש הראשון לאוויר.' },
+      { title: 'חודש 2 — איסוף נתונים ואופטימיזציה', desc: 'איסוף דאטה, זיהוי מילות המפתח והמודעות המנצחות, הוספת מילות מפתח שליליות ואופטימיזציה ראשונית של הצעות מחיר ותקציבים.' },
+      { title: 'חודש 3 — סקייל והרחבה', desc: 'הגדלת תקציבים בקמפיינים רווחיים, השקת Performance Max והרחבת קמפייני Remarketing, ושיפור Quality Score של המודעות.' },
+      { title: 'חודש 4 — צמיחה ומקסום ROI', desc: 'ביסוס התוצאות, מיקוד בהורדת עלות ההמרה והגדלת נפח הלידים האיכותיים, ובחינת הרחבה לערוצים נוספים בהתאם ליעדים.' }
+    ],
+    priceNote: 'המחיר אינו כולל את תקציב המדיה המשולם ישירות ל-Google. תקציב מדיה מומלץ ייקבע יחד עם הלקוח בהתאם ליעדים.'
+  },
+  both: {
+    service: 'ניהול קמפיינים ב-Meta ו-Google',
+    objective: 'בניית מערך פרסום דיגיטלי משולב ב-Meta וב-Google, המשלב נוכחות חזקה ברשתות החברתיות עם נוכחות בראש תוצאות החיפוש, ליצירת זרם עקבי של לידים ומכירות והגדלת ההחזר על ההשקעה באמצעות ניהול מבוסס נתונים ואופטימיזציה שוטפת.',
+    goals: [
+      'יצירת לידים ומכירות מ-Meta ומ-Google כאחד',
+      'הופעה בראש תוצאות החיפוש לצד נוכחות ברשתות החברתיות',
+      'בניית מודעות למותג והגדלת חשיפה לקהלים חדשים',
+      'הורדת עלות הליד (CPL) הכוללת תוך שמירה על איכות',
+      'בניית קהלי Remarketing ו-Lookalike בשתי הפלטפורמות',
+      'הקצאת תקציב חכמה ואופטימיזציה בין הערוצים'
+    ],
+    scopeIntro: 'מדי חודש ננהל ונבצע אופטימיזציה לקמפיינים ב-Meta וב-Google Ads, לרבות חלוקת תקציב חכמה בין הערוצים, בקרה שוטפת ודיווח שקוף:',
+    scope: [
+      'ניהול קמפיינים ב-Meta (Facebook & Instagram) וב-Google Ads',
+      'מחקר מילות מפתח לגוגל ובניית קהלים ל-Meta',
+      'יצירת קריאייטיב למדיה החברתית + מודעות חיפוש (RSA)',
+      'אופטימיזציה שבועית והקצאת תקציב חכמה בין הפלטפורמות',
+      'הקמת קמפייני Remarketing בשתי הפלטפורמות',
+      'הטמעת Meta Pixel + Google Analytics 4 + GTM ומעקב המרות',
+      'דוח ביצועים חודשי מאוחד ושיחת סיכום'
+    ],
+    months: [
+      { title: 'חודש 1 — הקמה ותשתית', desc: 'פגישת התנעה, אפיון קהלים ומחקר מילות מפתח, הקמת חשבונות Meta ו-Google, הטמעת מערך מדידה מלא (Pixel + GA4 + GTM) והעלאת הקמפיינים הראשונים לאוויר בשני הערוצים.' },
+      { title: 'חודש 2 — איסוף נתונים ואופטימיזציה', desc: 'איסוף דאטה משני הערוצים, זיהוי הקהלים, מילות המפתח והקריאייטיבים המנצחים, ואופטימיזציה ראשונית של תקציבים והקצאתם בין הפלטפורמות.' },
+      { title: 'חודש 3 — סקייל וביסוס', desc: 'הגדלת תקציבים בקמפיינים מנצחים, השקת Performance Max בגוגל וקהלי Lookalike ב-Meta, והרחבת A/B Testing בשני הערוצים.' },
+      { title: 'חודש 4 — צמיחה והרחבה', desc: 'ביסוס התוצאות, חלוקת תקציב אופטימלית בין הערוצים, מיקוד בהורדת עלות הליד הכוללת והגדלת נפח הלידים האיכותיים בהתאם ליעדים.' }
+    ],
+    priceNote: 'המחיר אינו כולל את תקציבי המדיה המשולמים ישירות ל-Meta ול-Google. תקציבי המדיה המומלצים ייקבעו יחד עם הלקוח בהתאם ליעדים.'
+  }
+};
+
+const PLATFORM_LABELS = { meta: 'Meta · Facebook & Instagram', google: 'Google Ads', both: 'Meta + Google' };
+
+function loadPreset(){
+  const p = state.details.platform || 'meta';
+  const preset = PRESETS[p]; if (!preset) return;
+  if (!confirm(`לטעון תבנית מלאה עבור "${PLATFORM_LABELS[p]}"?\n\nפעולה זו תחליף את התוכן הקיים (שם השירות, מטרת העל, יעדים, תכולה, תכנית עבודה, הערת מחיר ותנאים).\nפרטי המיתוג, שם הלקוח, התאריכים והסכום יישמרו.`)) return;
+  state.details.service = preset.service;
+  state.objective.text = preset.objective;
+  state.goals.items = preset.goals.slice();
+  state.scope.intro = preset.scopeIntro;
+  state.scope.items = preset.scope.slice();
+  state.workPlan.months = preset.months.map(m=>({title:m.title, desc:m.desc}));
+  state.price.note = preset.priceNote;
+  state.terms.items = COMMON_TERMS.slice();
+  applyFormFromState();
+  renderListEditors();
+  renderDoc();
+  saveState();
+  showToast(`✅ נטענה תבנית: ${PLATFORM_LABELS[p]}`, 'green');
+}
+
+/* ===================== BUSINESS-TYPE TEMPLATES (agency-internal only) ===================== */
+// Full content tailored per business type. Loaded ONLY from the agency editor (admin-only panel).
+// The client receives an ordinary proposal — same document structure for every type — and cannot
+// tell which template was used: only the resulting text is stored in state, never the template id.
+const BUSINESS_PRESETS = {
+  restaurant: {
+    label: 'מסעדות',
+    platform: 'meta',
+    service: 'ניהול קמפיינים למסעדה ב-Meta (Facebook & Instagram)',
+    objective: 'הגדלת התנועה לעסק וכמות ההזמנות — שולחנות, משלוחים ואיסוף עצמי — באמצעות קמפיינים ממוקדי קהל מקומי ב-Facebook וב-Instagram, חיזוק המותג ובניית קהילת לקוחות חוזרים, תוך אופטימיזציה שוטפת מבוססת נתונים.',
+    goals: [
+      'הגדלת כמות ההזמנות — שולחנות, משלוחים ואיסוף עצמי',
+      'חשיפה מקומית ממוקדת לקהל באזור הגאוגרפי של המסעדה',
+      'בניית קהילה וגידול בעוקבים בעמודי המסעדה',
+      'קידום התפריט, מנות עונתיות ומבצעים בימי פעילות חלשים',
+      'הגדלת ביקורות חיוביות וחיזוק המוניטין',
+      'בניית קהל לקוחות חוזרים (Remarketing) להזמנות נוספות'
+    ],
+    scopeIntro: 'מדי חודש ננהל ונבצע אופטימיזציה לקמפיינים המקומיים של העסק ב-Meta, לרבות בקרה שוטפת, אופטימיזציה מבוססת נתונים ודיווח שקוף:',
+    scope: [
+      'ניהול קמפיינים מקומיים ב-Facebook ו-Instagram לפי רדיוס גאוגרפי',
+      'בדיקות A/B למסרים, מבצעים וקריאות לפעולה לשיפור ביצועים',
+      'קמפייני הזמנת שולחן / הזמנת משלוח עם קריאה לפעולה ישירה',
+      'מבצעים ומסרים מותאמים לימי פעילות חלשים ולשעות שפל',
+      'ניהול קהלים: קהלים קרים מקומיים, Remarketing ו-Lookalike של סועדים',
+      'הטמעת Meta Pixel ומעקב המרות (הזמנות, הקלקות לתפריט, ניווט)',
+      'דוח ביצועים חודשי מפורט ושיחת סיכום'
+    ],
+    months: [
+      { title: 'חודש 1 — הקמה ותשתית', desc: 'פגישת התנעה והיכרות עם התפריט והקהל, הקמת Business Manager ומבנה קמפיינים מקומי, הטמעת Meta Pixel ומעקב הזמנות, והעלאת הקמפיינים הראשונים לאוויר.' },
+      { title: 'חודש 2 — איסוף נתונים ואופטימיזציה', desc: 'איסוף דאטה ראשוני, זיהוי המנות והמסרים שמייצרים הזמנות, אופטימיזציה של הרדיוס הגאוגרפי, שעות ההצגה והתקציבים.' },
+      { title: 'חודש 3 — סקייל וקהל חוזר', desc: 'הגדלת תקציבים בקמפיינים מנצחים, בניית קהלי Lookalike של סועדים וקמפייני Remarketing להזמנות חוזרות, והרחבת הקמפיינים לקהלים ומיקומים נוספים.' },
+      { title: 'חודש 4 — צמיחה והרחבה', desc: 'ביסוס התוצאות, קידום ממוקד בימי שפל ובאירועים וחגים, מיקוד בהגדלת מספר ההזמנות והוזלת עלות ההזמנה בהתאם ליעדים.' }
+    ],
+    priceNote: 'המחיר אינו כולל את תקציב המדיה המשולם ישירות ל-Meta. תקציב מדיה מומלץ ייקבע יחד עם המסעדה בהתאם לאזור הפעילות וליעדים.'
+  },
+  leads: {
+    label: 'לידים',
+    platform: 'both',
+    service: 'ניהול קמפיינים ליצירת לידים (Meta + Google)',
+    objective: 'יצירת זרם עקבי ואיכותי של פניות ולידים מלקוחות בעלי כוונת רכישה גבוהה, באמצעות שילוב קמפיינים ב-Meta (Facebook & Instagram) ובגוגל, מיקוד מדויק בקהל היעד ואופטימיזציה שוטפת להורדת עלות הליד תוך שמירה על איכות הפנייה.',
+    goals: [
+      'יצירת זרם עקבי של לידים איכותיים מדי חודש',
+      'הורדת עלות הליד (CPL) תוך שמירה על איכות הפנייה',
+      'הגדלת שיעור ההמרה מליד ללקוח משלם',
+      'מיקוד בקהל בעל כוונת רכישה גבוהה בגוגל וב-Meta',
+      'בניית קהלי Remarketing ו-Lookalike של לידים איכותיים',
+      'שיפור מתמיד של טפסי הלידים והמסרים'
+    ],
+    scopeIntro: 'מדי חודש ננהל ונבצע אופטימיזציה לקמפייני יצירת הלידים ב-Meta ובגוגל, לרבות שיפור הטפסים והמסרים, בקרה שוטפת ודיווח שקוף:',
+    scope: [
+      'ניהול קמפייני לידים ב-Meta (Lead Ads / Instant Forms) וב-Google Search',
+      'בנייה והגדרה של טפסי לידים ממירים (Lead Ads / Instant Forms)',
+      'מחקר מילות מפתח בעלות כוונת רכישה גבוהה לגוגל',
+      'ניהול קהלים: קהלים קרים, Remarketing ו-Lookalike של לידים',
+      'אופטימיזציה שבועית של תקציבים, מסרים וטפסים להורדת CPL',
+      'הטמעת מעקב המרות מלא (Meta Pixel + Google Analytics 4 + GTM)',
+      'דיווח חודשי על כמות הלידים, עלות הליד ואיכות הפניות'
+    ],
+    months: [
+      { title: 'חודש 1 — הקמה ותשתית', desc: 'פגישת התנעה ואפיון הליד האיכותי, הקמת חשבונות Meta ו-Google, בניית טופס ליד ראשוני, הטמעת מערך מדידה מלא (Pixel + GA4 + GTM) והעלאת הקמפיינים הראשונים לאוויר.' },
+      { title: 'חודש 2 — איסוף נתונים ואופטימיזציה', desc: 'איסוף דאטה, זיהוי הקהלים, המסרים וערוצי הפנייה שמייצרים את הלידים האיכותיים, ואופטימיזציה ראשונית של תקציבים, טפסים ומילות מפתח להורדת ה-CPL.' },
+      { title: 'חודש 3 — סקייל ושיפור איכות', desc: 'הגדלת תקציבים בקמפיינים מנצחים, בניית קהלי Lookalike של לידים איכותיים, השקת Remarketing ושיפור הטפסים והמסרים להעלאת שיעור ההמרה.' },
+      { title: 'חודש 4 — צמיחה והרחבה', desc: 'ביסוס התוצאות, מיקוד בהורדת עלות הליד והגדלת איכות הפניות, ובחינת ערוצים ופורמטים נוספים להרחבת נפח הלידים בהתאם ליעדים.' }
+    ],
+    priceNote: 'המחיר אינו כולל את תקציבי המדיה המשולמים ישירות ל-Meta ול-Google. תקציב מדיה מומלץ ייקבע יחד עם הלקוח בהתאם ליעדי כמות הלידים.'
+  },
+  ecommerce: {
+    label: 'חנות איקומרס',
+    platform: 'both',
+    service: 'ניהול קמפיינים לחנות איקומרס (Meta + Google Shopping)',
+    objective: 'הגדלת המכירות וההחזר על ההשקעה בפרסום (ROAS) עבור חנות האיקומרס, באמצעות מגוון קמפיינים ממוקדי ביצועים ב-Meta ובגוגל, מיקוד בקונים בעלי כוונת רכישה ושיווק מחדש חכם לעגלות נטושות וללקוחות קיימים.',
+    goals: [
+      'הגדלת המכירות וההכנסות של החנות מהפרסום',
+      'שיפור ההחזר על ההשקעה בפרסום (ROAS)',
+      'הורדת עלות הרכישה (CAC) והגדלת ערך העגלה הממוצע (AOV)',
+      'שיווק מחדש לעגלות נטושות ולגולשים שלא השלימו רכישה',
+      'הגדלת רכישות חוזרות מלקוחות קיימים',
+      'הרחבת חשיפה לקהלים חדשים בעלי פוטנציאל רכישה'
+    ],
+    scopeIntro: 'מדי חודש ננהל ונבצע אופטימיזציה לקמפייני המכירה של החנות ב-Meta ובגוגל, לרבות ניהול פיד המוצרים, שיווק מחדש ובקרה שוטפת מבוססת ROAS:',
+    scope: [
+      'ניהול קמפיינים מבוססי קטלוג ב-Meta (Advantage+ / DPA)',
+      'ניהול קמפייני Google Shopping ו-Performance Max',
+      'הקמה וסנכרון של פיד המוצרים (Catalog / Merchant Center)',
+      'קמפייני שיווק מחדש (Remarketing) לעגלות נטושות ולצופי מוצר',
+      'אופטימיזציה שבועית מבוססת ROAS — תקציבים, מוצרים וקהלים',
+      'הטמעת Meta Pixel + Conversions API ומעקב רכישות ב-GA4',
+      'דיווח חודשי על מכירות, ROAS, AOV ועלות רכישה'
+    ],
+    months: [
+      { title: 'חודש 1 — הקמה ותשתית', desc: 'פגישת התנעה, הקמה וסנכרון של פיד המוצרים (Catalog + Merchant Center), הקמת חשבונות Meta ו-Google, הטמעת Pixel + Conversions API + GA4 והעלאת קמפייני הקטלוג וה-Shopping הראשונים לאוויר.' },
+      { title: 'חודש 2 — איסוף נתונים ואופטימיזציה', desc: 'איסוף דאטת רכישות, זיהוי המוצרים והקהלים הרווחיים, השקת קמפייני Remarketing לעגלות נטושות ואופטימיזציה ראשונית מבוססת ROAS.' },
+      { title: 'חודש 3 — סקייל מבוסס ROAS', desc: 'הגדלת תקציבים במוצרים ובקמפיינים הרווחיים, השקת Performance Max וקהלי Advantage+/Lookalike, ושיפור ה-ROAS וה-AOV.' },
+      { title: 'חודש 4 — צמיחה והרחבה', desc: 'ביסוס התוצאות, הרחבה לקטגוריות ולקהלים נוספים, חיזוק רכישות חוזרות ומיצוי מקסימלי של ה-ROAS בהתאם ליעדי המחזור.' }
+    ],
+    priceNote: 'המחיר אינו כולל את תקציבי המדיה המשולמים ישירות ל-Meta ול-Google. תקציב מדיה מומלץ ייקבע יחד עם החנות בהתאם למחזור הרצוי וליעדי ה-ROAS.'
+  }
+};
+
+function loadBusinessPreset(type){
+  const preset = BUSINESS_PRESETS[type]; if (!preset) return;
+  if (!confirm(`לטעון תבנית מלאה עבור "${preset.label}"?\n\nפעולה זו תחליף את התוכן הקיים (שם השירות, פלטפורמה, מטרת העל, יעדים, תכולה, תכנית עבודה, הערת מחיר ותנאים).\nפרטי המיתוג, שם הלקוח, התאריכים והסכום יישמרו.`)) return;
+  state.details.platform = preset.platform;
+  state.details.service = preset.service;
+  state.objective.text = preset.objective;
+  state.goals.items = preset.goals.slice();
+  state.scope.intro = preset.scopeIntro;
+  state.scope.items = preset.scope.slice();
+  state.workPlan.months = preset.months.map(m=>({title:m.title, desc:m.desc}));
+  state.price.note = preset.priceNote;
+  state.terms.items = COMMON_TERMS.slice();
+  applyFormFromState();
+  renderListEditors();
+  renderDoc();
+  saveState();
+  showToast(`✅ נטענה תבנית סוג עסק: ${preset.label}`, 'green');
+}
+
+/* ===================== RENDER DOCUMENT ===================== */
+function renderDoc(){
+  const b=state.brand, d=state.details;
+
+  // Cover
+  if (b.logoUrl){ $('cover-logo-img').src=b.logoUrl; $('cover-logo-img').style.display='block'; $('cover-logo-text').style.display='none'; }
+  else { $('cover-logo-img').style.display='none'; $('cover-logo-text').style.display='block'; $('cover-logo-text').innerHTML = brandHtml(b.company); }
+  $('cover-tagline').textContent = b.tagline||'';
+  $('cover-sub').innerHTML = `<b>${esc(d.service)}</b> עבור <b>${esc(d.client)}</b>`;
+  $('cover-num').textContent = d.proposalNumber ? `${d.proposalNumber} · ${d.proposalDate||''}` : (d.proposalDate||'');
+  const contact = [];
+  if (b.website) contact.push(`<span>🌐 ${esc(b.website)}</span>`);
+  if (b.email) contact.push(`<span>✉️ ${esc(b.email)}</span>`);
+  if (b.phone) contact.push(`<span>📞 ${esc(b.phone)}</span>`);
+  $('cover-contact').innerHTML = contact.join('');
+
+  // Main title + intro
+  $('doc-main-title').textContent = `הצעת מחיר והזמנת עבודה — ${d.service||''} | ${d.client||''}`;
+  $('doc-intro-row').innerHTML = `
+    <div class="intro-item"><div class="intro-label">לקוח</div><div class="intro-val">${esc(d.client)}</div></div>
+    <div class="intro-item"><div class="intro-label">פלטפורמה</div><div class="intro-val">${esc(PLATFORM_LABELS[d.platform]||'—')}</div></div>
+    <div class="intro-item"><div class="intro-label">מועד תחילת ההתקשרות</div><div class="intro-val">${esc(d.startDate)}</div></div>
+    <div class="intro-item"><div class="intro-label">תאריך ההצעה</div><div class="intro-val">${esc(d.proposalDate)}</div></div>`;
+
+  // Objective
+  $('obj-title').textContent = state.objective.heading||'';
+  $('obj-text').textContent = state.objective.text||'';
+
+  // Goals
+  $('goals-title').textContent = state.goals.heading||'';
+  $('goals-grid').innerHTML = state.goals.items.filter(g=>g&&g.trim()).map((g,i)=>
+    `<div class="goal"><div class="goal-num">${String(i+1).padStart(2,'0')}</div><div class="goal-text">${esc(g)}</div></div>`).join('');
+
+  // Scope
+  $('scope-title').textContent = state.scope.heading||'';
+  $('scope-intro').textContent = state.scope.intro||'';
+  $('scope-list').innerHTML = state.scope.items.filter(s=>s&&s.trim()).map(s=>
+    `<div class="bullet"><div class="bullet-dot"></div><span>${esc(s)}</span></div>`).join('');
+
+  // Work plan
+  $('plan-title').textContent = state.workPlan.heading||'';
+  $('months-grid').innerHTML = state.workPlan.months.map((m,i)=>
+    `<div class="month-card"><div class="month-head"><div class="month-badge">${i+1}</div><div class="month-title">${esc(m.title)}</div></div><div class="month-body">${esc(m.desc)}</div></div>`).join('');
+
+  // Price
+  $('price-title').textContent = state.price.heading||'';
+  const typeLabels = { monthly:'השקעה חודשית', onetime:'תשלום חד-פעמי', package:'חבילת שירות' };
+  $('price-type-label').textContent = typeLabels[state.price.type] || 'השקעה';
+  $('price-amount').innerHTML = `${esc(state.price.amount)} <span class="cur">${esc(state.price.currency)}</span>`;
+  $('price-vat').textContent = state.price.vat||'';
+  $('price-note').textContent = state.price.note||'';
+  $('price-note').style.display = state.price.note ? 'block':'none';
+
+  // Terms
+  $('terms-title').textContent = state.terms.heading||'';
+  $('terms-list').innerHTML = state.terms.items.filter(t=>t&&t.trim()).map(t=>
+    `<div class="term"><span class="term-check">✓</span><span>${esc(t)}</span></div>`).join('');
+
+  // Footer
+  $('footer-note').innerHTML = `${esc(b.email||'')}${b.phone?' · '+esc(b.phone):''}${b.website?' · '+esc(b.website):''}`;
+  $('footer-brand').textContent = b.company || 'ThinkDigital';
+
+  // signed banner
+  renderSignatureState();
+}
+
+function brandHtml(name){
+  name = name || 'ThinkDigital';
+  // split CamelCase to color the 2nd part
+  const m = name.match(/^([A-Za-z]+?)([A-Z][A-Za-z]*)$/);
+  if (m) return `${esc(m[1])}<span>${esc(m[2])}</span>`;
+  return esc(name);
+}
+
+/* ===================== MODE ===================== */
+function applyMode(){
+  document.body.classList.toggle('locked', state.mode !== 'edit');
+  const locked = state.mode !== 'edit';
+  const signed = state.mode === 'signed';
+  // signature interactivity
+  $('sigName').disabled = signed;
+  // export buttons (download signed file / PDF) appear only once signed
+  $('clientExportRow').style.display = signed ? 'block' : 'none';
+  $('sigActions').style.display = signed ? 'none' : 'flex';
+  if (signed) { $('signedBanner').classList.add('show'); }
+  if (locked && !signed) { setTimeout(resizeCanvas, 80); }
+  // manager unlock button: visible when locked, unless this is a client copy (override with ?admin=1)
+  const showUnlock = locked && (FORCE_ADMIN || !state.clientCopy);
+  $('adminUnlock').classList.toggle('show', showUnlock);
+}
+
+function lockProposal(){
+  if (!confirm('לנעול את ההצעה ולשלוח ללקוח?\n\nההצעה תינעל לקריאה-בלבד ויירד אליך קובץ HTML עצמאי לשליחה ללקוח (מייל / וואטסאפ). הלקוח יפתח, יחתום, ויחזיר לך את הקובץ החתום — שתשמור בתיקייה אצלך.\n\nאתה תוכל להמשיך לערוך כאן בכל רגע דרך "פתח לעריכה".')) return;
+  state.mode = 'locked';
+  syncCurrentToLibrary('sent');
+  applyMode();
+  renderDoc();
+  renderLibrary();
+  exportForClient();
+  showToast('🔒 ההצעה ננעלה (סטטוס: נשלחה) — קובץ לשליחה ללקוח ירד למחשב', 'orange');
+  window.scrollTo(0,0);
+}
+
+function unlockProposal(){
+  const wasSigned = state.signature.signed;
+  const msg = wasSigned
+    ? 'לפתוח את ההצעה חזרה לעריכה?\n\nשים לב: ההצעה כבר נחתמה. פתיחה לעריכה תבטל את החתימה הקיימת והלקוח יידרש לחתום מחדש.'
+    : 'לפתוח את ההצעה חזרה לעריכה?';
+  if (!confirm(msg)) return;
+  state.mode = 'edit';
+  // editing after signing voids the previous signature
+  state.signature = { signed:false, name:'', dataUrl:null, date:'', time:'' };
+  $('sigName').value = ''; $('sigName').disabled = false; $('sigDate').value = '';
+  clearSig();
+  saveState();
+  applyMode();
+  renderDoc();
+  $('adminUnlock').classList.remove('show');
+  showToast(wasSigned ? '🔓 ההצעה נפתחה לעריכה — החתימה בוטלה' : '🔓 ההצעה נפתחה לעריכה');
+}
+
+// Hidden admin double-click in corner (fallback reveal)
+window.addEventListener('load', ()=>{
+  $('adminDot').addEventListener('dblclick', ()=>{
+    if (state.mode !== 'edit' && (FORCE_ADMIN || !state.clientCopy)) $('adminUnlock').classList.add('show');
+  });
+});
+
+/* ===================== SIGNATURE ===================== */
+const canvas = $('sigCanvas');
+const ctx = canvas.getContext('2d');
+let drawing=false, hasSig=false, lastX=0, lastY=0;
+
+function resizeCanvas(){
+  const wrap = $('sigWrap'); if (!wrap.clientWidth) return;
+  const ratio = window.devicePixelRatio || 1;
+  const w = wrap.clientWidth, h = 140;
+  canvas.width = w*ratio; canvas.height = h*ratio;
+  canvas.style.width=w+'px'; canvas.style.height=h+'px';
+  ctx.setTransform(1,0,0,1,0,0); ctx.scale(ratio,ratio);
+  ctx.strokeStyle='#1a1a1a'; ctx.lineWidth=2.2; ctx.lineCap='round'; ctx.lineJoin='round';
+}
+function getPos(e){
+  const rect = canvas.getBoundingClientRect();
+  const src = (e.touches && e.touches[0]) ? e.touches[0] : e;
+  return { x: src.clientX - rect.left, y: src.clientY - rect.top };
+}
+function startDraw(e){
+  if (state.mode === 'signed') return;
+  if (e.cancelable) e.preventDefault();
+  drawing = true;
+  try { if (e.pointerId != null) canvas.setPointerCapture(e.pointerId); } catch(_){}
+  const p = getPos(e); lastX = p.x; lastY = p.y;
+  $('sigWrap').classList.add('active');
+  // a single tap should already count as a mark (so a dot/short sign is valid)
+  if (!hasSig){ hasSig = true; $('sigPh').style.opacity = '0'; updateConfirmBtn(); }
+  ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(lastX + 0.1, lastY + 0.1); ctx.stroke();
+}
+function moveDraw(e){
+  if (!drawing) return;
+  if (e.cancelable) e.preventDefault();
+  const p = getPos(e);
+  ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(p.x, p.y); ctx.stroke();
+  lastX = p.x; lastY = p.y;
+}
+function endDraw(e){ drawing = false; try { if (e && e.pointerId != null) canvas.releasePointerCapture(e.pointerId); } catch(_){} }
+
+// Pointer Events (iOS Safari 13+, all modern browsers & in-app webviews) unify mouse/touch/pen
+// and, with pointer capture, keep tracking the stroke even if the finger drifts off the canvas.
+if (window.PointerEvent){
+  canvas.addEventListener('pointerdown', startDraw);
+  canvas.addEventListener('pointermove', moveDraw);
+  canvas.addEventListener('pointerup', endDraw);
+  canvas.addEventListener('pointercancel', endDraw);
+} else {
+  canvas.addEventListener('mousedown', startDraw);
+  canvas.addEventListener('mousemove', moveDraw);
+  canvas.addEventListener('mouseup', endDraw);
+  canvas.addEventListener('mouseleave', endDraw);
+  canvas.addEventListener('touchstart', e=>{ startDraw(e); }, {passive:false});
+  canvas.addEventListener('touchmove', e=>{ moveDraw(e); }, {passive:false});
+  canvas.addEventListener('touchend', endDraw);
+}
+
+function updateConfirmBtn(){
+  const nameOk = $('sigName').value.trim().length > 0;
+  // drawing is optional — a name is enough; if nothing is drawn we generate a signature from the name.
+  $('btnConfirm').disabled = !nameOk;
+}
+function onSigNameInput(){ updateConfirmBtn(); }
+
+function clearSig(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  hasSig=false; $('sigPh').style.opacity='1'; $('sigWrap').classList.remove('active');
+  updateConfirmBtn();
+}
+
+// locale-independent date/time — toLocaleDateString can behave oddly or be unavailable in some
+// restricted in-app webviews; this never throws and never returns empty.
+function todayStr(){ const d=new Date(), p=n=>String(n).padStart(2,'0'); return p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear(); }
+function nowTimeStr(){ const d=new Date(), p=n=>String(n).padStart(2,'0'); return p(d.getHours())+':'+p(d.getMinutes()); }
+
+// Render the typed name onto the canvas as a signature image (pure render, no validation/toast).
+function renderTypedSignature(name){
+  if (!canvas.width) resizeCanvas();
+  const ratio = window.devicePixelRatio || 1;
+  const w = canvas.width / ratio, h = canvas.height / ratio;
+  try {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = '#1a1a1a';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = 'italic 600 38px Assistant, cursive';
+    ctx.fillText(name, w/2, h/2);
+  } catch(_){}
+  hasSig = true;
+  $('sigPh').style.opacity = '0';
+  $('sigWrap').classList.add('active');
+}
+// Manual fallback button for restricted viewers (WhatsApp / iOS Quick Look) where finger-drawing isn't captured.
+function typeSignature(){
+  if (state.mode === 'signed') return;
+  const name = $('sigName').value.trim();
+  if (!name){ showToast('קודם יש למלא שם מלא'); try{ $('sigName').focus(); }catch(_){} return; }
+  renderTypedSignature(name);
+  updateConfirmBtn();
+  showToast('✍️ נוצרה חתימה מהשם — אפשר לאשר');
+}
+
+function confirmSig(){
+  const name = $('sigName').value.trim();
+  if (!name){ showToast('יש למלא שם מלא'); try{ $('sigName').focus(); }catch(_){} return; }
+  // date is editable — use whatever is in the field, fall back to today if cleared
+  let dateStr = ($('sigDate') && $('sigDate').value || '').trim();
+  if (!dateStr){ dateStr = todayStr(); $('sigDate').value = dateStr; }
+  // no native confirm() — it is silently blocked in many in-app webviews (WhatsApp), which made
+  // signing appear to "do nothing". The "אשר חתימה" button click IS the confirmation.
+  // drawing is optional: if nothing was drawn, generate the signature from the typed name.
+  if (!hasSig) renderTypedSignature(name);
+  let dataUrl = null;
+  try { dataUrl = canvas.toDataURL('image/png'); } catch(_){ dataUrl = null; }
+  state.signature = { signed:true, name, dataUrl, date: dateStr, time: nowTimeStr() };
+  state.mode = 'signed';
+  $('sigDate').value = dateStr;
+  syncCurrentToLibrary('signed');
+  renderLibrary();
+  applyMode();
+  renderSignatureState();
+  showToast('🎉 ההצעה נחתמה בהצלחה!', 'green');
+  window.scrollTo(0, document.body.scrollHeight);
+}
+
+function renderSignatureState(){
+  const s = state.signature;
+  const status = $('sigStatus');
+  if (s.signed){
+    // show signature image instead of canvas
+    canvas.style.display='none';
+    const img=$('sigImg'); if (s.dataUrl){ img.src=s.dataUrl; img.style.display='block'; }
+    $('sigPh').style.display='none';
+    $('sigWrap').classList.add('active'); $('sigWrap').style.cursor='default';
+    $('sigBox').style.borderColor = '#00b37e';
+    status.className='sig-status signed'; status.textContent='✓ נחתם';
+    $('sigName').value = s.name; $('sigName').disabled=true;
+    $('sigDate').value = s.date; $('sigDate').disabled=true;
+    $('signedBanner').classList.add('show');
+    $('signedSub').textContent = `נחתם על ידי ${s.name} — ${s.date} ${s.time}`;
+    $('sigActions').style.display='none';
+    if ($('sigTypeHint')) $('sigTypeHint').style.display='none';
+    if ($('sigBrowserHint')) $('sigBrowserHint').style.display='none';
+  } else {
+    canvas.style.display='block';
+    $('sigImg').style.display='none';
+    $('sigBox').style.borderColor='';
+    status.className='sig-status'; status.textContent='ממתין לחתימה';
+    // prefill today's date so the field is never empty, but don't overwrite a date the user typed manually
+    $('sigDate').disabled=false;
+    if (!$('sigDate').value) $('sigDate').value = todayStr();
+    if ($('sigTypeHint')) $('sigTypeHint').style.display='block';
+    if ($('sigBrowserHint')) $('sigBrowserHint').style.display='block';
+  }
+}
+
+/* ===================== SELF-CONTAINED FILE EXPORT ===================== */
+// Produces a standalone HTML file with the current proposal embedded.
+// Opening it anywhere (offline, any computer) reproduces the exact proposal.
+function buildSelfContainedHTML(snapshot){
+  const clone = document.documentElement.cloneNode(true);
+  const old = clone.querySelector('#td-embedded-state'); if (old) old.remove();
+  const toast = clone.querySelector('#toast'); if (toast){ toast.textContent=''; toast.className='toast'; }
+  // privacy: never ship the manager's library (other clients' names) inside a client file
+  const lib = clone.querySelector('#libModal'); if (lib) lib.remove();
+  const cur = clone.querySelector('#currentLabel'); if (cur) cur.textContent = '';
+  const script = document.createElement('script');
+  script.id = 'td-embedded-state';
+  script.textContent = 'window.__TD_STATE__ = ' +
+    JSON.stringify(snapshot).replace(/<\/script>/gi, '<\\/script>') + ';';
+  const body = clone.querySelector('body');
+  body.insertBefore(script, body.firstChild);
+  return '<!DOCTYPE html>\n' + clone.outerHTML;
+}
+function downloadFile(filename, html){
+  const blob = new Blob([html], { type:'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1500);
+}
+function safeName(s){ return (String(s||'לקוח').replace(/[\\/:*?"<>|]/g,'').trim()) || 'לקוח'; }
+function fileDate(){
+  let d = (state.details.proposalDate||'').trim();
+  if (!d) d = new Date().toLocaleDateString('he-IL');
+  return d.replace(/[\/\.]/g,'-');
+}
+
+// Manager → client: locked, unsigned, marked as a client copy (no unlock button)
+function exportForClient(){
+  const snap = JSON.parse(JSON.stringify(state));
+  snap.mode = 'locked';
+  snap.clientCopy = true;
+  snap.signature = { signed:false, name:'', dataUrl:null, date:'', time:'' };
+  downloadFile(`הצעה - ${safeName(state.details.client)} - ${fileDate()}.html`, buildSelfContainedHTML(snap));
+}
+// Client → manager: signed copy to send back and keep on file
+function exportSigned(){
+  const snap = JSON.parse(JSON.stringify(state));
+  snap.mode = 'signed';
+  downloadFile(`הצעה - ${safeName(state.details.client)} - ${fileDate()} - חתום.html`, buildSelfContainedHTML(snap));
+  showToast('💾 הקובץ החתום ירד — שלח אותו חזרה לסוכנות', 'green');
+}
+
+/* ===================== CLIENT LINK (hosted — opens in the phone's real browser) ===================== */
+// Best way to deliver to clients: a LINK, not a file. WhatsApp opens links in the real browser
+// where signing always works. The whole proposal travels inside the URL hash (#p=…), so no server
+// is needed — the hosted proposal-editor.html reads the hash and shows it as a locked client view.
+function clientSnapshot(){
+  const snap = JSON.parse(JSON.stringify(state));
+  snap.mode = 'locked';
+  snap.clientCopy = true;
+  snap.signature = { signed:false, name:'', dataUrl:null, date:'', time:'' };
+  return snap;
+}
+function getHostedBase(){
+  const saved = SafeStore.get(HOSTED_URL_KEY);
+  if (saved) return saved;                                   // admin override (advanced)
+  if (window.__TD_HOSTED_URL__) return window.__TD_HOSTED_URL__; // auto-detected parent page (Elementor embed)
+  if (/^https?:/i.test(location.href)) return location.origin + location.pathname; // running on a hosted page directly
+  if (HOSTED_URL) return HOSTED_URL;                          // built-in fallback
+  return '';
+}
+function buildClientLink(base){
+  base = (base || getHostedBase() || '').trim().split('#')[0];
+  if (!base) return '';
+  return base + '#p=' + encodeStateParam(clientSnapshot());
+}
+function openClientLink(){
+  if (STANDALONE) return;
+  if (!state.details.client || !state.details.client.trim()){
+    showToast('מלא/י קודם שם לקוח'); switchTab('details');
+    try{ $('d-client').focus(); }catch(_){}
+    return;
+  }
+  syncCurrentToLibrary('sent');
+  renderLibrary();
+  $('linkBase').value = getHostedBase();
+  $('linkBaseRow').style.display = 'none'; // hidden for the manager; revealed via ⚙️ only
+  refreshClientLink();
+  $('linkModal').classList.add('show');
+}
+function toggleLinkBase(){
+  const row = $('linkBaseRow');
+  row.style.display = row.style.display === 'none' ? 'block' : 'none';
+}
+function sendWhatsApp(){
+  const link = ($('linkOut').value||'').trim();
+  if (!link){ showToast('אין קישור'); return; }
+  const name = (state.details.client||'').trim();
+  const msg = `שלום${name?' '+name:''} 😊\nמצורפת הצעת המחיר שלך מ-ThinkDigital. אפשר לצפות ולחתום ישירות מהקישור:\n${link}`;
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+}
+function refreshClientLink(){
+  const base = $('linkBase').value.trim();
+  if (base) SafeStore.set(HOSTED_URL_KEY, base);
+  const out = $('linkOut');
+  if (!base){ out.value=''; updateLinkLen(0); return; }
+  const link = buildClientLink(base);
+  out.value = link; updateLinkLen(link.length);
+}
+function updateLinkLen(n){
+  const el = $('linkLen'); if (!el) return;
+  el.textContent = n ? `אורך הקישור: ${n.toLocaleString()} תווים${n>15000?' — ארוך! מומלץ לוגו קטן יותר':''}` : '';
+  el.style.color = n>15000 ? '#ffb74d' : 'rgba(255,255,255,0.4)';
+}
+function copyClientLink(){
+  const out = $('linkOut'); const link = (out.value||'').trim();
+  if (!link){ showToast('הזן/י קודם את כתובת הדף המתארח'); $('linkBase').focus(); return; }
+  out.focus(); out.select(); try{ out.setSelectionRange(0, link.length); }catch(_){}
+  let ok=false; try{ ok = document.execCommand('copy'); }catch(e){}
+  if (navigator.clipboard && navigator.clipboard.writeText){ try{ navigator.clipboard.writeText(link); ok=true; }catch(e){} }
+  showToast(ok ? '🔗 הקישור הועתק — שלח/י בוואטסאפ' : 'בחר/י והעתק/י ידנית', ok?'green':'');
+}
+function testClientLink(){
+  const link = ($('linkOut').value||'').trim(); if (!link){ showToast('אין קישור עדיין'); return; }
+  window.open(link, '_blank');
+}
+function closeLinkModal(){ $('linkModal').classList.remove('show'); }
+
+/* ===================== SAVE / LOAD ===================== */
+function saveState(){ syncCurrentToLibrary(); }
+function scheduleAutoSave(){ clearTimeout(autoSaveTimer); autoSaveTimer=setTimeout(saveState, 700); }
+function saveNow(){ saveState(); renderLibrary(); showToast('✓ ההצעה נשמרה במאגר', 'green'); }
+
+/* ---- proposal management ---- */
+function loadStateIntoUI(){
+  applyFormFromState(); renderListEditors(); applyColors(); clearSig(); renderDoc(); applyMode(); updateCurrentLabel();
+}
+
+function newProposal(){
+  if (STANDALONE) return;
+  if (!confirm('ליצור הצעה חדשה?\n\nההצעה הנוכחית כבר שמורה במאגר. ההצעה החדשה תפתח על בסיס תבנית ברירת המחדל (פרטי המיתוג שלך יישמרו).')) return;
+  syncCurrentToLibrary();
+  const brand = JSON.parse(JSON.stringify(state.brand)); // keep agency identity across proposals
+  state = defaults();
+  state.brand = brand;
+  state.id = genId();
+  state.mode = 'edit';
+  state.details.client = '';
+  syncCurrentToLibrary('draft');
+  loadStateIntoUI(); renderLibrary(); closeLibrary();
+  switchTab('details');
+  showToast('➕ נוצרה הצעה חדשה — מלא את פרטי הלקוח');
+  $('d-client').focus();
+}
+
+function openProposal(id, silent){
+  if (!silent) syncCurrentToLibrary();
+  const item = library.items.find(i=>i.id===id); if(!item) return;
+  pristineDefault = false;
+  state = mergeDefaults(item.state); state.id = id; library.current = id; saveLibrary();
+  loadStateIntoUI(); renderLibrary(); closeLibrary();
+  if (!silent) showToast('📂 ההצעה נטענה: ' + (state.details.client||''));
+}
+
+function duplicateProposal(id){
+  const item = library.items.find(i=>i.id===id); if(!item) return;
+  const st = JSON.parse(JSON.stringify(item.state));
+  st.id = genId(); st.mode = 'edit';
+  st.signature = { signed:false, name:'', dataUrl:null, date:'', time:'' };
+  st.details.client = (st.details.client||'') + ' (עותק)';
+  const dupMeta = makeMeta(st.id, st, 'draft');
+  library.items.unshift(dupMeta);
+  saveLibrary(); cloudUpsert(dupMeta).catch(()=>setSync(false)); renderLibrary();
+  showToast('📑 ההצעה שוכפלה');
+}
+
+function deleteProposal(id){
+  const item = library.items.find(i=>i.id===id); if(!item) return;
+  if (!confirm(`למחוק לצמיתות את ההצעה של "${item.client}"?`)) return;
+  library.items = library.items.filter(i=>i.id!==id);
+  saveLibrary(); cloudDelete(id).catch(()=>setSync(false));
+  if (state.id === id) {
+    if (library.items[0]) { state = mergeDefaults(library.items[0].state); state.id = library.items[0].id; library.current = state.id; }
+    else { state = defaults(); state.id = genId(); syncCurrentToLibrary('draft'); }
+    saveLibrary(); loadStateIntoUI();
+  }
+  renderLibrary();
+  showToast('🗑️ ההצעה נמחקה');
+}
+
+// Import a signed (or any exported) HTML file the client returned
+function importSignedFile(input){
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const imported = extractEmbeddedState(String(e.target.result));
+    input.value = '';
+    if (!imported || !imported.details){ showToast('⚠️ לא נמצאה הצעה תקינה בקובץ'); return; }
+    const id = imported.id || genId(); imported.id = id;
+    imported.clientCopy = false; // it's back in the manager's hands
+    const status = (imported.signature && imported.signature.signed) ? 'signed' : 'sent';
+    const existing = library.items.find(i=>i.id===id);
+    const meta = makeMeta(id, imported, status);
+    if (existing) Object.assign(existing, meta); else library.items.unshift(meta);
+    saveLibrary(); cloudUpsert(meta).catch(()=>setSync(false)); renderLibrary();
+    showToast(existing ? '✅ ההצעה החתומה עודכנה במאגר' : '✅ ההצעה החתומה נוספה למאגר', 'green');
+  };
+  reader.readAsText(file, 'utf-8');
+}
+
+function extractEmbeddedState(text){
+  const m = text.match(/window\.__TD_STATE__\s*=\s*(\{[\s\S]*?\});<\/script>/);
+  if (m) { try { return JSON.parse(m[1]); } catch(e){} }
+  // brace-matching fallback
+  const marker = text.search(/window\.__TD_STATE__\s*=\s*\{/);
+  if (marker < 0) return null;
+  const start = text.indexOf('{', marker);
+  let depth=0, end=-1;
+  for (let j=start;j<text.length;j++){ const c=text[j]; if(c==='{')depth++; else if(c==='}'){ if(--depth===0){ end=j; break; } } }
+  if (end<0) return null;
+  try { return JSON.parse(text.slice(start, end+1)); } catch(e){ return null; }
+}
+
+/* ---- library modal ---- */
+function openLibrary(){ renderLibrary(); $('libModal').classList.add('show'); }
+function closeLibrary(){ $('libModal').classList.remove('show'); }
+
+const STATUS_LABELS = { draft:'טיוטה', sent:'נשלחה ללקוח', signed:'חתומה ✓' };
+function renderLibrary(){
+  const list = $('libList'); if (!list) return;
+  if (!library.items.length){ list.innerHTML = '<div class="lib-empty">אין הצעות שמורות עדיין.<br>לחץ "הצעה חדשה" כדי להתחיל.</div>'; }
+  else {
+    list.innerHTML = library.items.map(it=>{
+      const st = it.status||'draft';
+      return `<div class="lib-item ${it.id===state.id?'current':''}">
+        <div class="lib-main" onclick="openProposal('${it.id}')">
+          <div class="lib-client">${esc(it.client||'ללא שם')}${it.id===state.id?' · (נוכחית)':''}</div>
+          <div class="lib-meta">
+            <span>📅 ${esc(it.date||'—')}</span>
+            <span>${esc(PLATFORM_LABELS[it.platform]||'')}</span>
+            <span class="lib-badge ${st}">${STATUS_LABELS[st]||st}</span>
+          </div>
+        </div>
+        <div class="lib-actions">
+          <button class="lib-btn" title="פתח" onclick="openProposal('${it.id}')">📂</button>
+          <button class="lib-btn" title="שכפל" onclick="duplicateProposal('${it.id}')">📑</button>
+          <button class="lib-btn del" title="מחק" onclick="deleteProposal('${it.id}')">🗑️</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  const c = $('libCount'); if (c) c.textContent = `${library.items.length} הצעות במאגר`;
+}
+
+function resetToDefaults(){
+  if (!confirm('לאפס הכל ולמחוק את כל ההצעות השמורות? פעולה זו אינה הפיכה.')) return;
+  SafeStore.remove(STORAGE_KEY);
+  SafeStore.remove(LIBRARY_KEY);
+  cloudClear().catch(()=>setSync(false));
+  library = { current:null, items:[] };
+  state = defaults(); state.id = genId();
+  syncCurrentToLibrary('draft');
+  loadStateIntoUI(); renderLibrary(); closeLibrary();
+  showToast('↺ אופס לברירת מחדל');
+}
+
+/* ===================== TABS / PRINT / TOAST ===================== */
+function switchTab(name){
+  document.querySelectorAll('.panel-tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===name));
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.toggle('active', p.id==='tab-'+name));
+}
+function printDoc(){ window.print(); }
+function showToast(msg, type=''){
+  const t=$('toast'); t.textContent=msg; t.className='toast show'+(type?' '+type:'');
+  setTimeout(()=>{ t.className='toast'; }, 2600);
+}
+
+/* ===================== START ===================== */
+window.addEventListener('load', ()=>{
+  init();
+  setTimeout(resizeCanvas,120);
+  if (EMBEDDED){
+    postHeight();
+    setTimeout(postHeight, 300);
+    if (window.ResizeObserver){ new ResizeObserver(()=>postHeight()).observe(document.body); }
+    // re-broadcast after web fonts settle
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(postHeight);
+  }
+});
+window.addEventListener('resize', ()=>{ if(!state.signature.signed) resizeCanvas(); postHeight(); });
+</script>
+</body>
+</html>

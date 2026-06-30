@@ -1,0 +1,1860 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campaign Managers Dashboard | Think Digital</title>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+  window.fbAsyncInit = function() {
+    FB.init({ appId: '4457830191115452', version: 'v20.0', cookie: true, xfbml: false });
+  };
+</script>
+<script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#09030f;--bg2:#0f0820;--bg3:#160b2c;
+  --card:#12092a;--card2:#1a1040;
+  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.13);
+  --accent:#a855f7;--accent2:#7c3aed;--glow:rgba(168,85,247,.22);
+  --green:#22c55e;--gbg:rgba(34,197,94,.1);
+  --amber:#f59e0b;--abg:rgba(245,158,11,.1);
+  --red:#ef4444;--rbg:rgba(239,68,68,.1);
+  --blue:#3b82f6;--bbg:rgba(59,130,246,.1);
+  --t1:#fff;--t2:rgba(255,255,255,.58);--t3:rgba(255,255,255,.28);
+  --font:'Assistant',system-ui,sans-serif;
+  --r:12px;--rsm:8px;--sidebar:220px;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100vh;direction:rtl}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:rgba(168,85,247,.28);border-radius:4px}
+a{color:inherit;text-decoration:none}
+button{font-family:var(--font)}
+
+/* ── TOAST ── */
+#toast-wrap{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+.toast{background:var(--card);border:1px solid var(--border2);border-radius:10px;padding:11px 20px;font-size:13px;font-weight:700;white-space:nowrap;animation:tIn .2s ease;box-shadow:0 8px 24px rgba(0,0,0,.55)}
+.toast.ok{border-color:rgba(34,197,94,.4);color:#4ade80}.toast.err{border-color:rgba(239,68,68,.4);color:#f87171}.toast.info{border-color:rgba(168,85,247,.4);color:#c084fc}
+@keyframes tIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── MODAL ── */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:2000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+.modal-box{background:var(--card);border:1px solid var(--border2);border-radius:18px;padding:28px;width:92%;max-width:520px;box-shadow:0 24px 64px rgba(0,0,0,.7);max-height:90vh;overflow-y:auto}
+.modal-title{font-size:17px;font-weight:800;margin-bottom:7px}
+.modal-sub{font-size:13px;color:var(--t2);margin-bottom:22px;line-height:1.65}
+.modal-lbl{font-size:11px;color:var(--t2);font-weight:700;margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:.5px}
+.modal-inp,.modal-sel,.modal-ta{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:9px;color:var(--t1);font-size:14px;font-family:var(--font);padding:11px 14px;outline:none;margin-bottom:14px;transition:border-color .15s}
+.modal-inp:focus,.modal-sel:focus,.modal-ta:focus{border-color:var(--accent)}
+.modal-sel{appearance:none;cursor:pointer}
+.modal-ta{resize:vertical;min-height:80px}
+.modal-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal-btns{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
+.mbtn{padding:10px 20px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .15s;border:none}
+.mbtn.cancel{background:transparent;border:1px solid var(--border2);color:var(--t2)}.mbtn.cancel:hover{color:var(--t1)}
+.mbtn.ok{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff}.mbtn.ok:hover{opacity:.88}
+.mbtn.danger{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff}.mbtn.danger:hover{opacity:.88}
+.mbtn.success{background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff}.mbtn.success:hover{opacity:.88}
+
+/* ── LOGIN ── */
+#scr-login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 20px;background:radial-gradient(ellipse 65% 55% at 50% -5%,rgba(124,58,237,.25) 0%,transparent 65%)}
+.login-card{background:var(--card);border:1px solid var(--border2);border-radius:22px;padding:44px 38px;width:100%;max-width:420px;text-align:center;box-shadow:0 40px 100px rgba(0,0,0,.7)}
+.login-icon{width:64px;height:64px;background:linear-gradient(135deg,var(--accent2),var(--accent));border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 20px;box-shadow:0 8px 28px var(--glow)}
+.login-card h2{font-size:24px;font-weight:800;margin-bottom:8px}
+.login-card p{font-size:13px;color:var(--t2);margin-bottom:28px;line-height:1.65}
+.login-err{background:var(--rbg);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:10px 14px;font-size:13px;color:#fca5a5;margin-bottom:14px;display:none;text-align:right}
+.login-inp{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;color:var(--t1);font-size:14px;font-family:var(--font);padding:12px 16px;outline:none;margin-bottom:12px;transition:border-color .15s;text-align:right}
+.login-inp:focus{border-color:var(--accent)}
+.btn-login{display:flex;align-items:center;justify-content:center;gap:9px;background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;border-radius:12px;padding:14px 24px;font-family:var(--font);font-size:15px;font-weight:700;color:#fff;cursor:pointer;width:100%;transition:all .2s;box-shadow:0 6px 20px var(--glow)}
+.btn-login:hover{opacity:.9;transform:translateY(-1px)}.btn-login:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.demo-hint{margin-top:16px;font-size:11px;color:var(--t3);background:rgba(168,85,247,.07);border:1px solid rgba(168,85,247,.15);border-radius:8px;padding:10px 14px;line-height:1.7;text-align:right}
+
+/* ── APP SHELL ── */
+#scr-app{display:none;min-height:100vh}
+
+/* ── SIDEBAR ── */
+.sidebar{width:var(--sidebar);background:var(--bg2);border-left:1px solid var(--border);position:fixed;right:0;top:0;bottom:0;z-index:100;display:flex;flex-direction:column;overflow:hidden}
+.s-logo{padding:16px 14px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
+.s-brand{display:flex;align-items:center;gap:9px}
+.s-brand-ico{width:34px;height:34px;background:linear-gradient(135deg,var(--accent2),var(--accent));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.s-brand-name{font-size:13px;font-weight:800}
+.s-brand-sub{font-size:9px;color:var(--t3);letter-spacing:.3px;margin-top:1px}
+.s-nav{flex:1;padding:8px 7px;display:flex;flex-direction:column;gap:1px;overflow-y:auto}
+.s-section{font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;padding:10px 10px 4px;margin-top:4px}
+.nav-btn{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:8px;border:none;background:transparent;color:var(--t2);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);width:100%;text-align:right;transition:all .15s}
+.nav-btn:hover{background:rgba(255,255,255,.04);color:var(--t1)}
+.nav-btn.active{background:rgba(168,85,247,.13);color:#c084fc}
+.nav-ico{font-size:15px;width:20px;text-align:center;flex-shrink:0}
+.nav-badge{margin-right:auto;background:rgba(168,85,247,.2);color:var(--accent);border-radius:20px;padding:1px 7px;font-size:10px;font-weight:800}
+.s-foot{padding:10px;border-top:1px solid var(--border);flex-shrink:0}
+.s-user{display:flex;align-items:center;gap:8px}
+.s-av{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;background:linear-gradient(135deg,var(--accent2),var(--accent))}
+.s-info{flex:1;min-width:0}
+.s-uname{font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.s-urole{font-size:10px;color:var(--t3)}
+.s-logout{background:transparent;border:none;color:var(--t3);font-size:17px;cursor:pointer;padding:3px;line-height:1;transition:color .15s}
+.s-logout:hover{color:var(--red)}
+
+/* ── MAIN ── */
+.main-area{margin-right:var(--sidebar);min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:rgba(9,3,15,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:80;flex-shrink:0}
+.breadcrumb{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--t2);flex:1;min-width:0}
+.bc-sep{color:var(--t3);font-size:11px}
+.bc-item{font-weight:600;cursor:pointer;transition:color .15s;white-space:nowrap}.bc-item:hover{color:var(--t1)}
+.bc-item.current{color:var(--t1);font-weight:700;cursor:default}
+.topbar-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.content{flex:1;padding:22px 24px 48px}
+
+/* ── DATE RANGE BAR ── */
+.dr-bar{display:flex;flex-wrap:wrap;align-items:center;gap:5px;padding:9px 14px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);margin-bottom:20px}
+.dr-lbl{font-size:9px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.6px}
+.dr-p{padding:5px 11px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid transparent;background:transparent;color:var(--t2);font-family:var(--font);transition:all .15s}
+.dr-p:hover{color:var(--t1);background:rgba(255,255,255,.04)}.dr-p.active{background:rgba(168,85,247,.14);color:#c084fc;border-color:rgba(168,85,247,.3)}
+.dr-cust{display:flex;align-items:center;gap:6px;margin-right:auto}
+.dr-in{background:rgba(255,255,255,.06);border:1px solid var(--border2);border-radius:7px;color:var(--t1);font-size:11px;padding:4px 9px;font-family:var(--font);outline:none;transition:border-color .15s;color-scheme:dark}
+.dr-in:focus{border-color:var(--accent)}
+.dr-apply{padding:5px 12px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;border:none;font-family:var(--font)}
+
+/* ── PAGE HEADER ── */
+.page-hdr{margin-bottom:22px}
+.page-title{font-size:21px;font-weight:800;letter-spacing:-.4px;margin-bottom:4px}
+.page-sub{font-size:13px;color:var(--t2)}
+.back-btn{display:inline-flex;align-items:center;gap:6px;background:transparent;border:none;color:var(--t2);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);padding:0;margin-bottom:14px;transition:color .15s}
+.back-btn:hover{color:var(--t1)}
+
+/* ── FILTER BAR ── */
+.filter-bar{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.search-inp{background:var(--card);border:1px solid var(--border2);border-radius:9px;color:var(--t1);font-size:13px;font-family:var(--font);padding:9px 13px;outline:none;transition:border-color .15s;width:220px}
+.search-inp:focus{border-color:var(--accent)}
+.filter-sel{background:var(--card);border:1px solid var(--border2);border-radius:9px;color:var(--t2);font-size:12px;font-family:var(--font);padding:9px 12px;outline:none;cursor:pointer;appearance:none;transition:border-color .15s}
+.filter-sel:focus{border-color:var(--accent)}
+.filter-count{font-size:12px;color:var(--t3);margin-right:auto}
+.btn-primary{padding:9px 16px;background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;border-radius:9px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .15s;display:flex;align-items:center;gap:6px}
+.btn-primary:hover{opacity:.88}.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.btn-ghost{padding:9px 14px;background:transparent;border:1px solid var(--border2);border-radius:9px;color:var(--t2);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .15s}
+.btn-ghost:hover{border-color:var(--border2);color:var(--t1)}
+
+/* ── BADGES / PILLS ── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+.badge.ok{background:var(--gbg);color:#4ade80;border:1px solid rgba(34,197,94,.2)}
+.badge.warn{background:var(--abg);color:#fcd34d;border:1px solid rgba(245,158,11,.2)}
+.badge.err{background:var(--rbg);color:#fca5a5;border:1px solid rgba(239,68,68,.2)}
+.badge.neu{background:rgba(255,255,255,.06);color:var(--t2);border:1px solid var(--border)}
+.badge.purple{background:rgba(168,85,247,.12);color:#c084fc;border:1px solid rgba(168,85,247,.25)}
+.badge.blue{background:rgba(59,130,246,.12);color:#93c5fd;border:1px solid rgba(59,130,246,.25)}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dot.green{background:var(--green);box-shadow:0 0 6px rgba(34,197,94,.5)}
+.dot.amber{background:var(--amber);box-shadow:0 0 6px rgba(245,158,11,.5)}
+.dot.red{background:var(--red);box-shadow:0 0 6px rgba(239,68,68,.5)}
+.dot.grey{background:rgba(255,255,255,.2)}
+
+/* ── CLIENTS GRID ── */
+.clients-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:13px}
+.client-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:17px;cursor:pointer;transition:all .22s;position:relative;overflow:hidden}
+.client-card:hover{border-color:rgba(168,85,247,.4);transform:translateY(-3px);box-shadow:0 14px 44px rgba(0,0,0,.45)}
+.cc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:13px}
+.cc-av{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;flex-shrink:0}
+.cc-info{flex:1;min-width:0}
+.cc-name{font-size:14px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:3px}
+.cc-id{font-size:10px;color:var(--t3)}
+.cc-stats{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:11px}
+.cc-stat{background:var(--bg2);border-radius:var(--rsm);padding:8px 10px}
+.cc-stat-lbl{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin-bottom:3px}
+.cc-stat-val{font-size:15px;font-weight:800;letter-spacing:-.3px}
+.cc-insight{font-size:11px;color:var(--t2);line-height:1.55;margin-bottom:11px;background:rgba(168,85,247,.05);border-radius:7px;padding:8px 10px;border-right:2px solid var(--accent)}
+.cc-footer{display:flex;align-items:center;justify-content:space-between}
+.cc-updated{font-size:10px;color:var(--t3)}
+
+/* ── KPI CARDS ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:9px;margin-bottom:20px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:13px 15px}
+.kpi.hi{background:rgba(168,85,247,.07);border-color:rgba(168,85,247,.2)}
+.kpi-lbl{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:7px}
+.kpi-val{font-size:19px;font-weight:800;letter-spacing:-.4px}
+.kpi.hi .kpi-val{color:#c084fc}
+.kpi-chg{font-size:10px;font-weight:700;margin-top:4px}
+.up{color:var(--green)}.dn{color:var(--red)}.flat{color:var(--t3)}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:2px;margin-bottom:20px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:4px}
+.tab{padding:8px 16px;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;border:none;background:transparent;color:var(--t2);font-family:var(--font);transition:all .15s;white-space:nowrap}
+.tab:hover{color:var(--t1)}.tab.active{background:rgba(168,85,247,.18);color:#c084fc}
+.tab-cnt{background:rgba(168,85,247,.2);color:var(--accent);border-radius:20px;padding:1px 6px;font-size:10px;font-weight:800;margin-right:5px}
+
+/* ── TABLE ── */
+.tbl-wrap{overflow-x:auto;border-radius:var(--r);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead{background:rgba(0,0,0,.35)}
+th{padding:10px 13px;text-align:right;font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;border-bottom:1px solid var(--border)}
+td{padding:11px 13px;border-bottom:1px solid var(--border);color:var(--t2);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02);color:var(--t1)}
+.td-name{color:var(--t1);font-weight:700;font-size:13px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.td-name:hover{color:var(--accent)}
+.td-num{font-weight:700;font-size:13px;color:var(--t1)}
+.td-bad{color:#fca5a5;font-weight:700}.td-warn{color:#fcd34d;font-weight:700}.td-good{color:#4ade80;font-weight:700}
+.rec-tag{padding:2px 7px;background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.25);border-radius:5px;color:#c084fc;font-size:10px;font-weight:700;cursor:pointer;transition:all .15s}
+.rec-tag:hover{background:rgba(168,85,247,.2)}
+
+/* ── CREATIVE CARDS ── */
+.ads-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:13px}
+.ad-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:all .2s}
+.ad-card:hover{border-color:rgba(168,85,247,.35);transform:translateY(-2px);box-shadow:0 10px 32px rgba(0,0,0,.4)}
+.ad-thumb{aspect-ratio:1.91;background:var(--bg3);position:relative;overflow:hidden}
+.ad-thumb img{width:100%;height:100%;object-fit:cover}
+.ad-thumb video{width:100%;height:100%;object-fit:cover}
+.ad-thumb .no-thumb{display:flex;align-items:center;justify-content:center;width:100%;height:100%;color:var(--t3);font-size:28px}
+.ad-play-badge{position:absolute;bottom:7px;right:7px;background:rgba(0,0,0,.7);border-radius:6px;padding:3px 7px;font-size:10px;font-weight:700;color:#fff}
+.ad-body{padding:12px}
+.ad-name{font-size:12px;font-weight:700;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ad-text{font-size:11px;color:var(--t2);line-height:1.5;margin-bottom:9px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ad-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}
+.ad-stat{background:var(--bg2);border-radius:6px;padding:5px 7px;text-align:center}
+.ad-stat-lbl{font-size:8px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-bottom:2px}
+.ad-stat-val{font-size:12px;font-weight:800}
+
+/* ── TASKS ── */
+.tasks-list{display:flex;flex-direction:column;gap:7px}
+.task-row{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:13px 16px;display:flex;align-items:flex-start;gap:12px;transition:border-color .15s}
+.task-row:hover{border-color:var(--border2)}
+.task-check{width:18px;height:18px;border-radius:5px;border:2px solid var(--border2);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .15s}
+.task-check.done{background:var(--green);border-color:var(--green)}.task-check.in_progress{background:var(--amber);border-color:var(--amber)}
+.task-body{flex:1;min-width:0}
+.task-title{font-size:13px;font-weight:700;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.task-row.done-row .task-title{text-decoration:line-through;color:var(--t3)}
+.task-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:11px;color:var(--t3)}
+.task-actions{display:flex;gap:5px;flex-shrink:0}
+.task-btn{padding:4px 9px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;font-family:var(--font);border:1px solid var(--border2);background:transparent;color:var(--t2);transition:all .15s}
+.task-btn:hover{color:var(--t1);border-color:var(--border2)}
+.task-btn.edit{color:#93c5fd;border-color:rgba(59,130,246,.3)}.task-btn.del{color:#fca5a5;border-color:rgba(239,68,68,.3)}
+.priority-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.priority-dot.urgent{background:#ef4444}.priority-dot.high{background:#f59e0b}.priority-dot.medium{background:#a855f7}.priority-dot.low{background:rgba(255,255,255,.3)}
+
+/* ── RECOMMENDATIONS ── */
+.rec-list{display:flex;flex-direction:column;gap:10px}
+.rec-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;transition:border-color .15s}
+.rec-card.high{border-right:3px solid var(--amber)}.rec-card.critical{border-right:3px solid var(--red)}.rec-card.medium{border-right:3px solid var(--accent)}.rec-card.low{border-right:3px solid var(--green)}
+.rec-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.rec-title{font-size:13px;font-weight:800;flex:1}
+.rec-confidence{font-size:10px;color:var(--t3);flex-shrink:0}
+.rec-explanation{font-size:12px;color:var(--t2);line-height:1.65;margin-bottom:12px}
+.rec-action-box{background:var(--bg2);border-radius:8px;padding:10px 13px;font-size:12px;color:var(--t1);margin-bottom:12px;border-right:2px solid var(--accent)}
+.rec-actions{display:flex;gap:7px;flex-wrap:wrap}
+.rec-btn{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);border:1px solid;transition:all .15s}
+.rec-btn.approve{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.3);color:#4ade80}.rec-btn.approve:hover{background:rgba(34,197,94,.2)}
+.rec-btn.task{background:rgba(59,130,246,.1);border-color:rgba(59,130,246,.3);color:#93c5fd}.rec-btn.task:hover{background:rgba(59,130,246,.2)}
+.rec-btn.dismiss{background:transparent;border-color:var(--border2);color:var(--t3)}.rec-btn.dismiss:hover{color:var(--t2)}
+.rec-card.dismissed{opacity:.45}
+.rec-card.approved .rec-btn.approve{background:rgba(34,197,94,.25);cursor:default}
+
+/* ── APPROVAL MODAL DETAILS ── */
+.approval-detail{background:var(--bg2);border-radius:9px;padding:14px;margin-bottom:16px}
+.approval-row{display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid var(--border)}
+.approval-row:last-child{border-bottom:none}
+.approval-row .lbl{color:var(--t2)}.approval-row .val{font-weight:700;color:var(--t1)}
+.warning-box{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:9px;padding:12px 14px;font-size:12px;color:#fcd34d;margin-bottom:16px;line-height:1.65}
+
+/* ── SECTION TITLE ── */
+.sec-title{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.sec-actions{margin-right:auto;display:flex;gap:6px}
+
+/* ── LOADING / EMPTY ── */
+.loading{text-align:center;padding:44px 20px;color:var(--t2);font-size:13px}
+.spinner{display:inline-block;width:26px;height:26px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .65s linear infinite;margin-bottom:10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty-state{text-align:center;padding:40px 20px;color:var(--t3);font-size:13px}
+.empty-icon{font-size:32px;margin-bottom:8px}
+.empty-txt{font-size:14px;font-weight:700;color:var(--t2);margin-bottom:5px}
+
+/* ── ANIMATIONS ── */
+.fade-in{animation:fadeUp .25s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  :root{--sidebar:0px}
+  .sidebar{transform:translateX(100%);transition:transform .25s}
+  .sidebar.open{transform:translateX(0)}
+  .main-area{margin-right:0}
+  .topbar{padding:0 14px}
+  .content{padding:16px 14px 40px}
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .ads-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+  .tabs{overflow-x:auto}
+  .modal-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN SCREEN ══════════════════════════════════════════════════════ -->
+<div id="scr-login">
+  <div class="login-card">
+    <div class="login-icon">🎯</div>
+    <h2>Campaign Manager</h2>
+    <p>פאנל פנימי לצוות Think Digital<br>גישה מורשית בלבד</p>
+    <div class="login-err" id="login-err"></div>
+    <input class="login-inp" id="login-email" type="email" placeholder="כתובת אימייל" autocomplete="email">
+    <input class="login-inp" id="login-pass" type="password" placeholder="סיסמה" autocomplete="current-password">
+    <button class="btn-login" id="login-btn" onclick="doLogin()">כניסה למערכת</button>
+    <div class="demo-hint" id="demo-hint" style="display:none">
+      <strong>מצב דמו פעיל</strong><br>
+      כדי לחבר Supabase אמיתי, הגדר את <code>SUPABASE_URL</code> ו-<code>SUPABASE_ANON_KEY</code> בקובץ <code>.env</code> ואז הגדר <code>DEMO_MODE = false</code> בתחתית הסקריפט.
+    </div>
+  </div>
+</div>
+
+<!-- ══ APP SHELL ═════════════════════════════════════════════════════════ -->
+<div id="scr-app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="s-logo">
+      <div class="s-brand">
+        <div class="s-brand-ico">🎯</div>
+        <div>
+          <div class="s-brand-name">Think Digital</div>
+          <div class="s-brand-sub">Campaign Manager</div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="s-nav">
+      <div class="s-section">ניהול</div>
+      <button class="nav-btn active" id="nav-clients" onclick="navigate('clients')">
+        <span class="nav-ico">📊</span>לקוחות
+      </button>
+      <button class="nav-btn" id="nav-tasks" onclick="navigate('all-tasks')">
+        <span class="nav-ico">✅</span>משימות
+        <span class="nav-badge" id="tasks-badge" style="display:none">0</span>
+      </button>
+
+      <div class="s-section">AI</div>
+      <button class="nav-btn" id="nav-recs" onclick="navigate('all-recs')">
+        <span class="nav-ico">🤖</span>המלצות AI
+        <span class="nav-badge" id="recs-badge" style="display:none">0</span>
+      </button>
+    </nav>
+
+    <div class="s-foot">
+      <button id="meta-connect-btn" onclick="connectMeta()" style="width:100%;margin-bottom:8px;padding:8px 10px;border-radius:8px;border:1px solid rgba(24,119,242,.35);background:rgba(24,119,242,.1);color:#93c5fd;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:7px;transition:all .15s">
+        <span>🔵</span><span id="meta-btn-label">חבר Meta</span>
+      </button>
+      <div class="s-user">
+        <div class="s-av" id="user-avatar">?</div>
+        <div class="s-info">
+          <div class="s-uname" id="user-name">טוען...</div>
+          <div class="s-urole" id="user-role">—</div>
+        </div>
+        <button class="s-logout" onclick="doLogout()" title="התנתק">↩</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN AREA -->
+  <div class="main-area">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="breadcrumb" id="breadcrumb">
+        <span class="bc-item current">לקוחות</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn-ghost" onclick="syncCurrentClient()" id="sync-btn" style="display:none">🔄 סנכרן</button>
+      </div>
+    </header>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- ── VIEW: CLIENTS OVERVIEW ── -->
+      <div id="view-clients" class="fade-in">
+        <div class="page-hdr">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+            <div>
+              <div class="page-title">לקוחות</div>
+              <div class="page-sub" id="clients-sub">טוען...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Date range -->
+        <div class="dr-bar">
+          <span class="dr-lbl">תקופה:</span>
+          <button class="dr-p" data-preset="today" onclick="setPreset('today',this)">היום</button>
+          <button class="dr-p active" data-preset="last7" onclick="setPreset('last7',this)">7 ימים</button>
+          <button class="dr-p" data-preset="last14" onclick="setPreset('last14',this)">14 ימים</button>
+          <button class="dr-p" data-preset="thisMonth" onclick="setPreset('thisMonth',this)">החודש</button>
+          <button class="dr-p" data-preset="custom" onclick="setPreset('custom',this)">מותאם</button>
+          <div class="dr-cust" id="dr-cust" style="display:none">
+            <input type="date" class="dr-in" id="dr-from">
+            <span style="color:var(--t3);font-size:11px">—</span>
+            <input type="date" class="dr-in" id="dr-to">
+            <button class="dr-apply" onclick="applyCustomDate()">החל</button>
+          </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filter-bar">
+          <input class="search-inp" id="client-search" placeholder="🔍 חפש לקוח..." oninput="filterClients()">
+          <select class="filter-sel" id="status-filter" onchange="filterClients()">
+            <option value="all">כל הסטטוסים</option>
+            <option value="healthy">תקין</option>
+            <option value="needs_attention">דורש תשומת לב</option>
+            <option value="critical">בעיה קריטית</option>
+            <option value="no_data">אין נתונים</option>
+          </select>
+          <select class="filter-sel" id="manager-filter" onchange="filterClients()">
+            <option value="all">כל מנהלי הקמפיין</option>
+          </select>
+          <span class="filter-count" id="clients-count"></span>
+        </div>
+
+        <div id="clients-grid" class="clients-grid">
+          <div class="loading"><div class="spinner"></div><br>טוען לקוחות...</div>
+        </div>
+      </div>
+
+      <!-- ── VIEW: CLIENT DETAIL ── -->
+      <div id="view-client-detail" style="display:none" class="fade-in">
+        <button class="back-btn" onclick="navigate('clients')">← חזרה ללקוחות</button>
+
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:20px">
+          <div>
+            <div class="page-title" id="detail-client-name">לקוח</div>
+            <div class="page-sub" id="detail-client-meta"></div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <span id="detail-status-badge"></span>
+            <button class="btn-primary" onclick="openAiAnalysis()">🤖 נתח AI</button>
+          </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="kpi-grid" id="detail-kpis">
+          <div class="loading"><div class="spinner"></div></div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs" id="detail-tabs">
+          <button class="tab active" onclick="setTab('campaigns')">קמפיינים</button>
+          <button class="tab" onclick="setTab('tasks')">משימות <span class="tab-cnt" id="tasks-cnt">0</span></button>
+          <button class="tab" onclick="setTab('recommendations')">המלצות AI <span class="tab-cnt" id="recs-cnt">0</span></button>
+        </div>
+
+        <!-- Tab: Campaigns -->
+        <div id="tab-campaigns">
+          <!-- Drill-down breadcrumb -->
+          <div id="drill-nav" style="margin-bottom:12px;display:none">
+            <div class="filter-bar" style="margin-bottom:0">
+              <button class="btn-ghost" id="drill-back" onclick="drillBack()">← חזרה</button>
+              <span style="font-size:12px;color:var(--t2)" id="drill-label"></span>
+            </div>
+          </div>
+
+          <div id="campaigns-content">
+            <div class="loading"><div class="spinner"></div><br>טוען קמפיינים...</div>
+          </div>
+        </div>
+
+        <!-- Tab: Tasks -->
+        <div id="tab-tasks" style="display:none">
+          <div class="sec-title">
+            משימות
+            <div class="sec-actions">
+              <button class="btn-primary" onclick="openNewTask()">+ משימה חדשה</button>
+            </div>
+          </div>
+          <div id="tasks-content">
+            <div class="loading"><div class="spinner"></div></div>
+          </div>
+        </div>
+
+        <!-- Tab: Recommendations -->
+        <div id="tab-recommendations" style="display:none">
+          <div class="sec-title">
+            המלצות AI
+            <div class="sec-actions">
+              <button class="btn-primary" onclick="openAiAnalysis()" id="gen-recs-btn">🤖 צור המלצות חדשות</button>
+            </div>
+          </div>
+          <div id="recs-content">
+            <div class="empty-state">
+              <div class="empty-icon">🤖</div>
+              <div class="empty-txt">אין המלצות עדיין</div>
+              לחץ על "צור המלצות חדשות" כדי לנתח את ביצועי הלקוח
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── VIEW: ALL TASKS ── -->
+      <div id="view-all-tasks" style="display:none" class="fade-in">
+        <div class="page-hdr">
+          <div class="page-title">כל המשימות</div>
+          <div class="page-sub">כל המשימות הפתוחות שלך</div>
+        </div>
+        <div id="all-tasks-content">
+          <div class="loading"><div class="spinner"></div></div>
+        </div>
+      </div>
+
+      <!-- ── VIEW: ALL RECS ── -->
+      <div id="view-all-recs" style="display:none" class="fade-in">
+        <div class="page-hdr">
+          <div class="page-title">המלצות AI</div>
+          <div class="page-sub">כל ההמלצות הפתוחות</div>
+        </div>
+        <div id="all-recs-content">
+          <div class="loading"><div class="spinner"></div></div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main-area -->
+</div><!-- /scr-app -->
+
+<!-- ══ MODAL: TASK ════════════════════════════════════════════════════════ -->
+<div class="modal-ov" id="modal-task" style="display:none" onclick="closeModal('task',event)">
+  <div class="modal-box">
+    <div class="modal-title" id="task-modal-title">משימה חדשה</div>
+    <input type="hidden" id="task-id">
+    <label class="modal-lbl">כותרת</label>
+    <input class="modal-inp" id="task-title-inp" placeholder="תאר את המשימה...">
+    <label class="modal-lbl">תיאור</label>
+    <textarea class="modal-ta" id="task-desc-inp" placeholder="פרטים נוספים..."></textarea>
+    <div class="modal-row">
+      <div>
+        <label class="modal-lbl">עדיפות</label>
+        <select class="modal-sel" id="task-priority-inp">
+          <option value="low">נמוך</option>
+          <option value="medium" selected>בינוני</option>
+          <option value="high">גבוה</option>
+          <option value="urgent">דחוף</option>
+        </select>
+      </div>
+      <div>
+        <label class="modal-lbl">תאריך יעד</label>
+        <input class="modal-inp" type="date" id="task-due-inp" style="margin-bottom:0">
+      </div>
+    </div>
+    <div style="margin-top:4px">
+      <label class="modal-lbl">סטטוס</label>
+      <select class="modal-sel" id="task-status-inp">
+        <option value="open">פתוח</option>
+        <option value="in_progress">בטיפול</option>
+        <option value="done">הושלם</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="mbtn cancel" onclick="closeModal('task')">ביטול</button>
+      <button class="mbtn ok" onclick="saveTask()">שמור</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: APPROVE RECOMMENDATION ════════════════════════════════════ -->
+<div class="modal-ov" id="modal-approve" style="display:none" onclick="closeModal('approve',event)">
+  <div class="modal-box">
+    <div class="modal-title">אישור פעולת AI</div>
+    <div class="modal-sub">בדוק את הפרטים לפני האישור. הפעולה תתועד ביומן.</div>
+    <div class="approval-detail" id="approval-detail"></div>
+    <div class="warning-box">⚠️ <strong>שים לב:</strong> בשלב ה-MVP, האישור מתועד אך לא מבצע שינוי אוטומטי בקמפיין. בגרסה עתידית הפעולה תופעל ישירות דרך Meta API לאחר אישורך.</div>
+    <div class="modal-btns">
+      <button class="mbtn cancel" onclick="closeModal('approve')">ביטול</button>
+      <button class="mbtn success" onclick="confirmApprove()">✓ אשר ותעד</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: CONFIRM ════════════════════════════════════════════════════ -->
+<div class="modal-ov" id="modal-confirm" style="display:none" onclick="closeModal('confirm',event)">
+  <div class="modal-box">
+    <div class="modal-title" id="confirm-title">האם אתה בטוח?</div>
+    <div class="modal-sub" id="confirm-msg"></div>
+    <div class="modal-btns">
+      <button class="mbtn cancel" onclick="closeModal('confirm')">ביטול</button>
+      <button class="mbtn danger" id="confirm-ok-btn" onclick="">אשר</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: META TOKEN ══════════════════════════════════════════════════ -->
+<div class="modal-ov" id="modal-meta" style="display:none" onclick="closeModal('meta',event)">
+  <div class="modal-box" style="max-width:460px">
+    <div class="modal-title">🔵 חיבור Meta Business</div>
+    <div class="modal-sub">הכנס את ה-Access Token של חשבון Meta Business שלך. ניתן לקבל token דרך Meta API Explorer או דרך הדשבורד הקיים.</div>
+    <label class="modal-lbl">Access Token</label>
+    <textarea class="modal-ta" id="meta-token-inp" placeholder="EAAxxxxxxx..." style="min-height:90px;font-size:11px;font-family:monospace"></textarea>
+    <div style="background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.2);border-radius:8px;padding:10px 13px;font-size:11px;color:#93c5fd;margin-bottom:16px;line-height:1.7">
+      💡 <strong>איך מקבלים Token?</strong><br>
+      1. פתח את <strong>agency-dashboard.html</strong> והתחבר עם Facebook<br>
+      2. פתח Developer Tools → Application → Local Storage<br>
+      3. העתק את הערך של <code>td_fb_token</code>
+    </div>
+    <div class="modal-btns">
+      <button class="mbtn cancel" onclick="closeModal('meta')">ביטול</button>
+      <button class="mbtn ok" onclick="saveMetaTokenManual()">שמור וחבר</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast-wrap"></div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<script>
+// ── CONFIG ───────────────────────────────────────────────────────────────
+// ↓↓ FILL THESE IN after setting up Supabase ↓↓
+const SUPABASE_URL     = 'https://fexbglvljddmwimlnofa.supabase.co';
+const SUPABASE_ANON    = 'sb_publishable_aVQbudF8o1ZPJGcsJ9kAGQ_X8E7MgLv';
+const DEMO_MODE        = !SUPABASE_URL;
+const FB_APP_ID        = '4457830191115452'; // ← Meta App ID
+const META_API_VER     = 'v20.0';
+const META_SCOPES      = 'ads_read,ads_management,business_management,read_insights';
+
+const API = 'https://fexbglvljddmwimlnofa.supabase.co/functions/v1';
+
+// ── STATE ────────────────────────────────────────────────────────────────
+const S = {
+  sb: null, user: null, profile: null,
+  clients: [], allClients: [],
+  currentClient: null,
+  campaigns: [], currentCampaign: null,
+  adsets: [], currentAdSet: null,
+  ads: [],
+  tasks: [], allTasks: [],
+  recs: [], allRecs: [],
+  kpis: null,
+  metaToken: null,
+  view: 'clients',       // 'clients' | 'client-detail' | 'all-tasks' | 'all-recs'
+  tab: 'campaigns',      // 'campaigns' | 'tasks' | 'recommendations'
+  drill: null,           // null | 'adsets' | 'ads'
+  preset: 'last7',
+  dateFrom: '', dateTo: '',
+  pendingApprove: null,
+  pendingTask: null,
+};
+
+// ── MOCK DATA ─────────────────────────────────────────────────────────────
+const MOCK = {
+  user:    { id: 'demo-user', email: 'demo@thinkdigital.co.il' },
+  profile: { full_name: 'מנהל דמו', role: 'admin' },
+  clients: [
+    { id:'c1', name:'מסעדת ים אדום', meta_ad_account_id:'act_111222333', status:'healthy',         assigned_user_id:'demo-user', updated_at: new Date(Date.now()-3600000).toISOString() },
+    { id:'c2', name:'בגדי מיני סאס',  meta_ad_account_id:'act_444555666', status:'needs_attention', assigned_user_id:'demo-user', updated_at: new Date(Date.now()-7200000).toISOString() },
+    { id:'c3', name:'קוסמטיקה ביוטי', meta_ad_account_id:'act_777888999', status:'critical',        assigned_user_id:'demo-user', updated_at: new Date(Date.now()-86400000).toISOString() },
+    { id:'c4', name:'אוטו סנטר',       meta_ad_account_id:'act_000111222', status:'no_data',         assigned_user_id:'demo-user', updated_at: new Date(Date.now()-172800000).toISOString() },
+  ],
+  insights: {
+    c1: { spend:12840, results:94, cpa:136.6, roas:3.2, ctr:1.84, cpm:28.4, frequency:2.1, impressions:452000, clicks:8317 },
+    c2: { spend:7320,  results:31, cpa:236.1, roas:1.8, ctr:0.92, cpm:41.2, frequency:5.4, impressions:177700, clicks:1636 },
+    c3: { spend:4560,  results:0,  cpa:null,  roas:null, ctr:0.44, cpm:55.8, frequency:7.1, impressions:81700,  clicks:360  },
+    c4: { spend:0,     results:0,  cpa:null,  roas:null, ctr:null, cpm:null, frequency:null,impressions:0,      clicks:0    },
+  },
+  campaigns: [
+    { id:'camp1', name:'קמפיין מכירות עיקרי', objective:'OUTCOME_SALES', status:'ACTIVE', daily_budget:800, spend:5420, results:43, cpa:126.0, ctr:2.1, cpm:24.3, frequency:2.0 },
+    { id:'camp2', name:'ריטרגטינג חם',         objective:'OUTCOME_SALES', status:'ACTIVE', daily_budget:300, spend:2100, results:28, cpa:75.0,  ctr:3.4, cpm:18.7, frequency:3.1 },
+    { id:'camp3', name:'מודעות קהל רחב',        objective:'OUTCOME_AWARENESS', status:'PAUSED', daily_budget:200, spend:1320, results:12, cpa:110.0, ctr:0.9, cpm:38.2, frequency:1.4 },
+  ],
+  adsets: [
+    { id:'as1', name:'קהל דמוגרפי 25-44', status:'ACTIVE', daily_budget:400, spend:2100, results:21, cpa:100.0, ctr:2.3, frequency:1.8 },
+    { id:'as2', name:'לוקאלייק 1% רכישות', status:'ACTIVE', daily_budget:400, spend:3320, results:22, cpa:150.9, ctr:1.9, frequency:2.2 },
+  ],
+  ads: [
+    { id:'ad1', name:'וידאו מוצר A', status:'ACTIVE', thumb:null, type:'video', text:'מגוון מנות טריות מהים...', spend:1800, results:18, cpa:100.0, ctr:2.8, frequency:2.0 },
+    { id:'ad2', name:'קרוסלה מוצרים', status:'ACTIVE', thumb:null, type:'carousel', text:'בחר את המנה שלך',    spend:1520, results:15, cpa:101.3, ctr:3.1, frequency:1.7 },
+    { id:'ad3', name:'תמונה סטטית B', status:'PAUSED', thumb:null, type:'image',   text:'ארוחת עסקים ב-49₪',   spend:420,  results:3,  cpa:140.0, ctr:1.1, frequency:2.6 },
+  ],
+  tasks: [
+    { id:'t1', client_id:'c2', title:'בדוק קריאייטיבים עם frequency גבוה', priority:'high',   status:'open',        due_date:'2026-06-05', created_at: new Date().toISOString() },
+    { id:'t2', client_id:'c1', title:'רענן קהלי ריטרגטינג',                 priority:'medium', status:'in_progress', due_date:'2026-06-10', created_at: new Date().toISOString() },
+    { id:'t3', client_id:'c3', title:'בדוק אמצעי תשלום ופיקסל',             priority:'urgent', status:'open',        due_date:'2026-06-01', created_at: new Date().toISOString() },
+  ],
+  recs: [
+    { id:'r1', client_id:'c2', title:'תדירות גבוהה — עייפות קריאייטיבית', explanation:'תדירות 5.4 מעידה שהקהל כבר ראה את המודעות יותר מדי פעמים. CTR ירד 30% בשבוע האחרון. מומלץ לרענן קריאייטיבים או להרחיב קהלים.', severity:'high', suggested_action:'החלף לפחות 2 קריאייטיבים חדשים ובחן קהל lookalike נרחב יותר', confidence:88, related_metric:'frequency', status:'pending', created_at:new Date().toISOString() },
+    { id:'r2', client_id:'c1', title:'CPA עלה — בדוק חלוקת תקציב',         explanation:'עלות לתוצאה בקמפיין "קהל רחב" גבוהה ב-40% מהממוצע. ניתן להעביר תקציב לקמפיין הריטרגטינג שמציג CPA של 75₪.', severity:'medium', suggested_action:'הפחת תקציב יומי של "קהל רחב" ב-100₪ והוסף לריטרגטינג', confidence:76, related_metric:'cpa', status:'pending', created_at:new Date().toISOString() },
+    { id:'r3', client_id:'c3', title:'אפס המרות — בדוק פיקסל ודף נחיתה',   explanation:'הקמפיין מוציא 4,560₪ ללא המרה אחת. ייתכן שגאדג\'ט ה-Pixel לא מותקן כראוי או שדף הנחיתה נפגע.', severity:'critical', suggested_action:'בדוק Events Manager, פרסם Test Event ובחן את דף הנחיתה', confidence:95, related_metric:'results', status:'pending', created_at:new Date().toISOString() },
+  ],
+};
+
+// ── SUPABASE / AUTH ───────────────────────────────────────────────────────
+function initSupabase() {
+  if (DEMO_MODE) return;
+  S.sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+}
+
+async function checkAuth() {
+  if (DEMO_MODE) {
+    document.getElementById('demo-hint').style.display = 'block';
+    return false;
+  }
+  const { data: { session } } = await S.sb.auth.getSession();
+  if (!session) return false;
+  S.user = session.user;
+  await loadProfile();
+  return true;
+}
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-err');
+  const btn   = document.getElementById('login-btn');
+
+  if (!email) { showLoginErr('הכנס כתובת אימייל'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'מתחבר...';
+  errEl.style.display = 'none';
+
+  if (DEMO_MODE) {
+    S.user = MOCK.user;
+    S.profile = MOCK.profile;
+    enterApp();
+    return;
+  }
+
+  const { data, error } = await S.sb.auth.signInWithPassword({ email, password: pass });
+  if (error) {
+    btn.disabled = false;
+    btn.textContent = 'כניסה למערכת';
+    showLoginErr(error.message === 'Invalid login credentials' ? 'אימייל או סיסמה שגויים' : error.message);
+    return;
+  }
+  S.user = data.user;
+  await loadProfile();
+  enterApp();
+}
+
+function showLoginErr(msg) {
+  const el = document.getElementById('login-err');
+  el.textContent = msg;
+  el.style.display = 'block';
+  document.getElementById('login-btn').disabled = false;
+  document.getElementById('login-btn').textContent = 'כניסה למערכת';
+}
+
+async function doLogout() {
+  if (!DEMO_MODE && S.sb) await S.sb.auth.signOut();
+  S.user = null; S.profile = null;
+  document.getElementById('scr-app').style.display = 'none';
+  document.getElementById('scr-login').style.display = 'flex';
+}
+
+async function loadProfile() {
+  if (DEMO_MODE) { S.profile = MOCK.profile; return; }
+  const { data } = await S.sb.from('user_profiles').select('*').eq('user_id', S.user.id).single();
+  S.profile = data;
+}
+
+function enterApp() {
+  document.getElementById('scr-login').style.display = 'none';
+  document.getElementById('scr-app').style.display   = 'block';
+  updateUserUI();
+  navigate('clients');
+}
+
+function updateUserUI() {
+  const name = S.profile?.full_name || S.user?.email?.split('@')[0] || '?';
+  document.getElementById('user-name').textContent   = name;
+  document.getElementById('user-role').textContent   = S.profile?.role === 'admin' ? 'אדמין' : 'מנהל קמפיין';
+  document.getElementById('user-avatar').textContent = name[0]?.toUpperCase() || '?';
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────
+function navigate(view, params = {}) {
+  S.view = view;
+  ['view-clients','view-client-detail','view-all-tasks','view-all-recs'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  ['nav-clients','nav-tasks','nav-recs'].forEach(id => {
+    document.getElementById(id)?.classList.remove('active');
+  });
+  document.getElementById('sync-btn').style.display = 'none';
+
+  if (view === 'clients') {
+    document.getElementById('view-clients').style.display = 'block';
+    document.getElementById('nav-clients').classList.add('active');
+    setBreadcrumb([{label:'לקוחות'}]);
+    loadClients();
+  } else if (view === 'client-detail') {
+    document.getElementById('view-client-detail').style.display = 'block';
+    document.getElementById('sync-btn').style.display = 'inline-flex';
+    setBreadcrumb([
+      {label:'לקוחות', action:()=>navigate('clients')},
+      {label: S.currentClient?.name || 'לקוח'},
+    ]);
+    loadClientDetail();
+  } else if (view === 'all-tasks') {
+    document.getElementById('view-all-tasks').style.display = 'block';
+    document.getElementById('nav-tasks').classList.add('active');
+    setBreadcrumb([{label:'משימות'}]);
+    loadAllTasks();
+  } else if (view === 'all-recs') {
+    document.getElementById('view-all-recs').style.display = 'block';
+    document.getElementById('nav-recs').classList.add('active');
+    setBreadcrumb([{label:'המלצות AI'}]);
+    loadAllRecs();
+  }
+}
+
+function openClient(client) {
+  S.currentClient = client;
+  S.currentCampaign = null;
+  S.currentAdSet = null;
+  S.drill = null;
+  navigate('client-detail');
+}
+
+function setBreadcrumb(items) {
+  const el = document.getElementById('breadcrumb');
+  el.innerHTML = items.map((item, i) => {
+    const isLast = i === items.length - 1;
+    const cls    = isLast ? 'bc-item current' : 'bc-item';
+    const onclick = item.action ? `onclick="(${item.action.toString()})()"` : '';
+    return (i > 0 ? '<span class="bc-sep">›</span>' : '') +
+           `<span class="${cls}" ${onclick}>${item.label}</span>`;
+  }).join('');
+}
+
+function setTab(tab) {
+  S.tab = tab;
+  document.querySelectorAll('#detail-tabs .tab').forEach((t, i) => {
+    const tabs = ['campaigns','tasks','recommendations'];
+    t.classList.toggle('active', tabs[i] === tab);
+  });
+  ['tab-campaigns','tab-tasks','tab-recommendations'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  document.getElementById('tab-' + tab).style.display = 'block';
+
+  if (tab === 'tasks' && !S.tasks.length) loadTasks();
+  if (tab === 'recommendations') loadRecs();
+}
+
+// ── DATE RANGE ────────────────────────────────────────────────────────────
+function setPreset(preset, btn) {
+  S.preset = preset;
+  document.querySelectorAll('.dr-p').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('dr-cust').style.display = preset === 'custom' ? 'flex' : 'none';
+  if (preset !== 'custom') refreshData();
+}
+
+function applyCustomDate() {
+  S.dateFrom = document.getElementById('dr-from').value;
+  S.dateTo   = document.getElementById('dr-to').value;
+  if (!S.dateFrom || !S.dateTo) { toast('בחר תאריך התחלה וסיום', 'err'); return; }
+  refreshData();
+}
+
+function getDatePayload() {
+  if (S.preset === 'custom') return { date_from: S.dateFrom, date_to: S.dateTo };
+  return { preset: S.preset };
+}
+
+function refreshData() {
+  if (S.view === 'clients')        loadClients();
+  if (S.view === 'client-detail')  loadClientDetail();
+}
+
+// ── API HELPER ────────────────────────────────────────────────────────────
+async function apiFetch(path, body) {
+  // Get current Supabase session token for Edge Function auth
+  const { data: { session } } = await S.sb.auth.getSession();
+  const jwt = session?.access_token || '';
+  const res = await fetch(API + path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${jwt}` },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err.error || 'Server error');
+  }
+  return res.json();
+}
+
+async function sbSelect(table, filters = '') {
+  if (DEMO_MODE) return null;
+  const { data, error } = await S.sb.from(table).select('*' + (filters ? ',' + filters : ''));
+  if (error) throw error;
+  return data;
+}
+
+// ── META TOKEN MANAGEMENT ──────────────────────────────────────────────────
+async function loadMetaToken() {
+  if (DEMO_MODE) { S.metaToken = 'demo'; return 'demo'; }
+  try {
+    const { data } = await S.sb.from('user_meta_tokens')
+      .select('access_token').eq('user_id', S.user.id).single();
+    S.metaToken = data?.access_token || null;
+    updateMetaBtn();
+    return S.metaToken;
+  } catch { S.metaToken = null; updateMetaBtn(); return null; }
+}
+
+async function saveMetaToken(token) {
+  if (DEMO_MODE) { S.metaToken = token; updateMetaBtn(); return; }
+  await S.sb.from('user_meta_tokens').upsert(
+    { user_id: S.user.id, access_token: token, updated_at: new Date().toISOString() },
+    { onConflict: 'user_id' }
+  );
+  S.metaToken = token;
+  updateMetaBtn();
+}
+
+function connectMeta() {
+  if (typeof FB === 'undefined') {
+    toast('Facebook SDK לא נטען — נסה לרענן', 'err');
+    return;
+  }
+  FB.login(async function(response) {
+    if (!response.authResponse) {
+      toast('ביטלת את ההתחברות לפייסבוק', 'info');
+      return;
+    }
+    const shortToken = response.authResponse.accessToken;
+    try {
+      await apiFetch('/meta/connect', { token: shortToken });
+      S.metaToken = shortToken; // will be refreshed on next loadMetaToken()
+      await loadMetaToken();
+      updateMetaBtn();
+      toast('Meta חובר בהצלחה ✓', 'ok');
+      loadClients();
+    } catch(e) {
+      toast('שגיאה בחיבור Meta: ' + e.message, 'err');
+    }
+  }, { scope: 'ads_read,ads_management,business_management,read_insights' });
+}
+
+async function disconnectMeta() {
+  if (!DEMO_MODE) {
+    await S.sb.from('user_meta_tokens').delete().eq('user_id', S.user.id);
+  }
+  S.metaToken = null;
+  updateMetaBtn();
+  loadClients();
+  toast('Meta נותק', 'info');
+}
+
+function updateMetaBtn() {
+  const btn   = document.getElementById('meta-connect-btn');
+  const label = document.getElementById('meta-btn-label');
+  if (!btn) return;
+  if (S.metaToken) {
+    label.textContent = 'Meta מחובר ✓';
+    btn.style.borderColor = 'rgba(34,197,94,.4)';
+    btn.style.background  = 'rgba(34,197,94,.08)';
+    btn.style.color       = '#4ade80';
+    btn.onclick = () => showConfirm('נתק Meta', 'האם לנתק את חשבון Meta?', disconnectMeta);
+  } else {
+    label.textContent = 'חבר Meta';
+    btn.style.borderColor = 'rgba(24,119,242,.35)';
+    btn.style.background  = 'rgba(24,119,242,.1)';
+    btn.style.color       = '#93c5fd';
+    btn.onclick = connectMeta;
+  }
+}
+
+// ── CLIENTS ───────────────────────────────────────────────────────────────
+async function loadClients() {
+  document.getElementById('clients-grid').innerHTML =
+    '<div class="loading"><div class="spinner"></div><br>טוען חשבונות מ-Meta...</div>';
+
+  if (DEMO_MODE) {
+    S.allClients = MOCK.clients;
+    S.clients    = [...MOCK.clients];
+    renderClientsGrid();
+    return;
+  }
+
+  // Ensure token loaded
+  if (!S.metaToken) await loadMetaToken();
+
+  if (!S.metaToken) {
+    showMetaConnectPrompt();
+    return;
+  }
+
+  try {
+    const data = await apiFetch('/meta/accounts', {
+      preset:    S.preset,
+      date_from: S.dateFrom,
+      date_to:   S.dateTo,
+    });
+
+    S.allClients = (data.data || []).map(normalizeMetaAccount);
+    S.clients    = [...S.allClients];
+    renderClientsGrid();
+  } catch (e) {
+    if (e.message === 'META_NOT_CONNECTED') {
+      showMetaConnectPrompt();
+    } else if (e.message === 'META_TOKEN_EXPIRED') {
+      S.metaToken = null; updateMetaBtn();
+      showMetaConnectPrompt('הToken פג תוקף — חבר מחדש');
+    } else {
+      document.getElementById('clients-grid').innerHTML =
+        `<div class="empty-state"><div class="empty-icon">❌</div>${e.message}</div>`;
+    }
+  }
+}
+
+function showMetaConnectPrompt(msg = 'חבר את חשבון Meta כדי לטעון לקוחות וקמפיינים') {
+  document.getElementById('clients-sub').textContent = 'Meta לא מחובר';
+  document.getElementById('clients-grid').innerHTML = `
+    <div style="grid-column:1/-1">
+      <div class="empty-state" style="padding:60px 20px">
+        <div class="empty-icon">🔵</div>
+        <div class="empty-txt" style="margin-bottom:8px">${msg}</div>
+        <div style="font-size:13px;color:var(--t2);margin-bottom:24px">
+          כל חשבונות ה-Ad Account שלך ב-Meta Business יטענו אוטומטית
+        </div>
+        <button class="btn-primary" onclick="connectMeta()" style="margin:0 auto">
+          🔵 חבר Meta Business
+        </button>
+      </div>
+    </div>`;
+}
+
+function normalizeMetaAccount(acc) {
+  const ins = acc.insights?.data?.[0] || {};
+  const actions   = ins.actions || [];
+  const results   = actions.reduce((s,a) => s + parseInt(a.value||0,10), 0);
+  const spend     = parseFloat(ins.spend || 0);
+  const roasArr   = ins.purchase_roas || [];
+  const roas      = roasArr[0] ? parseFloat(roasArr[0].value) : null;
+  const cpa       = results > 0 ? spend / results : null;
+  const ctr       = parseFloat(ins.ctr || 0);
+  const cpm       = parseFloat(ins.cpm || 0);
+  const frequency = parseFloat(ins.frequency || 0);
+
+  // Status logic
+  let status = 'no_data';
+  if (acc.account_status !== 1) {
+    status = 'critical';
+  } else if (spend > 0) {
+    if (spend > 50 && results === 0) status = 'critical';
+    else if (frequency > 4 || (ctr > 0 && ctr < 0.8)) status = 'needs_attention';
+    else if (spend > 0) status = 'healthy';
+  }
+
+  return {
+    id:                 acc.id,
+    name:               acc.name || acc.id,
+    meta_ad_account_id: acc.id.replace('act_', ''),
+    status,
+    updated_at:         new Date().toISOString(),
+    // Inline insights for card display
+    spend, results, cpa, roas, ctr, cpm, frequency,
+    _ins: { spend, results, cpa, roas, ctr, cpm, frequency },
+  };
+}
+
+function filterClients() {
+  const search  = document.getElementById('client-search').value.toLowerCase();
+  const status  = document.getElementById('status-filter').value;
+  S.clients = S.allClients.filter(c =>
+    (!search || c.name.toLowerCase().includes(search)) &&
+    (status === 'all' || c.status === status)
+  );
+  renderClientsGrid();
+}
+
+function renderClientsGrid() {
+  const grid = document.getElementById('clients-grid');
+  document.getElementById('clients-count').textContent = `${S.clients.length} לקוחות`;
+
+  if (!S.clients.length) {
+    grid.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-txt">לא נמצאו לקוחות</div></div>';
+    document.getElementById('clients-sub').textContent = 'אין לקוחות';
+    return;
+  }
+
+  const healthy  = S.clients.filter(c => c.status === 'healthy').length;
+  const critical = S.clients.filter(c => c.status === 'critical').length;
+  document.getElementById('clients-sub').textContent = `${S.clients.length} לקוחות · ${healthy} תקינים · ${critical} קריטיים`;
+
+  grid.innerHTML = S.clients.map(c => {
+    const i = DEMO_MODE ? (MOCK.insights[c.id] || {}) : (c._ins || c);
+    const statusInfo = getStatusInfo(c.status);
+    const aiInsight  = getAutoInsight(c, i);
+    return `
+    <div class="client-card" onclick="openClient(${JSON.stringify(JSON.stringify(c))})">
+      <div class="cc-top">
+        <div class="cc-av">${c.name[0]}</div>
+        <div class="cc-info">
+          <div class="cc-name">${c.name}</div>
+          <div class="cc-id">act_${c.meta_ad_account_id || '—'}</div>
+        </div>
+        <span class="badge ${statusInfo.cls}"><span class="dot ${statusInfo.dot}"></span>${statusInfo.label}</span>
+      </div>
+      <div class="cc-stats">
+        <div class="cc-stat"><div class="cc-stat-lbl">הוצאה</div><div class="cc-stat-val">${fmtCur(i.spend)}</div></div>
+        <div class="cc-stat"><div class="cc-stat-lbl">CPA</div><div class="cc-stat-val">${i.cpa ? fmtCur(i.cpa) : '—'}</div></div>
+        <div class="cc-stat"><div class="cc-stat-lbl">ROAS</div><div class="cc-stat-val">${i.roas ? i.roas.toFixed(1)+'x' : '—'}</div></div>
+        <div class="cc-stat"><div class="cc-stat-lbl">CTR</div><div class="cc-stat-val">${i.ctr ? i.ctr.toFixed(2)+'%' : '—'}</div></div>
+      </div>
+      ${aiInsight ? `<div class="cc-insight">💡 ${aiInsight}</div>` : ''}
+      <div class="cc-footer">
+        <span class="cc-updated">עודכן ${timeAgo(c.updated_at)}</span>
+        <span style="color:var(--t3);font-size:16px">›</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  // We use JSON.stringify twice (inner) to make the string safe for onclick
+  // Reattach click handlers properly
+  document.querySelectorAll('.client-card').forEach((card, i) => {
+    card.onclick = () => openClient(S.clients[i]);
+  });
+}
+
+// ── CLIENT DETAIL ─────────────────────────────────────────────────────────
+async function loadClientDetail() {
+  const c = S.currentClient;
+  document.getElementById('detail-client-name').textContent = c.name;
+  document.getElementById('detail-client-meta').textContent = `Meta Account: act_${c.meta_ad_account_id || '—'}`;
+  const si = getStatusInfo(c.status);
+  document.getElementById('detail-status-badge').innerHTML = `<span class="badge ${si.cls}"><span class="dot ${si.dot}"></span>${si.label}</span>`;
+
+  // Reset tab
+  setTab('campaigns');
+  document.querySelectorAll('#detail-tabs .tab').forEach((t, i) => t.classList.toggle('active', i === 0));
+
+  loadKPIs();
+  loadCampaigns();
+  updateTasksBadge();
+}
+
+async function loadKPIs() {
+  const el = document.getElementById('detail-kpis');
+  el.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+  let ins;
+  if (DEMO_MODE) {
+    ins = MOCK.insights[S.currentClient.id] || {};
+  } else {
+    try {
+      const data = await apiFetch('/meta/insights', { client_id: S.currentClient.id, ...getDatePayload() });
+      ins = normalizeInsights(data.data?.[0] || {});
+    } catch (e) {
+      ins = {};
+    }
+  }
+  S.kpis = ins;
+
+  const kpiDefs = [
+    { lbl:'הוצאה',     val: fmtCur(ins.spend),                     hi:true },
+    { lbl:'תוצאות',    val: fmtNum(ins.results)                           },
+    { lbl:'CPA',       val: ins.cpa    ? fmtCur(ins.cpa)   : '—'         },
+    { lbl:'ROAS',      val: ins.roas   ? ins.roas.toFixed(1)+'x' : '—'   },
+    { lbl:'CTR',       val: ins.ctr    ? ins.ctr.toFixed(2)+'%' : '—'    },
+    { lbl:'CPM',       val: ins.cpm    ? fmtCur(ins.cpm)   : '—'         },
+    { lbl:'Frequency', val: ins.frequency ? ins.frequency.toFixed(1) : '—' },
+    { lbl:'הקלקות',    val: fmtNum(ins.clicks)                            },
+  ];
+
+  el.innerHTML = kpiDefs.map(k => `
+    <div class="kpi ${k.hi?'hi':''}">
+      <div class="kpi-lbl">${k.lbl}</div>
+      <div class="kpi-val">${k.val}</div>
+    </div>`).join('');
+}
+
+// ── CAMPAIGNS ─────────────────────────────────────────────────────────────
+async function loadCampaigns() {
+  S.drill = null;
+  document.getElementById('drill-nav').style.display = 'none';
+  const el = document.getElementById('campaigns-content');
+  el.innerHTML = '<div class="loading"><div class="spinner"></div><br>טוען קמפיינים...</div>';
+
+  if (DEMO_MODE) {
+    S.campaigns = MOCK.campaigns;
+    renderCampaignsTable();
+    return;
+  }
+  try {
+    const data = await apiFetch('/meta/campaigns', { client_id: S.currentClient.id, ...getDatePayload() });
+    S.campaigns = (data.data || []).map(normalizeCampaign);
+    renderCampaignsTable();
+  } catch (e) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">❌</div>${e.message}</div>`;
+  }
+}
+
+function renderCampaignsTable() {
+  const el = document.getElementById('campaigns-content');
+  if (!S.campaigns.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-txt">אין קמפיינים</div></div>';
+    return;
+  }
+  const rows = S.campaigns.map((c, i) => {
+    const statusCls = c.status === 'ACTIVE' ? 'td-good' : 'td-warn';
+    const statusLbl = c.status === 'ACTIVE' ? 'פעיל' : 'מושהה';
+    const cpaClass  = c.cpa > 200 ? 'td-bad' : c.cpa > 150 ? 'td-warn' : 'td-good';
+    return `<tr>
+      <td><span class="td-name" onclick="drillCampaign(${i})">${c.name}</span></td>
+      <td><span class="badge neu">${translateObjective(c.objective)}</span></td>
+      <td><span class="${statusCls}">${statusLbl}</span></td>
+      <td class="td-num">${fmtCur(c.spend)}</td>
+      <td class="td-num">${fmtNum(c.results)}</td>
+      <td class="td-num ${cpaClass}">${c.cpa ? fmtCur(c.cpa) : '—'}</td>
+      <td class="td-num">${c.ctr ? c.ctr.toFixed(2)+'%' : '—'}</td>
+      <td class="td-num">${c.cpm ? fmtCur(c.cpm) : '—'}</td>
+      <td class="td-num">${c.frequency ? c.frequency.toFixed(1) : '—'}</td>
+      <td>${fmtBudget(c)}</td>
+      <td><span class="rec-tag" onclick="openRecsForCampaign('${c.id}')">AI ›</span></td>
+    </tr>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>קמפיין</th><th>מטרה</th><th>סטטוס</th>
+          <th>הוצאה</th><th>תוצאות</th><th>CPA</th>
+          <th>CTR</th><th>CPM</th><th>Freq.</th><th>תקציב</th><th>AI</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+// ── AD SETS ───────────────────────────────────────────────────────────────
+async function drillCampaign(idx) {
+  S.currentCampaign = S.campaigns[idx];
+  S.drill = 'adsets';
+  showDrillNav(`קמפיין: ${S.currentCampaign.name}`);
+
+  const el = document.getElementById('campaigns-content');
+  el.innerHTML = '<div class="loading"><div class="spinner"></div><br>טוען קבוצות מודעות...</div>';
+
+  if (DEMO_MODE) { S.adsets = MOCK.adsets; renderAdsetsTable(); return; }
+  try {
+    const data = await apiFetch('/meta/adsets', { client_id: S.currentClient.id, campaign_id: S.currentCampaign.id, ...getDatePayload() });
+    S.adsets = (data.data || []).map(normalizeAdset);
+    renderAdsetsTable();
+  } catch (e) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">❌</div>${e.message}</div>`;
+  }
+}
+
+function renderAdsetsTable() {
+  const el = document.getElementById('campaigns-content');
+  if (!S.adsets.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-txt">אין קבוצות מודעות</div></div>';
+    return;
+  }
+  const rows = S.adsets.map((a, i) => {
+    const cpaClass = a.cpa > 200 ? 'td-bad' : a.cpa > 150 ? 'td-warn' : 'td-good';
+    return `<tr>
+      <td><span class="td-name" onclick="drillAdset(${i})">${a.name}</span></td>
+      <td><span class="${a.status==='ACTIVE'?'td-good':'td-warn'}">${a.status==='ACTIVE'?'פעיל':'מושהה'}</span></td>
+      <td class="td-num">${fmtBudget(a)}</td>
+      <td class="td-num">${fmtCur(a.spend)}</td>
+      <td class="td-num">${fmtNum(a.results)}</td>
+      <td class="td-num ${cpaClass}">${a.cpa ? fmtCur(a.cpa) : '—'}</td>
+      <td class="td-num">${a.ctr ? a.ctr.toFixed(2)+'%' : '—'}</td>
+      <td class="td-num">${a.frequency ? a.frequency.toFixed(1) : '—'}</td>
+    </tr>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>קבוצת מודעות</th><th>סטטוס</th><th>תקציב</th>
+          <th>הוצאה</th><th>תוצאות</th><th>CPA</th><th>CTR</th><th>Freq.</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+// ── ADS / CREATIVES ───────────────────────────────────────────────────────
+async function drillAdset(idx) {
+  S.currentAdSet = S.adsets[idx];
+  S.drill = 'ads';
+  showDrillNav(`קבוצה: ${S.currentAdSet.name}`);
+
+  const el = document.getElementById('campaigns-content');
+  el.innerHTML = '<div class="loading"><div class="spinner"></div><br>טוען מודעות...</div>';
+
+  if (DEMO_MODE) { S.ads = MOCK.ads; renderAdsGrid(); return; }
+  try {
+    const data = await apiFetch('/meta/ads', { client_id: S.currentClient.id, adset_id: S.currentAdSet.id, ...getDatePayload() });
+    S.ads = (data.data || []).map(normalizeAd);
+    renderAdsGrid();
+  } catch (e) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">❌</div>${e.message}</div>`;
+  }
+}
+
+function renderAdsGrid() {
+  const el = document.getElementById('campaigns-content');
+  if (!S.ads.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-txt">אין מודעות</div></div>';
+    return;
+  }
+  el.innerHTML = `<div class="ads-grid">${S.ads.map(ad => adCard(ad)).join('')}</div>`;
+}
+
+function adCard(ad) {
+  const thumb = ad.thumb
+    ? (ad.type === 'video'
+        ? `<video src="${ad.thumb}" muted loop style="width:100%;height:100%;object-fit:cover" onmouseenter="this.play()" onmouseleave="this.pause();this.currentTime=0"></video><span class="ad-play-badge">▶ וידאו</span>`
+        : `<img src="${ad.thumb}" alt="" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\'no-thumb\'>🖼️</div>'">`)
+    : `<div class="no-thumb">${ad.type==='video'?'🎬':ad.type==='carousel'?'🎠':'🖼️'}</div>`;
+
+  const typeBadge = ad.type === 'video' ? '<span class="ad-play-badge" style="top:7px;left:7px;right:auto">🎬</span>'
+                  : ad.type === 'carousel' ? '<span class="ad-play-badge" style="top:7px;left:7px;right:auto">🎠</span>' : '';
+
+  return `
+  <div class="ad-card">
+    <div class="ad-thumb">${thumb}${typeBadge}</div>
+    <div class="ad-body">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <div class="ad-name">${ad.name}</div>
+        <span class="${ad.status==='ACTIVE'?'badge ok':'badge warn'}" style="font-size:10px">${ad.status==='ACTIVE'?'פעיל':'מושהה'}</span>
+      </div>
+      ${ad.text ? `<div class="ad-text">${ad.text}</div>` : ''}
+      <div class="ad-stats">
+        <div class="ad-stat"><div class="ad-stat-lbl">הוצאה</div><div class="ad-stat-val">${fmtCur(ad.spend)}</div></div>
+        <div class="ad-stat"><div class="ad-stat-lbl">CPA</div><div class="ad-stat-val">${ad.cpa ? fmtCur(ad.cpa) : '—'}</div></div>
+        <div class="ad-stat"><div class="ad-stat-lbl">CTR</div><div class="ad-stat-val">${ad.ctr ? ad.ctr.toFixed(1)+'%' : '—'}</div></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function showDrillNav(label) {
+  document.getElementById('drill-nav').style.display = 'block';
+  document.getElementById('drill-label').textContent = label;
+}
+
+function drillBack() {
+  if (S.drill === 'ads') { S.drill = 'adsets'; showDrillNav(`קמפיין: ${S.currentCampaign.name}`); renderAdsetsTable(); }
+  else { S.drill = null; document.getElementById('drill-nav').style.display = 'none'; renderCampaignsTable(); }
+}
+
+// ── TASKS ─────────────────────────────────────────────────────────────────
+async function loadTasks() {
+  document.getElementById('tasks-content').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+  if (DEMO_MODE) {
+    S.tasks = MOCK.tasks.filter(t => t.client_id === S.currentClient?.id);
+    renderTasks();
+    updateTasksBadge();
+    return;
+  }
+  try {
+    const { data, error } = await S.sb.from('tasks')
+      .select('*').eq('client_id', S.currentClient.id).order('created_at', { ascending: false });
+    if (error) throw error;
+    S.tasks = data || [];
+    renderTasks();
+    updateTasksBadge();
+  } catch (e) {
+    document.getElementById('tasks-content').innerHTML = `<div class="empty-state">${e.message}</div>`;
+  }
+}
+
+function renderTasks(container = 'tasks-content', tasks = S.tasks) {
+  const el = document.getElementById(container);
+  if (!tasks.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-txt">אין משימות פתוחות</div>לחץ + כדי להוסיף משימה חדשה</div>';
+    return;
+  }
+  el.innerHTML = '<div class="tasks-list">' + tasks.map(t => taskRow(t)).join('') + '</div>';
+}
+
+function taskRow(t) {
+  const pColors = { urgent:'#ef4444', high:'#f59e0b', medium:'#a855f7', low:'rgba(255,255,255,.3)' };
+  const pLabels = { urgent:'דחוף', high:'גבוה', medium:'בינוני', low:'נמוך' };
+  const sLabels = { open:'פתוח', in_progress:'בטיפול', done:'הושלם' };
+  return `
+  <div class="task-row ${t.status==='done'?'done-row':''}">
+    <div class="task-check ${t.status}" onclick="cycleTaskStatus('${t.id}')">
+      ${t.status==='done'?'✓':t.status==='in_progress'?'…':''}
+    </div>
+    <div class="task-body">
+      <div class="task-title">${t.title}</div>
+      <div class="task-meta">
+        <span style="width:6px;height:6px;border-radius:50%;background:${pColors[t.priority]};display:inline-block;flex-shrink:0"></span>
+        ${pLabels[t.priority]}
+        <span>·</span>
+        <span>${sLabels[t.status]}</span>
+        ${t.due_date ? `<span>· יעד: ${t.due_date}</span>` : ''}
+      </div>
+    </div>
+    <div class="task-actions">
+      <button class="task-btn edit" onclick="editTask('${t.id}')">✎</button>
+      <button class="task-btn del"  onclick="deleteTask('${t.id}')">✕</button>
+    </div>
+  </div>`;
+}
+
+async function cycleTaskStatus(id) {
+  const cycle = { open:'in_progress', in_progress:'done', done:'open' };
+  const task  = [...S.tasks, ...S.allTasks].find(t => t.id === id);
+  if (!task) return;
+  const newStatus = cycle[task.status];
+  task.status = newStatus;
+
+  if (!DEMO_MODE) {
+    await S.sb.from('tasks').update({ status: newStatus, updated_at: new Date().toISOString() }).eq('id', id);
+  }
+
+  renderTasks();
+  renderTasks('all-tasks-content', S.allTasks);
+  updateTasksBadge();
+}
+
+function openNewTask(recId = null, recTitle = '') {
+  S.pendingTask = { recId };
+  document.getElementById('task-id').value = '';
+  document.getElementById('task-title-inp').value = recTitle ? `[AI] ${recTitle}` : '';
+  document.getElementById('task-desc-inp').value = '';
+  document.getElementById('task-priority-inp').value = 'medium';
+  document.getElementById('task-status-inp').value = 'open';
+  document.getElementById('task-due-inp').value = '';
+  document.getElementById('task-modal-title').textContent = 'משימה חדשה';
+  document.getElementById('modal-task').style.display = 'flex';
+}
+
+function editTask(id) {
+  const task = [...S.tasks, ...S.allTasks].find(t => t.id === id);
+  if (!task) return;
+  S.pendingTask = { editing: true };
+  document.getElementById('task-id').value = id;
+  document.getElementById('task-title-inp').value = task.title;
+  document.getElementById('task-desc-inp').value = task.description || '';
+  document.getElementById('task-priority-inp').value = task.priority;
+  document.getElementById('task-status-inp').value = task.status;
+  document.getElementById('task-due-inp').value = task.due_date || '';
+  document.getElementById('task-modal-title').textContent = 'ערוך משימה';
+  document.getElementById('modal-task').style.display = 'flex';
+}
+
+async function saveTask() {
+  const id    = document.getElementById('task-id').value;
+  const title = document.getElementById('task-title-inp').value.trim();
+  if (!title) { toast('כותרת חובה', 'err'); return; }
+
+  const payload = {
+    title,
+    description: document.getElementById('task-desc-inp').value.trim() || null,
+    priority:    document.getElementById('task-priority-inp').value,
+    status:      document.getElementById('task-status-inp').value,
+    due_date:    document.getElementById('task-due-inp').value || null,
+    client_id:   S.currentClient?.id,
+    created_by:  S.user?.id,
+    updated_at:  new Date().toISOString(),
+  };
+
+  if (DEMO_MODE) {
+    if (id) {
+      const t = S.tasks.find(t => t.id === id);
+      if (t) Object.assign(t, payload);
+    } else {
+      const newTask = { id: 'demo-' + Date.now(), ...payload, created_at: new Date().toISOString() };
+      S.tasks.push(newTask);
+      MOCK.tasks.push(newTask);
+    }
+  } else {
+    if (id) {
+      await S.sb.from('tasks').update(payload).eq('id', id);
+      Object.assign(S.tasks.find(t => t.id === id) || {}, payload);
+    } else {
+      const { data } = await S.sb.from('tasks').insert(payload).select().single();
+      if (data) S.tasks.push(data);
+    }
+  }
+
+  closeModal('task');
+  renderTasks();
+  updateTasksBadge();
+  toast(id ? 'משימה עודכנה' : 'משימה נוצרה', 'ok');
+}
+
+async function deleteTask(id) {
+  showConfirm('מחק משימה', 'האם למחוק את המשימה לצמיתות?', async () => {
+    if (!DEMO_MODE) await S.sb.from('tasks').delete().eq('id', id);
+    S.tasks = S.tasks.filter(t => t.id !== id);
+    MOCK.tasks = MOCK.tasks.filter(t => t.id !== id);
+    renderTasks();
+    updateTasksBadge();
+    toast('משימה נמחקה', 'ok');
+  });
+}
+
+function updateTasksBadge() {
+  const open = [...S.tasks, ...S.allTasks].filter(t => t.status === 'open').length;
+  const badge = document.getElementById('tasks-badge');
+  const cnt   = document.getElementById('tasks-cnt');
+  badge.textContent = open; badge.style.display = open ? 'inline-block' : 'none';
+  if (cnt) cnt.textContent = S.tasks.filter(t => t.status !== 'done').length;
+}
+
+async function loadAllTasks() {
+  const el = document.getElementById('all-tasks-content');
+  el.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+  if (DEMO_MODE) {
+    S.allTasks = [...MOCK.tasks];
+    renderTasks('all-tasks-content', S.allTasks);
+    return;
+  }
+  try {
+    const { data } = await S.sb.from('tasks').select('*').neq('status','done').order('due_date');
+    S.allTasks = data || [];
+    renderTasks('all-tasks-content', S.allTasks);
+  } catch(e) {
+    el.innerHTML = `<div class="empty-state">${e.message}</div>`;
+  }
+}
+
+// ── AI RECOMMENDATIONS ────────────────────────────────────────────────────
+async function loadRecs() {
+  document.getElementById('recs-content').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+  if (DEMO_MODE) {
+    S.recs = MOCK.recs.filter(r => r.client_id === S.currentClient?.id);
+    renderRecs('recs-content', S.recs);
+    updateRecsBadge();
+    return;
+  }
+  try {
+    const { data } = await S.sb.from('ai_recommendations')
+      .select('*').eq('client_id', S.currentClient.id)
+      .neq('status','dismissed').order('created_at', { ascending: false });
+    S.recs = data || [];
+    renderRecs('recs-content', S.recs);
+    updateRecsBadge();
+  } catch(e) {
+    document.getElementById('recs-content').innerHTML = `<div class="empty-state">${e.message}</div>`;
+  }
+}
+
+async function loadAllRecs() {
+  const el = document.getElementById('all-recs-content');
+  el.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+  if (DEMO_MODE) {
+    S.allRecs = MOCK.recs.filter(r => r.status === 'pending');
+    renderRecs('all-recs-content', S.allRecs);
+    return;
+  }
+  try {
+    const { data } = await S.sb.from('ai_recommendations').select('*').eq('status','pending').order('created_at', { ascending: false });
+    S.allRecs = data || [];
+    renderRecs('all-recs-content', S.allRecs);
+  } catch(e) {
+    el.innerHTML = `<div class="empty-state">${e.message}</div>`;
+  }
+}
+
+function renderRecs(container, recs) {
+  const el = document.getElementById(container);
+  if (!recs.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">🤖</div><div class="empty-txt">אין המלצות פתוחות</div></div>';
+    return;
+  }
+  const sevLabels = { low:'נמוך', medium:'בינוני', high:'גבוה', critical:'קריטי' };
+  const sevCls    = { low:'ok', medium:'purple', high:'warn', critical:'err' };
+  el.innerHTML = '<div class="rec-list">' + recs.map(r => `
+    <div class="rec-card ${r.severity} ${r.status}" id="rec-${r.id}">
+      <div class="rec-head">
+        <span class="badge ${sevCls[r.severity]}">${sevLabels[r.severity]}</span>
+        <div class="rec-title">${r.title}</div>
+        ${r.confidence ? `<div class="rec-confidence">ביטחון: ${r.confidence}%</div>` : ''}
+      </div>
+      <div class="rec-explanation">${r.explanation}</div>
+      <div class="rec-action-box">💡 <strong>פעולה מוצעת:</strong> ${r.suggested_action}</div>
+      ${r.status === 'pending' ? `
+      <div class="rec-actions">
+        <button class="rec-btn approve" onclick="openApproveModal('${r.id}')">✓ אשר פעולה</button>
+        <button class="rec-btn task"    onclick="openNewTask('${r.id}','${r.title.replace(/'/g,"\\'")}')">+ צור משימה</button>
+        <button class="rec-btn dismiss" onclick="dismissRec('${r.id}')">× בטל</button>
+      </div>` : `<div style="font-size:11px;color:var(--t3)">${r.status === 'approved' ? '✓ אושר ותועד' : '× בוטל'}</div>`}
+    </div>`).join('') + '</div>';
+}
+
+function openRecsForCampaign(campId) {
+  setTab('recommendations');
+  document.querySelectorAll('#detail-tabs .tab').forEach((t, i) => t.classList.toggle('active', i === 2));
+}
+
+function openApproveModal(recId) {
+  const rec = [...S.recs, ...S.allRecs].find(r => r.id === recId);
+  if (!rec) return;
+  S.pendingApprove = rec;
+
+  const sevLabels = { low:'נמוך', medium:'בינוני', high:'גבוה', critical:'קריטי' };
+  document.getElementById('approval-detail').innerHTML = `
+    <div class="approval-row"><span class="lbl">כותרת</span><span class="val">${rec.title}</span></div>
+    <div class="approval-row"><span class="lbl">פעולה מוצעת</span><span class="val">${rec.suggested_action}</span></div>
+    <div class="approval-row"><span class="lbl">מדד קשור</span><span class="val">${rec.related_metric || '—'}</span></div>
+    <div class="approval-row"><span class="lbl">חומרה</span><span class="val">${sevLabels[rec.severity]}</span></div>
+    <div class="approval-row"><span class="lbl">ביטחון AI</span><span class="val">${rec.confidence || '—'}%</span></div>
+  `;
+  document.getElementById('modal-approve').style.display = 'flex';
+}
+
+async function confirmApprove() {
+  const rec = S.pendingApprove;
+  if (!rec) return;
+
+  if (!DEMO_MODE) {
+    await S.sb.from('ai_recommendations').update({ status: 'approved', updated_at: new Date().toISOString() }).eq('id', rec.id);
+    await S.sb.from('ai_action_logs').insert({
+      recommendation_id: rec.id,
+      approved_by: S.user.id,
+      action_type: rec.suggested_action,
+      action_payload: rec,
+      status: 'pending',
+    });
+  } else {
+    rec.status = 'approved';
+  }
+
+  closeModal('approve');
+  toast('פעולה אושרה ותועדה', 'ok');
+  document.getElementById(`rec-${rec.id}`)?.classList.add('approved');
+  const el = document.getElementById(`rec-${rec.id}`)?.querySelector('.rec-actions');
+  if (el) el.innerHTML = '<div style="font-size:11px;color:var(--t3)">✓ אושר ותועד</div>';
+  updateRecsBadge();
+}
+
+async function dismissRec(recId) {
+  const rec = [...S.recs, ...S.allRecs].find(r => r.id === recId);
+  if (!rec) return;
+  rec.status = 'dismissed';
+
+  if (!DEMO_MODE) {
+    await S.sb.from('ai_recommendations').update({ status: 'dismissed', updated_at: new Date().toISOString() }).eq('id', recId);
+  }
+
+  const card = document.getElementById(`rec-${recId}`);
+  if (card) card.classList.add('dismissed');
+  const actions = card?.querySelector('.rec-actions');
+  if (actions) actions.innerHTML = '<div style="font-size:11px;color:var(--t3)">× בוטל</div>';
+  updateRecsBadge();
+  toast('המלצה בוטלה', 'info');
+}
+
+function updateRecsBadge() {
+  const open = [...S.recs, ...S.allRecs].filter(r => r.status === 'pending').length;
+  const badge = document.getElementById('recs-badge');
+  const cnt   = document.getElementById('recs-cnt');
+  badge.textContent = open; badge.style.display = open ? 'inline-block' : 'none';
+  if (cnt) cnt.textContent = open;
+}
+
+async function openAiAnalysis() {
+  const btn = document.getElementById('gen-recs-btn');
+  btn.disabled = true;
+  btn.textContent = '🤖 מנתח...';
+
+  try {
+    let data;
+    if (DEMO_MODE) {
+      await new Promise(r => setTimeout(r, 1200));
+      S.recs = [...MOCK.recs.filter(r => r.client_id === S.currentClient.id)];
+    } else {
+      data = await apiFetch('/ai/analyze', {
+        client_id: S.currentClient.id,
+        insights:  S.kpis,
+        campaigns: S.campaigns,
+      });
+      S.recs = data.recommendations || [];
+    }
+    setTab('recommendations');
+    document.querySelectorAll('#detail-tabs .tab').forEach((t, i) => t.classList.toggle('active', i === 2));
+    renderRecs('recs-content', S.recs);
+    updateRecsBadge();
+    toast('ניתוח AI הושלם', 'ok');
+  } catch (e) {
+    toast('שגיאה: ' + e.message, 'err');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🤖 צור המלצות חדשות';
+  }
+}
+
+// ── SYNC ──────────────────────────────────────────────────────────────────
+async function syncCurrentClient() {
+  if (!S.currentClient) return;
+  const btn = document.getElementById('sync-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ מסנכרן...';
+  try {
+    if (DEMO_MODE) {
+      await new Promise(r => setTimeout(r, 800));
+      toast('סנכרון הושלם (מצב דמו)', 'ok');
+    } else {
+      const data = await apiFetch('/meta/sync', { client_id: S.currentClient.id });
+      toast(`סנכרון הושלם — ${data.saved} קמפיינים נשמרו`, 'ok');
+    }
+    loadClientDetail();
+  } catch (e) {
+    toast('שגיאה בסנכרון: ' + e.message, 'err');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🔄 סנכרן';
+  }
+}
+
+// ── STATUS LOGIC ──────────────────────────────────────────────────────────
+function getStatusInfo(status) {
+  const map = {
+    healthy:         { cls:'ok',   dot:'green', label:'תקין' },
+    needs_attention: { cls:'warn', dot:'amber', label:'דורש תשומת לב' },
+    critical:        { cls:'err',  dot:'red',   label:'בעיה קריטית' },
+    no_data:         { cls:'neu',  dot:'grey',  label:'אין נתונים' },
+  };
+  return map[status] || map.no_data;
+}
+
+function getAutoInsight(client, ins) {
+  if (client.status === 'critical') return 'הוצאה ללא המרות — בדוק פיקסל ודף נחיתה';
+  if (client.status === 'no_data') return 'לא נמצאו נתונים — בדוק חיבור Meta API';
+  if (ins.frequency > 4) return `תדירות ${ins.frequency?.toFixed(1)} — שקול רענון קריאייטיבים`;
+  if (ins.cpa > 200) return `CPA גבוה (${fmtCur(ins.cpa)}) — בדוק חלוקת תקציב`;
+  if (ins.ctr < 1)   return `CTR נמוך (${ins.ctr?.toFixed(2)}%) — בחן מסרים חדשים`;
+  if (ins.roas > 3)  return `ROAS מצוין (${ins.roas?.toFixed(1)}x) — שקול הגדלת תקציב`;
+  return null;
+}
+
+// ── DATA NORMALIZERS ─────────────────────────────────────────────────────
+function normalizeInsights(raw) {
+  const actions = raw.actions || [];
+  const results = actions.reduce((s, a) => s + parseInt(a.value || 0, 10), 0);
+  const spend   = parseFloat(raw.spend || 0);
+  const roasArr = raw.purchase_roas || [];
+  return {
+    spend, results,
+    cpa:       results > 0 ? spend / results : null,
+    roas:      roasArr[0]  ? parseFloat(roasArr[0].value) : null,
+    ctr:       parseFloat(raw.ctr  || 0),
+    cpm:       parseFloat(raw.cpm  || 0),
+    frequency: parseFloat(raw.frequency || 0),
+    impressions: parseInt(raw.impressions || 0, 10),
+    clicks:    parseInt(raw.clicks || 0, 10),
+    reach:     parseInt(raw.reach  || 0, 10),
+  };
+}
+
+function normalizeCampaign(c) {
+  const ins = normalizeInsights(c.insights?.data?.[0] || {});
+  return { ...c, ...ins };
+}
+
+function normalizeAdset(a) {
+  const ins = normalizeInsights(a.insights?.data?.[0] || {});
+  return { ...a, ...ins };
+}
+
+function normalizeAd(ad) {
+  const ins = normalizeInsights(ad.insights?.data?.[0] || {});
+  const cr  = ad.creative || {};
+  const type = cr.video_id ? 'video' : 'image';
+  return {
+    ...ad, ...ins,
+    text:  cr.body || cr.title || null,
+    thumb: cr.thumbnail_url || cr.image_url || null,
+    type,
+  };
+}
+
+// ── FORMATTERS ────────────────────────────────────────────────────────────
+function fmtCur(v) {
+  if (!v && v !== 0) return '—';
+  return '₪' + parseFloat(v).toLocaleString('he-IL', { maximumFractionDigits: 0 });
+}
+function fmtNum(v) {
+  if (!v && v !== 0) return '—';
+  return parseInt(v).toLocaleString('he-IL');
+}
+function fmtBudget(c) {
+  if (c.daily_budget)    return fmtCur(parseFloat(c.daily_budget) / 100) + '/יום';
+  if (c.lifetime_budget) return fmtCur(parseFloat(c.lifetime_budget) / 100) + ' כולל';
+  return '—';
+}
+function translateObjective(obj) {
+  const map = { OUTCOME_SALES:'מכירות', OUTCOME_LEADS:'לידים', OUTCOME_AWARENESS:'מודעות', OUTCOME_TRAFFIC:'תנועה', OUTCOME_ENGAGEMENT:'מעורבות' };
+  return map[obj] || obj || '—';
+}
+function timeAgo(iso) {
+  if (!iso) return '—';
+  const d = Math.floor((Date.now() - new Date(iso)) / 1000);
+  if (d < 60)   return 'לפני רגע';
+  if (d < 3600) return `לפני ${Math.floor(d/60)} דק'`;
+  if (d < 86400) return `לפני ${Math.floor(d/3600)} שע'`;
+  return `לפני ${Math.floor(d/86400)} ימים`;
+}
+
+// ── MODAL HELPERS ─────────────────────────────────────────────────────────
+function closeModal(name, e) {
+  if (e && e.target !== e.currentTarget) return;
+  document.getElementById('modal-' + name).style.display = 'none';
+}
+
+function showConfirm(title, msg, onOk) {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-msg').textContent   = msg;
+  document.getElementById('confirm-ok-btn').onclick    = () => { closeModal('confirm'); onOk(); };
+  document.getElementById('modal-confirm').style.display = 'flex';
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────
+function toast(msg, type = 'ok') {
+  const wrap = document.getElementById('toast-wrap');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), 3200);
+}
+
+// ── KEYBOARD ─────────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    ['task','approve','confirm'].forEach(n => {
+      const m = document.getElementById('modal-' + n);
+      if (m?.style.display !== 'none') m.style.display = 'none';
+    });
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    if (document.getElementById('modal-task')?.style.display !== 'none') saveTask();
+  }
+});
+
+// ── LOGIN ENTER KEY ───────────────────────────────────────────────────────
+document.getElementById('login-pass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+async function init() {
+  initSupabase();
+
+  if (DEMO_MODE) {
+    document.getElementById('demo-hint').style.display = 'block';
+  }
+
+  const authed = await checkAuth();
+  if (authed) {
+    enterApp();
+  }
+  // else: login screen is shown by default
+}
+
+init();
+</script>
+</body>
+</html>

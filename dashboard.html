@@ -1,0 +1,1882 @@
+﻿<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<!-- OAuth popup handler — runs before anything renders -->
+<script>(function(){if(window.opener&&location.hash.includes('access_token=')){var p=new URLSearchParams(location.hash.replace(/^#/,''));var t=p.get('access_token');if(t){window.opener.postMessage({fbToken:t},'*');window.close();}}}());</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>לוח בקרה | Think Digital</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080312;--bg2:#0f0720;--bg3:#170d2e;
+  --card:#12092a;--card2:#1a0f35;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --accent:#a855f7;--accent2:#7c3aed;--glow:rgba(168,85,247,0.22);
+  --green:#22c55e;--green-bg:rgba(34,197,94,0.12);
+  --amber:#f59e0b;--amber-bg:rgba(245,158,11,0.12);
+  --red:#ef4444;--red-bg:rgba(239,68,68,0.12);
+  --t1:#fff;--t2:rgba(255,255,255,0.6);--t3:rgba(255,255,255,0.3);
+  --font:'Assistant',sans-serif;--r:14px;--rsm:8px;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100vh;direction:rtl}
+
+.hdr{background:rgba(8,3,18,0.9);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);
+  padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100}
+.logo img{height:30px}
+.logo-txt{font-size:19px;font-weight:800;color:#fff;letter-spacing:-.5px}
+
+@keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.screen-enter{animation:fadeInUp .28s ease forwards}
+
+#scr-login{
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:40px 20px;
+  background:radial-gradient(ellipse 70% 55% at 50% -5%,rgba(124,58,237,0.22) 0%,transparent 68%);
+}
+.login-card{
+  background:var(--card);border:1px solid var(--border2);border-radius:22px;
+  padding:44px 40px;width:100%;max-width:440px;text-align:center;
+  box-shadow:0 40px 100px rgba(0,0,0,0.7),0 0 0 1px rgba(168,85,247,0.08);
+}
+.login-eyebrow{font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;
+  color:var(--accent);margin-bottom:14px}
+.login-card h2{font-size:28px;font-weight:800;line-height:1.15;margin-bottom:10px}
+.login-card p{font-size:14px;color:var(--t2);line-height:1.6;margin-bottom:32px}
+.btn-fb{
+  display:flex;align-items:center;justify-content:center;gap:12px;
+  width:100%;padding:14px 20px;
+  background:#1877F2;border:none;border-radius:10px;
+  font-family:var(--font);font-size:16px;font-weight:700;color:#fff;
+  cursor:pointer;transition:all .2s;
+  box-shadow:0 4px 20px rgba(24,119,242,0.4);
+}
+.btn-fb:hover{background:#1564d3;transform:translateY(-1px);box-shadow:0 8px 28px rgba(24,119,242,0.5)}
+.btn-fb:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-fb svg{width:22px;height:22px;flex-shrink:0}
+.login-note{margin-top:20px;font-size:12px;color:var(--t3);line-height:1.5}
+.login-note a{color:var(--accent);font-weight:600;text-decoration:none}
+.login-note a:hover{text-decoration:underline}
+.perms-list{display:flex;flex-direction:column;gap:6px;margin:24px 0;text-align:right;}
+.perm-row{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--t2)}
+.perm-ico{width:22px;height:22px;border-radius:6px;background:var(--green-bg);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.perm-ico svg{width:12px;height:12px;fill:var(--green)}
+
+#scr-accounts{display:none;min-height:100vh;align-items:center;justify-content:center;padding:40px 20px;
+  flex-direction:column;
+  background:radial-gradient(ellipse 70% 55% at 50% -5%,rgba(124,58,237,0.22) 0%,transparent 68%)}
+.acc-select-card{background:var(--card);border:1px solid var(--border2);border-radius:22px;
+  padding:36px;width:100%;max-width:480px;box-shadow:0 40px 100px rgba(0,0,0,0.7)}
+.acc-select-card h3{font-size:20px;font-weight:800;margin-bottom:6px}
+.acc-select-card .sub{font-size:14px;color:var(--t2);margin-bottom:22px}
+.acc-search-wrap{margin:14px 0 12px;position:relative}
+.acc-search{width:100%;padding:12px 42px 12px 14px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;color:#fff;font-family:var(--font);font-size:14px;outline:none;transition:all .2s}
+.acc-search:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(168,85,247,0.12)}
+.acc-search::placeholder{color:var(--t3)}
+.acc-search-ico{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--t3);font-size:15px;pointer-events:none}
+.acc-count{font-size:12px;color:var(--t3);margin-bottom:10px}
+.acc-list{display:flex;flex-direction:column;gap:8px;max-height:340px;overflow-y:auto;margin-bottom:18px}
+.acc-item{display:flex;align-items:center;gap:12px;padding:14px 16px;
+  background:var(--bg2);border:1px solid var(--border2);border-radius:10px;cursor:pointer;transition:all .2s;}
+.acc-item:hover{border-color:var(--accent);background:rgba(168,85,247,0.07)}
+.acc-item-av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));
+  display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0}
+.acc-item-name{font-size:14px;font-weight:700}
+.acc-item-id{font-size:11px;color:var(--t3)}
+.acc-item-status{margin-right:auto;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px}
+.acc-item-status.active{background:var(--green-bg);color:#4ade80}
+.btn-logout-small{background:transparent;border:1px solid var(--border2);border-radius:var(--rsm);
+  padding:8px 14px;font-family:var(--font);font-size:12px;color:var(--t3);cursor:pointer;transition:all .2s;width:100%}
+.btn-logout-small:hover{border-color:var(--red);color:var(--red)}
+
+#scr-dash{display:none}
+.top-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 32px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.acc-chip{display:flex;align-items:center;gap:10px;background:rgba(168,85,247,0.1);
+  border:1px solid rgba(168,85,247,0.25);border-radius:30px;padding:6px 14px 6px 8px}
+.chip-av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));
+  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff}
+.chip-name{font-size:13px;font-weight:700;color:var(--accent)}
+.chip-id{font-size:11px;color:var(--t3)}
+.live-pulse{width:8px;height:8px;border-radius:50%;background:var(--green);
+  box-shadow:0 0 0 2px rgba(34,197,94,.25);animation:pg 2s infinite;margin-right:4px}
+@keyframes pg{0%,100%{box-shadow:0 0 0 2px rgba(34,197,94,.25)}50%{box-shadow:0 0 0 6px rgba(34,197,94,.05)}}
+.btn-sm{display:flex;align-items:center;gap:6px;padding:8px 14px;background:transparent;
+  border:1px solid var(--border2);border-radius:var(--rsm);font-family:var(--font);font-size:12px;
+  font-weight:600;color:var(--t2);cursor:pointer;transition:all .2s}
+.btn-sm:hover{border-color:var(--accent);color:var(--accent)}
+.btn-sm.red:hover{border-color:var(--red);color:var(--red)}
+.btn-sm svg{width:13px;height:13px}
+.action-btn{display:flex;align-items:center;gap:7px;padding:9px 15px;background:linear-gradient(135deg,var(--accent2),var(--accent));
+  border:1px solid rgba(168,85,247,.45);border-radius:var(--rsm);font-family:var(--font);font-size:12px;
+  font-weight:800;color:#fff;cursor:pointer;transition:all .2s;box-shadow:0 8px 24px rgba(168,85,247,.22)}
+.action-btn:hover{transform:translateY(-1px);box-shadow:0 12px 30px rgba(168,85,247,.32)}
+.action-btn.alt{background:rgba(168,85,247,.12);color:var(--accent);box-shadow:none}
+.action-btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+.action-btn svg{width:14px;height:14px}
+
+.summary-box{display:none;background:var(--card);border:1px solid rgba(168,85,247,.28);border-radius:var(--r);padding:18px 20px;margin-bottom:22px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.summary-box.active{display:block}
+.summary-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.summary-title{font-size:16px;font-weight:800}
+.summary-date-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;padding:14px 16px;
+  background:var(--bg2);border:1px solid var(--border2);border-radius:10px}
+.summary-date-row label{font-size:12px;font-weight:700;color:var(--t2)}
+.summary-date-row select,.summary-date-row input[type=date]{
+  padding:8px 10px;background:var(--card2);border:1px solid var(--border2);
+  border-radius:var(--rsm);font-family:var(--font);font-size:13px;font-weight:600;color:#fff;outline:none;
+  transition:border-color .2s;cursor:pointer}
+.summary-date-row select:focus,.summary-date-row input[type=date]:focus{border-color:var(--accent)}
+.custom-dates{display:none;align-items:center;gap:8px}
+.custom-dates.show{display:flex}
+.summary-date-row input[type=date]{width:142px;color-scheme:dark}
+.btn-generate-summary{display:flex;align-items:center;gap:7px;padding:9px 18px;
+  background:linear-gradient(135deg,var(--accent2),var(--accent));
+  border:none;border-radius:var(--rsm);font-family:var(--font);font-size:13px;
+  font-weight:800;color:#fff;cursor:pointer;transition:all .2s;
+  box-shadow:0 6px 20px rgba(168,85,247,.25);white-space:nowrap}
+.btn-generate-summary:hover{transform:translateY(-1px);box-shadow:0 10px 26px rgba(168,85,247,.35)}
+.btn-generate-summary:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.summary-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.summary-result{margin-top:14px}
+.summary-text{white-space:pre-wrap;direction:rtl;text-align:right;line-height:1.75;color:var(--t1);
+  font-size:14px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+  padding:16px;max-height:420px;overflow:auto}
+.last-upd{font-size:12px;color:var(--t3)}
+
+.content{padding:28px 32px;max-width:1300px;margin:0 auto}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:28px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:22px;
+  position:relative;overflow:hidden;transition:border-color .2s}
+.kpi:hover{border-color:var(--border2)}
+.kpi::before{content:'';position:absolute;top:-40px;left:-40px;width:110px;height:110px;border-radius:50%;
+  background:var(--kg,rgba(168,85,247,0.07));pointer-events:none}
+.kpi-ico{width:38px;height:38px;border-radius:10px;background:var(--kb,rgba(168,85,247,0.12));
+  display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.kpi-ico svg{width:18px;height:18px;fill:var(--kc,var(--accent))}
+.kpi-lbl{font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}
+.kpi-val{font-size:28px;font-weight:800;line-height:1;margin-bottom:4px}
+.kpi-sub{font-size:12px;color:var(--t3)}
+.tabs{display:flex;gap:4px;margin-bottom:22px}
+.tab-btn{padding:9px 20px;border-radius:var(--rsm);background:transparent;border:1px solid transparent;
+  font-family:var(--font);font-size:13px;font-weight:700;color:var(--t2);cursor:pointer;transition:all .2s}
+.tab-btn.active{background:rgba(168,85,247,0.12);border-color:rgba(168,85,247,0.28);color:var(--accent)}
+.tab-btn:hover:not(.active){color:#fff;border-color:var(--border2)}
+.tab-panel{display:none}.tab-panel.active{display:block}
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.sec-title{font-size:16px;font-weight:800}
+.badge{background:rgba(168,85,247,0.15);color:var(--accent);border:1px solid rgba(168,85,247,0.25);
+  border-radius:20px;padding:3px 12px;font-size:12px;font-weight:700}
+.ads-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:18px;margin-bottom:28px}
+.ad-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;
+  transition:border-color .25s,transform .25s,box-shadow .25s,z-index 0s;
+  position:relative;z-index:1;contain:layout style}
+.ad-card:hover{border-color:rgba(168,85,247,0.55);transform:translateY(-5px) scale(1.025);
+  box-shadow:0 22px 60px rgba(0,0,0,0.6),0 0 0 1px rgba(168,85,247,0.22),0 0 28px rgba(168,85,247,0.12);
+  z-index:10;contain:none}
+.ad-card:hover .ad-media{cursor:zoom-in}
+
+/* ── AD MEDIA ── */
+.ad-media{position:relative;width:100%;aspect-ratio:9/16;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.ad-media img{width:100%;height:100%;object-fit:cover;object-position:center;transition:opacity .25s, transform .45s ease}
+.ad-media video{width:100%;height:100%;object-fit:cover;background:#000}
+
+/* IMAGE: use contain so small images aren't upscaled/pixelated; gentle zoom on hover */
+.ad-media.image-only img{object-fit:contain}
+.ad-media.image-only:hover img{transform:scale(1.07)}
+
+/* VIDEO */
+.ad-media .creative-video{position:absolute;inset:0;width:100%;height:100%;opacity:0;z-index:2;object-fit:contain;transition:opacity .3s ease;pointer-events:none}
+.ad-media.video-ready .creative-video.is-playing{opacity:1;pointer-events:auto}
+.ad-media.video-playing img{opacity:0;transition:opacity .3s ease}
+
+/* CAROUSEL */
+.ad-media.carousel-ready{aspect-ratio:9/16}
+.ad-media.carousel-ready .carousel-slide{
+  position:absolute;inset:0;width:100%;height:100%;
+  object-fit:contain;opacity:0;
+  transition:opacity .45s ease, transform .45s ease;
+  pointer-events:none;transform:scale(1)}
+.ad-media.carousel-ready .carousel-slide:first-child{opacity:1}
+.ad-media.carousel-ready .carousel-slide.active{opacity:1}
+.ad-media.carousel-ready img.carousel-slide.active{transform:scale(1.06);transition:opacity .45s ease,transform 3s ease}
+.ad-media.carousel-ready video.carousel-slide{background:#000;transform:none!important}
+.ad-media.carousel-ready .carousel-slide:not(.active):not(:first-child){opacity:0}
+.carousel-progress{position:absolute;bottom:0;left:0;right:0;height:2px;z-index:6;
+  background:rgba(255,255,255,.12);overflow:hidden}
+.carousel-progress-fill{height:100%;background:var(--accent);width:0;transition:none}
+.carousel-dots{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
+  display:flex;gap:5px;z-index:6}
+.carousel-dots .dot{width:5px;height:5px;border-radius:50%;
+  background:rgba(255,255,255,.35);transition:background .2s,transform .2s}
+.carousel-dots .dot.active{background:#fff;transform:scale(1.45)}
+
+/* Sound toggle button — appears when video is playing */
+.mute-btn{
+  position:absolute;bottom:10px;left:10px;z-index:6;
+  width:30px;height:30px;border-radius:50%;
+  background:rgba(0,0,0,0.65);border:none;cursor:pointer;
+  display:none;align-items:center;justify-content:center;
+  font-size:14px;backdrop-filter:blur(4px);
+  transition:background .15s;color:#fff;
+}
+.ad-media.video-ready:hover .mute-btn{display:flex}
+.mute-btn:hover{background:rgba(168,85,247,0.8)}
+
+.ad-no-img{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:8px;color:var(--t3);font-size:13px}
+.ad-no-img svg{width:32px;height:32px;opacity:.25}
+.badge-type{position:absolute;top:10px;left:10px;background:rgba(0,0,0,0.72);backdrop-filter:blur(4px);
+  color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:5px;letter-spacing:.4px;z-index:5}
+.video-play-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:4;pointer-events:none}
+.video-play-btn{width:58px;height:58px;background:rgba(0,0,0,.55);border-radius:50%;display:flex;align-items:center;justify-content:center;
+  opacity:.85;transition:opacity .2s,transform .2s,background .2s;backdrop-filter:blur(6px);cursor:pointer;pointer-events:auto;border:2px solid rgba(255,255,255,.35)}
+.video-play-btn svg{width:28px;height:28px;margin-left:4px}
+.video-play-btn:hover{opacity:1;transform:scale(1.1);background:rgba(168,85,247,.75)!important;border-color:rgba(255,255,255,.7)!important}
+.fb-video-iframe{position:absolute;inset:0;width:100%;height:100%;border:none;z-index:10;background:#000;border-radius:var(--r) var(--r) 0 0}
+.fb-close-btn{position:absolute;top:8px;right:8px;z-index:12;background:rgba(0,0,0,.65);border:none;border-radius:50%;width:30px;height:30px;color:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:background .2s;line-height:1;padding:0}
+.fb-close-btn:hover{background:rgba(168,85,247,.85)}
+.badge-live{position:absolute;top:10px;right:10px;background:var(--green);color:#fff;
+  font-size:10px;font-weight:800;padding:3px 9px;border-radius:5px;display:flex;align-items:center;gap:4px;z-index:5}
+.blink{width:5px;height:5px;border-radius:50%;background:#fff;animation:bl 1.1s infinite}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.15}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ad-body{padding:16px}
+.ad-name{font-size:14px;font-weight:700;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ad-adset{font-size:12px;color:var(--t3);margin-bottom:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ad-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat-box{background:var(--bg2);border-radius:var(--rsm);padding:10px 12px}
+.stat-lbl{font-size:10px;color:var(--t3);font-weight:700;text-transform:uppercase;margin-bottom:3px}
+.stat-val{font-size:16px;font-weight:800}
+.ad-foot{padding:11px 16px;border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between}
+.ad-id-txt{font-size:11px;color:var(--t3)}
+.link-meta{font-size:12px;font-weight:700;color:var(--accent);background:none;border:none;
+  cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:4px;text-decoration:none}
+.link-meta:hover{text-decoration:underline}
+.link-meta svg{width:11px;height:11px;fill:currentColor}
+.filters{display:flex;gap:8px;flex-wrap:wrap}
+.filters select{padding:7px 12px;background:var(--card2);border:1px solid var(--border2);
+  border-radius:var(--rsm);font-family:var(--font);font-size:12px;font-weight:600;color:var(--t2);outline:none;cursor:pointer}
+.filters select:focus{border-color:var(--accent)}
+.filters select option{background:#1a0f35}
+.tbl-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{background:var(--bg2);padding:12px 16px;text-align:right;font-size:11px;font-weight:700;
+  color:var(--t3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--border);transition:background .15s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(255,255,255,0.025)}
+tbody td{padding:13px 16px;vertical-align:middle}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px}
+.pill-on{background:var(--green-bg);color:#4ade80}
+.pill-pause{background:var(--amber-bg);color:#fcd34d}
+.pill-off{background:rgba(255,255,255,.05);color:var(--t3)}
+.bar-wrap{background:rgba(255,255,255,.07);border-radius:4px;height:5px;width:88px;overflow:hidden;margin-top:5px}
+.bar-fill{height:100%;border-radius:4px;background:var(--accent);transition:width .5s}
+.bar-fill.warn{background:var(--amber)}.bar-fill.over{background:var(--red)}
+.bar-pct{font-size:10px;color:var(--t3);margin-top:3px}
+.skel{background:linear-gradient(90deg,var(--card) 25%,var(--card2) 50%,var(--card) 75%);
+  background-size:200% 100%;animation:sh 1.5s infinite;border-radius:var(--rsm)}
+@keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.api-err{background:var(--red-bg);border:1px solid rgba(239,68,68,0.25);border-radius:var(--r);
+  padding:16px 20px;color:#fca5a5;font-size:14px;margin-bottom:20px;display:none}
+.api-err strong{display:block;margin-bottom:3px}
+.empty{text-align:center;padding:60px 32px;color:var(--t3);grid-column:1/-1}
+.empty svg{width:48px;height:48px;opacity:.2;display:block;margin:0 auto 14px;fill:currentColor}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{animation:spin 1s linear infinite}
+
+@media(max-width:680px){
+  .hdr,.top-bar,.content{padding-left:16px;padding-right:16px}
+  .kpi-grid{grid-template-columns:1fr 1fr}
+  .ads-grid{grid-template-columns:1fr}
+  thead th:nth-child(4),tbody td:nth-child(4),
+  thead th:nth-child(6),tbody td:nth-child(6){display:none}
+}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="logo">
+    <img src="https://thinkdigital.co.il/wp-content/uploads/2025/09/logo-white.png" alt="Think Digital"
+      onerror="this.style.display='none';document.getElementById('logo-txt').style.display='block'">
+    <span class="logo-txt" id="logo-txt" style="display:none">Think Digital</span>
+  </div>
+  <div id="hdr-slot"></div>
+</header>
+
+<!-- LOGIN -->
+<div id="scr-login">
+  <div class="login-card">
+    <div class="login-eyebrow">META ADS · THINK DIGITAL</div>
+    <h2>לוח הבקרה<br>של הקמפיינים שלך</h2>
+    <p>התחבר עם חשבון הפייסבוק שלך כדי לצפות בנתוני המודעות, התקציבים והביצועים בזמן אמת.</p>
+    <div class="perms-list">
+      <div class="perm-row">
+        <div class="perm-ico"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
+        <span>צפייה במודעות פעילות ותמונות/וידאו</span>
+      </div>
+      <div class="perm-row">
+        <div class="perm-ico"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
+        <span>תקציב יומי וחודשי לפי קמפיין</span>
+      </div>
+      <div class="perm-row">
+        <div class="perm-ico"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
+        <span>ביצועים: חשיפות, קליקים, הוצאות</span>
+      </div>
+    </div>
+    <button class="btn-fb" id="btn-fb-login" onclick="startFBLogin()">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+      התחבר עם Facebook
+    </button>
+    <div class="login-note">
+      הנתונים נשמרים בדפדפן שלך בלבד ואינם מועברים לשום שרת.<br>
+      <a href="https://developers.facebook.com/docs/permissions" target="_blank">קרא על הרשאות Meta</a>
+    </div>
+  </div>
+</div>
+
+<!-- ACCOUNT SELECT -->
+<div id="scr-accounts" style="display:none">
+  <div class="acc-select-card">
+    <h3>בחר חשבון מודעות</h3>
+    <p class="sub">חפש לפי שם או ID של חשבון המודעות ובחר את החשבון שברצונך לנטר:</p>
+    <div class="acc-search-wrap">
+      <span class="acc-search-ico">🔎</span>
+      <input class="acc-search" id="acc-search" type="search" placeholder="חיפוש מנהל מודעות / Ad Account..." autocomplete="off" oninput="filterAccountList()">
+    </div>
+    <div class="acc-count" id="acc-count"></div>
+    <div class="acc-list" id="acc-list"></div>
+    <button class="btn-logout-small" onclick="doLogout()">🔒 התנתק מ-Facebook</button>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="scr-dash">
+  <div class="top-bar">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <div class="acc-chip">
+        <div class="chip-av" id="chip-av">M</div>
+        <div>
+          <div class="chip-name" id="chip-name">—</div>
+          <div class="chip-id" id="chip-id">—</div>
+        </div>
+        <div class="live-pulse"></div>
+      </div>
+      <span class="last-upd" id="last-upd"></span>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="action-btn alt" id="btn-period-summary" onclick="openPeriodSummary()" style="display:none">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
+        סיכום תקופה
+      </button>
+      <button class="btn-sm" id="btn-refresh" onclick="loadAll()">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+        רענן
+      </button>
+      <button class="btn-sm" onclick="switchAccount()">החשבונות שלי</button>
+      <button class="btn-sm red" onclick="doLogout()">התנתק</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="summary-box" id="summary-box">
+      <div class="summary-head">
+        <div class="summary-title" id="summary-title">סיכום תקופה</div>
+        <div class="summary-actions" id="summary-export-actions" style="display:none">
+          <button class="btn-sm" onclick="copyPeriodSummary()">העתק טקסט</button>
+          <button class="btn-sm" onclick="downloadPeriodSummary()">הורד TXT</button>
+        </div>
+      </div>
+      <div class="summary-date-row">
+        <label>תקופה:</label>
+        <select id="summary-period" onchange="onPeriodChange()">
+          <option value="">── בחר תקופה ──</option>
+          <option value="last7">7 ימים אחרונים</option>
+          <option value="last14">14 ימים אחרונים</option>
+          <option value="last30">30 ימים אחרונים</option>
+          <option value="last_week">שבוע שעבר</option>
+          <option value="this_month">החודש הנוכחי</option>
+          <option value="prev_month">חודש קודם</option>
+          <option value="custom">בחירת תאריכים ידנית</option>
+        </select>
+        <span class="custom-dates" id="custom-dates">
+          <label>מ:</label>
+          <input type="date" id="summary-since" onchange="updateGenerateBtn()">
+          <label>עד:</label>
+          <input type="date" id="summary-until" onchange="updateGenerateBtn()">
+        </span>
+        <button class="btn-generate-summary" id="btn-generate-summary" onclick="generatePeriodSummary()" disabled>
+          <svg viewBox="0 0 24 24" fill="currentColor" style="width:15px;height:15px"><path d="M13 3L4 14h7l-1 7 9-11h-7l1-7z"/></svg>
+          הפק סיכום
+        </button>
+      </div>
+      <div class="summary-result" id="summary-result" style="display:none">
+        <div class="summary-text" id="summary-text"></div>
+      </div>
+    </div>
+
+    <div class="api-err" id="api-err"></div>
+
+    <div class="kpi-grid">
+      <div class="kpi" style="--kb:rgba(99,102,241,.12);--kc:#a5b4fc;--kg:rgba(99,102,241,.07)">
+        <div class="kpi-ico"><svg viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99l1.5 1.5z"/></svg></div>
+        <div class="kpi-lbl">קמפיינים פעילים</div>
+        <div class="kpi-val" id="k-camps">—</div>
+        <div class="kpi-sub">&nbsp;</div>
+      </div>
+      <div class="kpi" style="--kb:rgba(34,197,94,.12);--kc:#4ade80;--kg:rgba(34,197,94,.07)">
+        <div class="kpi-ico"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg></div>
+        <div class="kpi-lbl">מודעות פעילות</div>
+        <div class="kpi-val" id="k-ads">—</div>
+        <div class="kpi-sub">&nbsp;</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-ico"><svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg></div>
+        <div class="kpi-lbl">תקציב יומי</div>
+        <div class="kpi-val" id="k-daily">—</div>
+        <div class="kpi-sub" id="k-daily-sub">סה״כ קמפיינים פעילים</div>
+      </div>
+      <div class="kpi" style="--kb:rgba(245,158,11,.12);--kc:#fcd34d;--kg:rgba(245,158,11,.07)">
+        <div class="kpi-ico"><svg viewBox="0 0 24 24"><path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/></svg></div>
+        <div class="kpi-lbl">הוצאה מתחילת החודש</div>
+        <div class="kpi-val" id="k-month">—</div>
+        <div class="kpi-sub" id="k-month-sub">החודש הנוכחי</div>
+      </div>
+    </div>
+
+    <div class="tabs" style="justify-content:space-between">
+      <div style="display:flex;gap:4px">
+        <button class="tab-btn active" onclick="switchTab('ads',this)">📺 מודעות באוויר</button>
+        <button class="tab-btn" onclick="switchTab('budget',this)">💰 תקציב לפי קמפיין</button>
+      </div>
+    </div>
+
+    <div class="tab-panel active" id="tab-ads">
+      <div class="sec-hdr">
+        <div class="sec-title">מודעות פעילות</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="badge" id="ads-badge">0</span>
+          <div class="filters">
+            <select id="f-camp" onchange="filterAds()"><option value="">כל הקמפיינים</option></select>
+            <select id="f-type" onchange="filterAds()">
+              <option value="">כל הפורמטים</option>
+              <option value="IMAGE">🖼️ תמונה</option>
+              <option value="VIDEO">🎬 וידאו</option>
+              <option value="CAROUSEL">🎠 קרוסלה</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="ads-grid" id="ads-grid">
+        <div class="ad-card"><div class="skel" style="height:160px;border-radius:0"></div><div style="padding:16px"><div class="skel" style="height:14px;margin-bottom:8px"></div><div class="skel" style="height:12px;width:55%"></div></div></div>
+        <div class="ad-card"><div class="skel" style="height:160px;border-radius:0"></div><div style="padding:16px"><div class="skel" style="height:14px;margin-bottom:8px"></div><div class="skel" style="height:12px;width:55%"></div></div></div>
+        <div class="ad-card"><div class="skel" style="height:160px;border-radius:0"></div><div style="padding:16px"><div class="skel" style="height:14px;margin-bottom:8px"></div><div class="skel" style="height:12px;width:55%"></div></div></div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="tab-budget">
+      <div class="sec-hdr">
+        <div>
+          <div class="sec-title">תקציב לפי קמפיין</div>
+          <div style="font-size:12px;color:var(--t3);margin-top:4px">קמפיינים פעילים · CBO = תקציב ברמת קמפיין · ABO = סכום אד-סטים</div>
+        </div>
+        <span class="badge" id="adset-badge">0</span>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th>קמפיין</th><th>סטטוס</th>
+            <th>תקציב יומי</th><th>הערכה חודשית ≈</th>
+            <th>הוצאה היום</th><th>הוצאה החודש</th>
+          </tr></thead>
+          <tbody id="budget-tbody">
+            <tr><td colspan="6" style="text-align:center;padding:40px"><div class="skel" style="height:16px;max-width:280px;margin:0 auto"></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+const FB_APP_ID = '4457830191115452';
+const API = 'https://graph.facebook.com/v20.0';
+
+let S = { token:'', currency:'₪', accountId:'', accountName:'', allAds:[], campaigns:[], adsets:[], accountOptions:[], timer:null };
+window.S = S;
+
+const _cache = new Map();
+const CACHE_TTL = 4 * 60 * 1000;
+function cacheGet(key) {
+  const v = _cache.get(key);
+  if (!v) return null;
+  if (Date.now() - v.ts > CACHE_TTL) { _cache.delete(key); return null; }
+  return v.data;
+}
+function cacheSet(key, data) { _cache.set(key, { data, ts: Date.now() }); }
+function cacheClear() { _cache.clear(); }
+
+function switchScreen(showId, showDisplay, ...hideIds) {
+  const toShow = document.getElementById(showId);
+  if (!toShow) return;
+  const toHide = hideIds.map(id => document.getElementById(id)).filter(Boolean);
+  const currentlyVisible = toHide.find(el => el.style.display !== 'none' && getComputedStyle(el).display !== 'none');
+  const doShow = () => {
+    toHide.forEach(el => { el.style.display = 'none'; el.style.opacity = ''; el.style.transition = ''; });
+    toShow.style.opacity = '0';
+    toShow.style.display = showDisplay;
+    toShow.style.transition = 'opacity 0.28s ease';
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      toShow.style.opacity = '1';
+      setTimeout(() => { toShow.style.opacity = ''; toShow.style.transition = ''; }, 300);
+    }));
+  };
+  if (currentlyVisible) {
+    currentlyVisible.style.transition = 'opacity 0.22s ease';
+    currentlyVisible.style.opacity = '0';
+    setTimeout(doShow, 240);
+  } else { doShow(); }
+}
+
+// ── OAuth 2.0 Implicit Flow ───────────────────────────────────────────────
+const TOKEN_KEY = 'td_fb_token';
+
+// Receive token from OAuth popup
+window.addEventListener('message', function(e) {
+  // Accept from any origin — needed for file:// where origin is always "null"
+  if (!e.data || !e.data.fbToken) return;
+  S.token = e.data.fbToken;
+  localStorage.setItem(TOKEN_KEY, e.data.fbToken);
+  fetchAdAccounts();
+});
+
+// Auto-login: handle both popup flow and full-page redirect fallback
+(function initAuth() {
+  // Case 1: popup was blocked → Facebook redirected the main window back with token in hash
+  if (location.hash.includes('access_token=')) {
+    var p = new URLSearchParams(location.hash.replace(/^#/, ''));
+    var t = p.get('access_token');
+    if (t) {
+      S.token = t;
+      localStorage.setItem(TOKEN_KEY, t);
+      try { history.replaceState(null, '', location.pathname + location.search); } catch(e2) {}
+      fetchAdAccounts();
+      return;
+    }
+  }
+  // Case 2: use saved token from a previous session
+  var saved = localStorage.getItem(TOKEN_KEY);
+  if (saved) { S.token = saved; fetchAdAccounts(); }
+})();
+
+function startFBLogin() {
+  const btn = document.getElementById('btn-fb-login');
+  const redirectUri = window.location.href.split('#')[0];
+  const oauthUrl = `https://www.facebook.com/dialog/oauth?client_id=${FB_APP_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&config_id=983764057729180&response_type=token`;
+
+  const w = 580, h = 680;
+  const left = Math.round(screen.width / 2 - w / 2);
+  const top  = Math.round(screen.height / 2 - h / 2);
+  const popup = window.open(oauthUrl, 'fb_oauth', `width=${w},height=${h},left=${left},top=${top}`);
+
+  if (!popup) { window.location.href = oauthUrl; return; } // fallback if popup blocked
+
+  btn.disabled = true; btn.textContent = '⏳ מתחבר...';
+
+  // Reset button if user closes popup without logging in
+  const checkClosed = setInterval(() => {
+    if (popup.closed) {
+      clearInterval(checkClosed);
+      if (!S.token) { btn.disabled = false; btn.innerHTML = fbBtnHtml(); }
+    }
+  }, 500);
+}
+
+function fbBtnHtml() {
+  return `<svg viewBox="0 0 24 24" fill="white" style="width:22px;height:22px"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg> התחבר עם Facebook`;
+}
+
+let _gqNoAutoLogout = false; // set true during report generation to prevent logout on API error
+
+async function gq(path, params={}, useCache=false) {
+  const key = path + JSON.stringify(params);
+  if (useCache) { const c = cacheGet(key); if (c) return c; }
+  params.access_token = S.token;
+  let r;
+  try { r = await fetch(`${API}/${path}?${new URLSearchParams(params)}`); }
+  catch(netErr) { throw new Error('בעיית רשת — בדוק חיבור אינטרנט'); }
+  const d = await r.json();
+  if (d.error) {
+    const code = d.error.code;
+    // Only codes that mean the token itself is invalid/expired → force logout
+    const tokenDead = (code === 190 || code === 102 || code === 463 || code === 467);
+    if (tokenDead && !_gqNoAutoLogout) {
+      localStorage.removeItem(TOKEN_KEY);
+      S.token = '';
+      switchScreen('scr-login', 'flex', 'scr-dash', 'scr-accounts');
+      const btn = document.getElementById('btn-fb-login');
+      if (btn) { btn.disabled = false; btn.innerHTML = fbBtnHtml(); }
+    }
+    throw new Error(d.error.message || `שגיאת Meta API (קוד ${code})`);
+  }
+  if (useCache) cacheSet(key, d);
+  return d;
+}
+
+async function gqPaged(path, params={}, useCache=false) {
+  const out = [];
+  let after = null, guard = 0;
+  do {
+    const pp = { ...params }; if (after) pp.after = after;
+    const d = await gq(path, pp, useCache && !after);
+    out.push(...(d.data || []));
+    after = d.paging?.cursors?.after || null;
+    guard++;
+  } while (after && guard < 50);
+  return out;
+}
+
+async function fetchAdAccounts() {
+  try {
+    const accountsMap = new Map();
+    const addAccounts = (arr, source='direct') => {
+      (arr||[]).forEach(a => {
+        if (!a?.id) return;
+        const ex = accountsMap.get(a.id) || {};
+        accountsMap.set(a.id, { ...ex, ...a, _source: ex._source || source });
+      });
+    };
+    const [direct] = await Promise.all([
+      gqPaged('me/adaccounts', { fields:'id,name,account_status,currency', limit:100 })
+    ]);
+    addAccounts(direct, 'direct');
+    try {
+      const businesses = await gqPaged('me/businesses', { fields:'id,name', limit:100 });
+      await Promise.all(businesses.map(async b => {
+        try {
+          const [owned, client] = await Promise.all([
+            gqPaged(`${b.id}/owned_ad_accounts`, { fields:'id,name,account_status,currency', limit:100 }),
+            gqPaged(`${b.id}/client_ad_accounts`, { fields:'id,name,account_status,currency', limit:100 })
+          ]);
+          addAccounts(owned.map(a => ({...a, business_name:b.name})), 'owned_business');
+          addAccounts(client.map(a => ({...a, business_name:b.name})), 'client_business');
+        } catch(e) {}
+      }));
+    } catch(e) {}
+    const accounts = Array.from(accountsMap.values()).sort((a,b) => {
+      const diff = (a.account_status===1?0:1) - (b.account_status===1?0:1);
+      return diff || String(a.name||'').localeCompare(String(b.name||''), 'he');
+    });
+    if (!accounts.length) { alert('לא נמצאו חשבונות מודעות בפרופיל זה.'); doLogout(); return; }
+    if (accounts.length === 1) { selectAccount(accounts[0]); }
+    else { showAccountSelect(accounts); }
+  } catch(e) {
+    // Token expired or API error — clear token and show login screen cleanly
+    localStorage.removeItem(TOKEN_KEY);
+    S.token = '';
+    const btn = document.getElementById('btn-fb-login');
+    if (btn) { btn.disabled = false; btn.innerHTML = fbBtnHtml(); }
+    if (e.message && e.message.includes('פג תוקף')) {
+      // silently show login — the login screen explains what happened
+    } else {
+      alert('שגיאה בהתחברות: ' + e.message);
+    }
+  }
+}
+
+function showAccountSelect(accounts) {
+  S.accountOptions = accounts || [];
+  switchScreen('scr-accounts', 'flex', 'scr-login', 'scr-dash');
+  const search = document.getElementById('acc-search');
+  if (search) { search.value = ''; setTimeout(() => search.focus(), 350); }
+  renderAccountList(S.accountOptions);
+}
+
+function filterAccountList() {
+  const q = (document.getElementById('acc-search')?.value || '').trim().toLowerCase();
+  const rows = q ? S.accountOptions.filter(a =>
+    String(a.name||'').toLowerCase().includes(q) ||
+    String(a.id||'').toLowerCase().includes(q) ||
+    String(a.business_name||'').toLowerCase().includes(q)
+  ) : S.accountOptions;
+  renderAccountList(rows);
+}
+
+function renderAccountList(accounts) {
+  const list = document.getElementById('acc-list');
+  const count = document.getElementById('acc-count');
+  if (count) count.textContent = `נמצאו ${accounts.length.toLocaleString('he-IL')} מתוך ${S.accountOptions.length.toLocaleString('he-IL')} חשבונות מודעות`;
+  if (!accounts.length) {
+    list.innerHTML = `<div class="empty" style="padding:34px 16px"><p>לא נמצא חשבון מתאים</p></div>`;
+    return;
+  }
+  list.innerHTML = accounts.map(a => {
+    const idx = S.accountOptions.findIndex(x => x.id === a.id);
+    const status = accountStatusText(a.account_status);
+    const biz = a.business_name ? `<div class="acc-item-id">Business: ${escH(a.business_name)}</div>` : '';
+    return `<div class="acc-item" onclick="selectAccountByIndex(${idx})">
+      <div class="acc-item-av">${escH((a.name||'?')[0].toUpperCase())}</div>
+      <div><div class="acc-item-name">${escH(a.name||'ללא שם')}</div><div class="acc-item-id">${escH(a.id)}</div>${biz}</div>
+      <span class="acc-item-status ${a.account_status===1?'active':''}">${status}</span>
+    </div>`;
+  }).join('');
+}
+
+function selectAccountByIndex(i) { const a = S.accountOptions[i]; if (a) selectAccount(a); }
+function accountStatusText(s) {
+  return {1:'פעיל',2:'מושבת',3:'לא הוסדר',7:'בבדיקה',9:'בגרייס',100:'סגור',101:'סגור'}[s] || `סטטוס ${s||'?'}`;
+}
+
+function selectAccount(acc) {
+  S.accountId = acc.id; S.accountName = acc.name; S.currency = currSymbol(acc.currency);
+  cacheClear();
+  document.getElementById('chip-name').textContent = acc.name;
+  document.getElementById('chip-id').textContent = acc.id;
+  document.getElementById('chip-av').textContent = (acc.name||'?')[0].toUpperCase();
+  switchScreen('scr-dash', 'block', 'scr-login', 'scr-accounts');
+  document.getElementById('btn-period-summary').style.display = 'flex';
+  loadAll();
+  S.timer = setInterval(loadAll, 5*60*1000);
+}
+
+function switchAccount() {
+  clearInterval(S.timer);
+  switchScreen('scr-accounts', 'flex', 'scr-dash');
+  if (S.accountOptions.length > 1) {
+    const search = document.getElementById('acc-search');
+    if (search) { search.value = ''; setTimeout(() => search.focus(), 350); }
+    renderAccountList(S.accountOptions);
+  } else { fetchAdAccounts(); }
+}
+
+function doLogout() {
+  clearInterval(S.timer);
+  cacheClear();
+  localStorage.removeItem(TOKEN_KEY);
+  S = {token:'',currency:'₪',accountId:'',accountName:'',allAds:[],campaigns:[],adsets:[],accountOptions:[],timer:null};
+  window.S = S;
+  switchScreen('scr-login', 'flex', 'scr-dash', 'scr-accounts');
+  const btn = document.getElementById('btn-fb-login');
+  btn.disabled=false; btn.innerHTML=fbBtnHtml();
+}
+
+async function loadAll() {
+  showErr(''); setLoading(true);
+  try {
+    await loadAds(); // must run first so S.allAds is ready for campaign/adset cross-ref
+    await Promise.all([loadCampaigns(), loadMonthly()]);
+    document.getElementById('last-upd').textContent =
+      'עודכן: '+new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
+  } catch(e) { showErr(e.message); }
+  setLoading(false);
+}
+
+async function loadAds() {
+  const d = await gq(`${S.accountId}/ads`, {
+    fields: [
+      'id,name,status,effective_status,adset_id',
+      'adset{name,status,effective_status,daily_budget,campaign_id,campaign{name,status,effective_status}}',
+      'creative{id,name,object_type,image_hash,image_url,thumbnail_url,video_id',
+      'effective_object_story_id,object_story_id,instagram_permalink_url',
+      'object_story_spec{link_data{picture,child_attachments{picture,video_id,name,description,link}},photo_data{url},video_data{image_url,image_hash}}',
+      'asset_feed_spec{images{hash,url},videos{video_id,thumbnail_url}}}',
+      'insights.date_preset(today){impressions,clicks,spend,actions}'
+    ].join(','),
+    filtering: JSON.stringify([{field:'effective_status',operator:'IN',value:['ACTIVE']}]),
+    limit: 200
+  });
+  S.allAds = d.data || [];
+  await enrichCreativeImages(S.allAds);
+  document.getElementById('k-ads').textContent = S.allAds.length;
+  const camps = {};
+  S.allAds.forEach(a => { const c = a.adset?.campaign; if(c) camps[a.adset.campaign_id] = c.name; });
+  const sel = document.getElementById('f-camp');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">כל הקמפיינים</option>';
+  Object.entries(camps).forEach(([id,name]) => {
+    const o = document.createElement('option'); o.value=id; o.textContent=name; sel.appendChild(o);
+  });
+  sel.value = prev;
+  filterAds();
+}
+
+// ── Image & Video enrichment ───────────────────────────────────────────────
+async function enrichCreativeImages(ads) {
+  const addCandidate = (cr, url, width=0, height=0, source='') => {
+    if (!cr || !url) return;
+    cr._image_candidates = cr._image_candidates || [];
+    if (cr._image_candidates.some(c=>c.url===url)) return;
+    cr._image_candidates.push({ url, width:Number(width)||0, height:Number(height)||0, source });
+  };
+
+  const addVideoCandidate = (cr, url, source='') => {
+    if (!cr || !url) return;
+    cr._video_candidates = cr._video_candidates || [];
+    if (cr._video_candidates.some(c => c.url === url)) return;
+    cr._video_candidates.push({ url, source });
+  };
+
+  const addVideoIdCandidate = (cr, id, source='') => {
+    if (!cr || !id) return;
+    cr._video_ids = cr._video_ids || [];
+    const strId = String(id);
+    if (!cr._video_ids.some(v => v.id === strId)) cr._video_ids.push({ id: strId, source });
+  };
+
+  const hashToTargets = new Map();
+
+  (ads||[]).forEach(ad => {
+    const cr = ad.creative || {};
+    if (cr.image_url) addCandidate(cr, cr.image_url, 0, 0, 'creative.image_url');
+    if (cr.thumbnail_url) addCandidate(cr, cr.thumbnail_url, 0, 0, 'creative.thumbnail_url');
+    if (cr.image_hash) {
+      if (!hashToTargets.has(cr.image_hash)) hashToTargets.set(cr.image_hash, []);
+      hashToTargets.get(cr.image_hash).push({ cr });
+    }
+    const imgs = cr.asset_feed_spec?.images;
+    if (Array.isArray(imgs)) {
+      imgs.forEach(img => {
+        if (img?.url) addCandidate(cr, img.url, img.width||0, img.height||0, 'asset_feed_spec');
+        if (img?.hash) {
+          if (!hashToTargets.has(img.hash)) hashToTargets.set(img.hash, []);
+          hashToTargets.get(img.hash).push({ cr, assetImg: img });
+        }
+      });
+    }
+    const spec = cr.object_story_spec || {};
+    const link = spec.link_data || {};
+    if (link.picture) addCandidate(cr, link.picture, 0, 0, 'link_data.picture');
+    if (Array.isArray(link.child_attachments)) {
+      link.child_attachments.forEach(ch => { if (ch?.picture) addCandidate(cr, ch.picture, 0, 0, 'child.picture'); });
+      // Store ordered carousel slides (picture + optional video_id per panel)
+      if (link.child_attachments.length > 1) {
+        cr._carousel_slides = link.child_attachments
+          .map(ch => ({ picture: ch.picture || null, video_id: ch.video_id || null }))
+          .filter(s => s.picture || s.video_id);
+      }
+    }
+    if (spec.photo_data?.url) addCandidate(cr, spec.photo_data.url, 0, 0, 'photo_data');
+    if (spec.video_data?.image_url) addCandidate(cr, spec.video_data.image_url, 0, 0, 'video_data.image_url');
+    if (cr.video_id) addVideoIdCandidate(cr, cr.video_id, 'creative.video_id');
+    const vdHash = spec.video_data?.image_hash;
+    if (vdHash) {
+      if (!hashToTargets.has(vdHash)) hashToTargets.set(vdHash, []);
+      hashToTargets.get(vdHash).push({ cr });
+    }
+  });
+
+  // Detect carousel from asset_feed_spec.videos (Advantage+ / dynamic creative with multiple videos)
+  // IMPORTANT: skip if the creative is a single-video ad — asset_feed_spec.videos may contain
+  // multiple placement-variant encodings of the SAME video (9:16, 1:1, etc.), not carousel slides.
+  (ads||[]).forEach(ad => {
+    const cr = ad.creative || {};
+    const isSingleVideo = !!(cr.video_id || cr.object_story_spec?.video_data || (cr.object_type||'').toUpperCase().includes('VIDEO') || cr.thumbnail_url);
+    if (!cr._carousel_slides && !isSingleVideo) {
+      const afVideos = (cr.asset_feed_spec?.videos || []).filter(v => v.video_id);
+      if (afVideos.length > 1) {
+        cr._carousel_slides = afVideos.map(v => ({
+          picture: v.thumbnail_url || null,
+          video_id: String(v.video_id),
+          thumbnail: v.thumbnail_url || null
+        }));
+      }
+    }
+  });
+
+  // Batch fetch adimages by hash
+  const hashes = Array.from(hashToTargets.keys());
+  const hashBatches = [];
+  for (let i=0; i<hashes.length; i+=50) hashBatches.push(hashes.slice(i, i+50));
+  await Promise.all(hashBatches.map(async batch => {
+    try {
+      const res = await gq(`${S.accountId}/adimages`, {
+        fields: 'hash,url,permalink_url,width,height', hashes: JSON.stringify(batch), limit: 50
+      });
+      (res.data||[]).forEach(img => {
+        if (!img.hash) return;
+        const w = img.width || 0, h = img.height || 0;
+        // permalink_url = original full-res upload; url = CDN-resized copy
+        if (img.permalink_url) {
+          (hashToTargets.get(img.hash)||[]).forEach(t => {
+            addCandidate(t.cr, img.permalink_url, w, h, 'adimages.permalink');
+            if (t.assetImg) t.assetImg._original_image_url = img.permalink_url;
+          });
+        }
+        if (img.url) {
+          (hashToTargets.get(img.hash)||[]).forEach(t => {
+            addCandidate(t.cr, img.url, w, h, 'adimages.original');
+            if (!img.permalink_url && t.assetImg) t.assetImg._original_image_url = img.url;
+          });
+        }
+      });
+    } catch(e) { console.warn('adimages batch error', e.message); }
+  }));
+
+  // Detect image carousel from asset_feed_spec after hash resolution
+  (ads||[]).forEach(ad => {
+    const cr = ad.creative || {};
+    if (!cr._carousel_slides) {
+      const afImages = (cr.asset_feed_spec?.images || []).filter(img => img._original_image_url || img.url);
+      if (afImages.length > 1) {
+        cr._carousel_slides = afImages.map(img => ({
+          picture: img._original_image_url || img.url || null,
+          video_id: null
+        }));
+      }
+    }
+  });
+
+  // Fetch video objects for direct video_id
+  const videosToFetch = (ads||[]).filter(ad => ad.creative?.video_id)
+    .map(ad => ({ video_id: ad.creative.video_id, cr: ad.creative }));
+
+  await Promise.all(videosToFetch.map(async item => {
+    try {
+      const v = await gq(item.video_id, {
+        fields: 'source,picture,format{source,picture,width,height},thumbnails{uri,width,height,is_preferred}'
+      });
+      if (v.source) addVideoCandidate(item.cr, v.source, 'video.source');
+      const thumbs = (v.thumbnails?.data||[]).filter(t=>t.uri);
+      thumbs.sort((a,b) => {
+        if (a.is_preferred && !b.is_preferred) return -1;
+        if (!a.is_preferred && b.is_preferred) return 1;
+        return ((b.width||0)*(b.height||0)) - ((a.width||0)*(a.height||0));
+      });
+      thumbs.forEach(t => addCandidate(item.cr, t.uri, t.width||0, t.height||0, 'video.thumbnail'));
+      if (v.picture) addCandidate(item.cr, v.picture, 0, 0, 'video.picture');
+      if (Array.isArray(v.format)) {
+        v.format.forEach(f => {
+          if (f?.source) addVideoCandidate(item.cr, f.source, 'video.format.source');
+          if (f?.picture) addCandidate(item.cr, f.picture, f.width||0, f.height||0, 'video.format');
+        });
+      }
+    } catch(e) { console.warn('video object error', item.video_id, e.message); }
+
+    // Also try story post for additional images
+    const storyId = item.cr.effective_object_story_id || item.cr.object_story_id;
+    if (storyId) {
+      try {
+        const post = await gq(storyId, { fields: 'full_picture,picture,attachments{media{image{src,width,height},video{source,picture,thumbnails{uri,width,height}}},subattachments{data{media{image{src,width,height},video{source,picture,thumbnails{uri,width,height}}}}}}' });
+        if (post.full_picture) addCandidate(item.cr, post.full_picture, 0, 0, 'post.full_picture');
+        if (post.picture) addCandidate(item.cr, post.picture, 0, 0, 'post.picture');
+        (post.attachments?.data||[]).forEach(att => {
+          if (att?.media?.image?.src) addCandidate(item.cr, att.media.image.src, att.media.image.width||0, att.media.image.height||0, 'share.attachment.media');
+          if (att?.media?.video?.source) addVideoCandidate(item.cr, att.media.video.source, 'share.attachment.video.source');
+          if (att?.media?.video?.picture) addCandidate(item.cr, att.media.video.picture, 0, 0, 'share.attachment.video.picture');
+          (att?.media?.video?.thumbnails?.data||[]).forEach(t => {
+            if (t?.uri) addCandidate(item.cr, t.uri, t.width||0, t.height||0, 'share.attachment.video.thumbnail');
+          });
+          (att?.subattachments?.data||[]).forEach(sub => {
+            if (sub?.media?.image?.src) addCandidate(item.cr, sub.media.image.src, sub.media.image.width||0, sub.media.image.height||0, 'share.subattachment.media');
+            if (sub?.media?.video?.source) addVideoCandidate(item.cr, sub.media.video.source, 'share.subattachment.video.source');
+            if (sub?.media?.video?.picture) addCandidate(item.cr, sub.media.video.picture, 0, 0, 'share.subattachment.video.picture');
+            (sub?.media?.video?.thumbnails?.data||[]).forEach(t => {
+              if (t?.uri) addCandidate(item.cr, t.uri, t.width||0, t.height||0, 'share.subattachment.video.thumbnail');
+            });
+          });
+        });
+      } catch(e) {}
+    }
+  }));
+
+  // Non-video ads with story IDs
+  const nonVideoStoryAds = (ads||[]).filter(a => {
+    const cr = a.creative||{};
+    return !cr.video_id && (cr.effective_object_story_id || cr.object_story_id);
+  });
+  await Promise.all(nonVideoStoryAds.map(async ad => {
+    const cr = ad.creative||{};
+    const storyId = cr.effective_object_story_id || cr.object_story_id;
+    try {
+      const post = await gq(storyId, { fields: 'full_picture,picture,attachments{media{image{src,width,height},video{source,picture,thumbnails{uri,width,height}}},subattachments{data{media{image{src,width,height},video{source,picture,thumbnails{uri,width,height}}}}}}' });
+      if (post.full_picture) addCandidate(cr, post.full_picture, 0, 0, 'post.full_picture');
+      if (post.picture) addCandidate(cr, post.picture, 0, 0, 'post.picture');
+      (post.attachments?.data||[]).forEach(att => {
+        if (att?.media?.image?.src) addCandidate(cr, att.media.image.src, att.media.image.width||0, att.media.image.height||0, 'share.attachment.media');
+        if (att?.media?.video?.source) addVideoCandidate(cr, att.media.video.source, 'share.attachment.video.source');
+        if (att?.media?.video?.picture) addCandidate(cr, att.media.video.picture, 0, 0, 'share.attachment.video.picture');
+        (att?.media?.video?.thumbnails?.data||[]).forEach(t => {
+          if (t?.uri) addCandidate(cr, t.uri, t.width||0, t.height||0, 'share.attachment.video.thumbnail');
+        });
+        (att?.subattachments?.data||[]).forEach(sub => {
+          if (sub?.media?.image?.src) addCandidate(cr, sub.media.image.src, sub.media.image.width||0, sub.media.image.height||0, 'share.subattachment.media');
+          if (sub?.media?.video?.source) addVideoCandidate(cr, sub.media.video.source, 'share.subattachment.video.source');
+          if (sub?.media?.video?.picture) addCandidate(cr, sub.media.video.picture, 0, 0, 'share.subattachment.video.picture');
+          (sub?.media?.video?.thumbnails?.data||[]).forEach(t => {
+            if (t?.uri) addCandidate(cr, t.uri, t.width||0, t.height||0, 'share.subattachment.video.thumbnail');
+          });
+        });
+      });
+    } catch(e) {}
+  }));
+
+  // Fetch video sources for carousel panel video_ids
+  const carouselVideoItems = [];
+  (ads||[]).forEach(ad => {
+    (ad.creative?._carousel_slides||[]).forEach(slide => {
+      if (slide.video_id && !slide._fetched) carouselVideoItems.push(slide);
+    });
+  });
+  await Promise.all(carouselVideoItems.map(async slide => {
+    slide._fetched = true;
+    try {
+      const v = await gq(slide.video_id, {
+        fields: 'source,picture,format{source,picture,width,height},thumbnails{uri,width,height,is_preferred}'
+      });
+      // source URL — prefer direct source, fall back to format renditions
+      if (v.source) {
+        slide.video_src = v.source;
+      } else if (Array.isArray(v.format)) {
+        const fmt = v.format.find(f => f?.source);
+        if (fmt?.source) slide.video_src = fmt.source;
+      }
+      // best quality thumbnail
+      const thumbs = (v.thumbnails?.data||[]).filter(t=>t.uri);
+      thumbs.sort((a,b) => {
+        if (a.is_preferred && !b.is_preferred) return -1;
+        if (!a.is_preferred && b.is_preferred) return 1;
+        return ((b.width||0)*(b.height||0)) - ((a.width||0)*(a.height||0));
+      });
+      slide.thumbnail = thumbs[0]?.uri || v.picture || slide.picture || '';
+    } catch(e) {}
+  }));
+
+  // Instagram oEmbed (for thumbnail quality)
+  const igAds = (ads||[]).filter(a => a.creative?.instagram_permalink_url);
+  await Promise.all(igAds.map(async ad => {
+    const cr = ad.creative;
+    try {
+      const r = await gq('instagram_oembed', { url: cr.instagram_permalink_url, omitscript: 'true' });
+      if (r.thumbnail_url) {
+        addCandidate(cr, r.thumbnail_url, r.thumbnail_width||0, r.thumbnail_height||0, 'ig.oembed');
+      }
+    } catch(e) {}
+  }));
+}
+
+// ── Image scoring & selection ─────────────────────────────────────────────
+function getBestCreativeImage(cr) {
+  if (!cr) return '';
+  const candidates = [];
+  const push = (url, width=0, height=0, source='') => {
+    if (!url) return;
+    if (candidates.some(c=>c.url===url)) return;
+    const w=Number(width)||0, h=Number(height)||0, area=w&&h?w*h:0;
+    const badThumb = /s130x130|p130x130|_s\d+x\d+|t39\.30808|safe_image/i.test(url);
+    candidates.push({ url, width:w, height:h, area, source, badThumb });
+  };
+
+  (cr._image_candidates||[]).forEach(c => push(c.url, c.width, c.height, c.source));
+  push(cr.image_url, 0, 0, 'creative.image_url');
+
+  const imgs = cr.asset_feed_spec?.images;
+  if (Array.isArray(imgs)) {
+    imgs.forEach(img => {
+      push(img._original_image_url, img._original_width, img._original_height, 'asset.original');
+      push(img.url, img.width, img.height, 'asset.url');
+    });
+  }
+
+  const spec = cr.object_story_spec || {};
+  const link = spec.link_data || {};
+  if (Array.isArray(link.child_attachments)) link.child_attachments.forEach(ch => push(ch?.picture, 0, 0, 'child.picture'));
+  push(link.picture, 0, 0, 'link.picture');
+  push(spec.photo_data?.url, 0, 0, 'photo.url');
+  push(spec.video_data?.image_url, 0, 0, 'video.image_url');
+  push(cr.thumbnail_url, 0, 0, 'thumbnail_url');
+
+  if (!candidates.length) return '';
+
+  const score = x => {
+    let s = 0;
+    if (x.area) s += Math.min(x.area / 10000, 1000);
+    if (!x.badThumb) s += 200;
+    if (/ig\.oembed/i.test(x.source))                                                s += 750;
+    if (/ig\.media_url|ig\.child\.media_url/i.test(x.source))                        s += 700;
+    if (/share\.attachment\.media|share\.subattachment\.media/i.test(x.source))      s += 650;
+    if (/post\.full_picture|share\.post\.full_picture/i.test(x.source))              s += 600;
+    if (/share\.attachment\.video\.picture/i.test(x.source))                         s += 550;
+    if (/adimages\.original|asset\.original/i.test(x.source))                        s += 650;
+    if (/adimages\.permalink/i.test(x.source))                                        s += 300;
+    if (/video\.image_url|video_data\.image_url/i.test(x.source))                    s += 380;
+    if (/share\.attachment\.video\.thumbnail/i.test(x.source))                       s += 350;
+    if (/video\.format|video\.picture/i.test(x.source))                              s += 300;
+    if (/video\.thumbnail|ig\.thumbnail|ig\.child\.thumbnail/i.test(x.source))       s += 150;
+    if (/post\.picture|share\.post\.picture/i.test(x.source))                        s +=  80;
+    if (/^thumbnail_url$/.test(x.source))                                            s -= 500;
+    if (/s130x130|p130x130|_s\d+x\d+|t39\.30808|safe_image/i.test(x.url))            s -= 400;
+    return s;
+  };
+  candidates.sort((a,b) => score(b) - score(a));
+  return candidates[0].url;
+}
+
+// ── Video URL selection ───────────────────────────────────────────────────
+function getBestCreativeVideo(cr) {
+  if (!cr) return '';
+  const candidates = (cr._video_candidates || []).filter(c => c.url);
+  if (!candidates.length) return '';
+  candidates.sort((a,b) => {
+    const score = x => /^video\.source$/i.test(x.source) ? 100 :
+                       /share.*video\.source/i.test(x.source) ? 80 :
+                       /video\.format\.source/i.test(x.source) ? 70 : 10;
+    return score(b) - score(a);
+  });
+  return candidates[0].url;
+}
+
+// ── Carousel slideshow on hover ──────────────────────────────────────────
+function _carouselPlaySlide(slide) {
+  if (slide.tagName !== 'VIDEO') return;
+  if (!slide.src && slide.dataset.src) slide.src = slide.dataset.src;
+  slide.play().catch(() => {});
+}
+function _carouselPauseSlide(slide) {
+  if (slide.tagName !== 'VIDEO') return;
+  slide.pause(); slide.currentTime = 0;
+}
+
+function startCarousel(mediaEl) {
+  if (!mediaEl) return;
+  const slides = mediaEl.querySelectorAll('.carousel-slide');
+  if (slides.length < 2) return;
+
+  let idx = 0;
+  const dots = mediaEl.querySelectorAll('.dot');
+  const fill = mediaEl.querySelector('.carousel-progress-fill');
+  const INTERVAL = 1200; // ms per slide
+
+  const goTo = (i) => {
+    _carouselPauseSlide(slides[idx]);
+    slides[idx].classList.remove('active');
+    dots[idx]?.classList.remove('active');
+    idx = (i + slides.length) % slides.length;
+    slides[idx].classList.add('active');
+    dots[idx]?.classList.add('active');
+    _carouselPlaySlide(slides[idx]);
+    if (fill) {
+      fill.style.transition = 'none';
+      fill.style.width = '0%';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        fill.style.transition = `width ${INTERVAL}ms linear`;
+        fill.style.width = '100%';
+      }));
+    }
+  };
+
+  // Activate first slide
+  slides.forEach((s, i) => s.classList.toggle('active', i === 0));
+  dots.forEach((d, i) => d.classList.toggle('active', i === 0));
+  _carouselPlaySlide(slides[0]); // play immediately if first is video
+  if (fill) { fill.style.transition = `width ${INTERVAL}ms linear`; fill.style.width = '100%'; }
+
+  mediaEl._carouselTimer = setInterval(() => goTo(idx + 1), INTERVAL);
+}
+
+function stopCarousel(mediaEl) {
+  if (!mediaEl) return;
+  clearInterval(mediaEl._carouselTimer);
+  mediaEl._carouselTimer = null;
+  const slides = mediaEl.querySelectorAll('.carousel-slide');
+  slides.forEach((s, i) => {
+    _carouselPauseSlide(s);
+    s.classList.toggle('active', i === 0);
+  });
+  const dots = mediaEl.querySelectorAll('.dot');
+  dots.forEach((d, i) => d.classList.toggle('active', i === 0));
+  const fill = mediaEl.querySelector('.carousel-progress-fill');
+  if (fill) { fill.style.transition = 'none'; fill.style.width = '0%'; }
+}
+
+// ── Hover video playback ──────────────────────────────────────────────────
+function playCreativeVideo(mediaEl) {
+  if (!mediaEl) return;
+
+  const v = mediaEl.querySelector('video.creative-video');
+  if (!v) return;
+  // Lazy-load src on first hover
+  if (!v.src && v.dataset.src) v.src = v.dataset.src;
+  // play() returns a Promise — resolves when first frame is rendered
+  const p = v.play();
+  if (p && typeof p.then === 'function') {
+    p.then(() => {
+      if (!mediaEl.matches(':hover')) { v.pause(); v.currentTime = 0; return; }
+      v.classList.add('is-playing');
+      mediaEl.classList.add('video-playing');
+    }).catch(() => {});
+  } else {
+    v.classList.add('is-playing');
+    mediaEl.classList.add('video-playing');
+  }
+  const btn = mediaEl.querySelector('.mute-btn');
+  if (btn) btn.textContent = v.muted ? '🔇' : '🔊';
+}
+
+function pauseCreativeVideo(mediaEl) {
+  if (!mediaEl) return;
+  const v = mediaEl.querySelector('video.creative-video');
+  if (!v) return;
+  v.pause(); v.currentTime = 0;
+  v.classList.remove('is-playing');
+  mediaEl.classList.remove('video-playing');
+}
+
+async function openAdPreview(btn, adId) {
+  const mediaEl = btn.closest('.ad-media');
+  if (!mediaEl) return;
+  // Toggle off if already open
+  const existing = mediaEl.querySelector('.fb-video-iframe');
+  if (existing) { existing.remove(); mediaEl.querySelector('.fb-close-btn')?.remove(); return; }
+  // Show spinner while loading
+  const origHTML = btn.innerHTML;
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="white" style="animation:spin .8s linear infinite"><path d="M12 2a10 10 0 0 1 10 10" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>';
+  try {
+    // Ad Previews API — requires only ads_read
+    const res = await gq(`${adId}/previews`, { ad_format: 'MOBILE_FEED_STANDARD' });
+    const body = (res.data || [])[0]?.body;
+    if (!body) throw new Error('no preview body');
+    // Parse iframe src from returned HTML string
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(body, 'text/html');
+    const srcEl = doc.querySelector('iframe');
+    const src = srcEl?.getAttribute('src');
+    if (!src) throw new Error('no iframe src');
+    const iframe = document.createElement('iframe');
+    iframe.className = 'fb-video-iframe';
+    iframe.src = src;
+    iframe.allowFullscreen = true;
+    iframe.scrolling = 'yes';
+    iframe.allow = 'autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share';
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'fb-close-btn';
+    closeBtn.title = 'סגור';
+    closeBtn.innerHTML = '✕';
+    closeBtn.onclick = () => { iframe.remove(); closeBtn.remove(); btn.innerHTML = origHTML; };
+    mediaEl.appendChild(iframe);
+    mediaEl.appendChild(closeBtn);
+  } catch(e) {
+    console.warn('Ad preview failed:', e.message);
+    btn.innerHTML = origHTML;
+    alert('לא ניתן לטעון תצוגה מקדימה: ' + e.message);
+  }
+}
+
+function toggleMute(e, btn) {
+  e.stopPropagation();
+  const v = btn.closest('.ad-media')?.querySelector('video.creative-video');
+  if (!v) return;
+  v.muted = !v.muted;
+  btn.textContent = v.muted ? '🔇' : '🔊';
+}
+
+window.getBestCreativeImage = getBestCreativeImage;
+window.getBestCreativeVideo = getBestCreativeVideo;
+
+function adFormat(cr) {
+  if (!cr) return 'IMAGE';
+  if ((cr._carousel_slides||[]).length > 1) return 'CAROUSEL';
+  if ((cr.object_type||'').includes('VIDEO') || cr.video_id || cr.object_story_spec?.video_data) return 'VIDEO';
+  return 'IMAGE';
+}
+
+function filterAds() {
+  const fc=document.getElementById('f-camp').value, ft=document.getElementById('f-type').value;
+  let ads=S.allAds;
+  if(fc) ads=ads.filter(a=>a.adset?.campaign_id===fc);
+  if(ft) ads=ads.filter(a=>adFormat(a.creative)===ft);
+  renderAds(ads);
+}
+
+function renderAds(ads) {
+  const g=document.getElementById('ads-grid');
+  document.getElementById('ads-badge').textContent=ads.length;
+  if(!ads.length){
+    g.innerHTML=`<div class="empty"><svg viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14z"/></svg><p>אין מודעות פעילות</p></div>`;
+    return;
+  }
+
+  // Image quality audit in console
+  console.log(`%c[Think Digital] Image quality audit — ${ads.length} ads`, 'color:#a855f7;font-weight:800;font-size:14px');
+  Promise.all(ads.map(ad => new Promise(resolve => {
+    const cr = ad.creative || {};
+    const chosen = getBestCreativeImage(cr);
+    const sourceMatch = (cr._image_candidates || []).find(c => c.url === chosen);
+    const source = sourceMatch?.source || (chosen === cr.image_url ? 'creative.image_url' :
+                                            chosen === cr.thumbnail_url ? 'thumbnail_url' :
+                                            chosen ? 'fallback' : 'NONE');
+    if (!chosen) {
+      resolve({ ad_name: ad.name, type: cr.object_type, has_video: !!cr.video_id, source: 'NONE', resolution: '—', url: '—' });
+      return;
+    }
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve({
+      ad_name: ad.name, type: cr.object_type || '?',
+      has_video: !!cr.video_id, has_story_id: !!(cr.effective_object_story_id || cr.object_story_id),
+      source, resolution: `${img.naturalWidth}×${img.naturalHeight}`,
+      pixels: img.naturalWidth * img.naturalHeight,
+      url: chosen.length > 80 ? chosen.slice(0, 77) + '...' : chosen
+    });
+    img.onerror = () => resolve({ ad_name: ad.name, type: cr.object_type, source, resolution: 'LOAD_FAILED', url: chosen });
+    img.src = chosen;
+  }))).then(rows => {
+    rows.sort((a,b) => (a.pixels||0) - (b.pixels||0));
+    console.table(rows);
+    const bad = rows.filter(r => (r.pixels||0) < 300*300 && r.resolution !== '—');
+    if (bad.length) {
+      console.log(`%c⚠ ${bad.length} ad(s) have low-quality images (<300×300):`, 'color:#f59e0b;font-weight:700');
+      console.log(bad);
+    }
+  });
+
+  window.dumpAd = (adId) => {
+    const ad = S.allAds.find(a => a.id === adId);
+    if (!ad) { console.warn('Ad not found:', adId); return; }
+    console.log('=== AD:', ad.name, '===');
+    console.log('Creative:', ad.creative);
+    console.log('Image candidates:', ad.creative?._image_candidates);
+    console.log('Video candidates:', ad.creative?._video_candidates);
+    console.log('Chosen image:', getBestCreativeImage(ad.creative || {}));
+    console.log('Chosen video:', getBestCreativeVideo(ad.creative || {}));
+  };
+
+  const C=S.currency, accNum=S.accountId.replace('act_','');
+  const html = ads.map(ad => {
+    const cr=ad.creative||{}, ins=(ad.insights?.data||[])[0]||{}, as=ad.adset||{};
+
+    // ── determine format ──────────────────────────────────────────────────
+    const carouselSlides = cr._carousel_slides || [];
+    const isCarousel = carouselSlides.length > 1;
+    const videoUrl   = !isCarousel ? getBestCreativeVideo(cr) : '';
+    const canPlay    = !!videoUrl;
+    const img        = getBestCreativeImage(cr);
+
+    const isVCreative = (cr.object_type||'').includes('VIDEO') || !!cr.video_id || !!cr.object_story_spec?.video_data;
+    const formatBadge = isCarousel ? 'קרוסלה' : (isVCreative ? 'וידאו' : 'תמונה');
+
+    // ── build media inner HTML ─────────────────────────────────────────────
+    let mediaInner, mediaClasses, mediaHover, muteBtn;
+
+    if (isCarousel) {
+      // Carousel: all slides stacked, cycling on hover
+      // Each slide can be an image (with zoom) or a video (with playback)
+      const imgErr = `this.style.display='none'`;
+      const slidesHtml = carouselSlides.map((s, i) => {
+        const active = i === 0 ? ' active' : '';
+        if (s.video_src) {
+          // Video slide — lazy-load src, show poster thumbnail until played
+          const poster = escH(s.thumbnail || s.picture || '');
+          return `<video class="carousel-slide${active}" data-src="${escH(s.video_src)}" poster="${poster}" muted playsinline preload="none" loop></video>`;
+        } else if (s.picture) {
+          return `<img class="carousel-slide${active}" src="${escH(s.picture)}" loading="lazy" decoding="async" onerror="${imgErr}">`;
+        }
+        return '';
+      }).join('');
+      const dotsHtml = `<div class="carousel-dots">${carouselSlides.map((_,i)=>`<span class="dot${i===0?' active':''}"></span>`).join('')}</div>`;
+      const progressHtml = `<div class="carousel-progress"><div class="carousel-progress-fill"></div></div>`;
+      mediaInner  = slidesHtml + dotsHtml + progressHtml;
+      mediaClasses = 'ad-media carousel-ready';
+      mediaHover   = ' onmouseenter="startCarousel(this)" onmouseleave="stopCarousel(this)"';
+      muteBtn      = '';
+
+    } else if (canPlay) {
+      // Video: MP4 overlaid on thumbnail, plays on hover
+      const imgErr = `this.style.display='none'`;
+      const videoElHtml = `<video class="creative-video" data-src="${escH(videoUrl)}" muted playsinline loop preload="none"></video>`;
+      mediaInner   = img
+        ? `<img src="${escH(img)}" alt="" loading="lazy" decoding="async" onerror="${imgErr}">${videoElHtml}`
+        : videoElHtml;
+      mediaClasses  = 'ad-media video-ready';
+      mediaHover    = ' onmouseenter="playCreativeVideo(this)" onmouseleave="pauseCreativeVideo(this)"';
+      muteBtn       = `<button class="mute-btn" onclick="toggleMute(event,this)" title="שמע">🔇</button>`;
+
+    } else {
+      // Image (or video creative without accessible URL): zoom on hover
+      const imgErr = `this.style.display='none'`;
+      const playOverlay = isVCreative
+        ? `<div class="video-play-overlay"><div class="video-play-btn" onclick="openAdPreview(this,'${ad.id}')" title="הפעל תצוגה מקדימה"><svg viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div></div>`
+        : '';
+      mediaInner   = img
+        ? `<img src="${escH(img)}" alt="" loading="lazy" decoding="async" onerror="${imgErr}">${playOverlay}`
+        : `<div class="ad-no-img"><svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2z"/></svg><span>אין תצוגה מקדימה</span></div>${playOverlay}`;
+      mediaClasses  = 'ad-media image-only';
+      mediaHover    = '';
+      muteBtn       = '';
+    }
+
+    return `<div class="ad-card">
+      <div class="${mediaClasses}"${mediaHover}>${mediaInner}
+        <span class="badge-type">${formatBadge}</span>
+        <span class="badge-live"><span class="blink"></span>LIVE</span>
+        ${muteBtn}
+      </div>
+      <div class="ad-body">
+        <div class="ad-name" title="${escH(ad.name)}">${escH(ad.name)}</div>
+        <div class="ad-adset">📁 ${escH(as.name||'—')}</div>
+        <div class="ad-stats">
+          <div class="stat-box"><div class="stat-lbl">חשיפות</div><div class="stat-val">${parseInt(ins.impressions||0).toLocaleString('he-IL')}</div></div>
+          <div class="stat-box"><div class="stat-lbl">קליקים</div><div class="stat-val">${parseInt(ins.clicks||0).toLocaleString('he-IL')}</div></div>
+          <div class="stat-box"><div class="stat-lbl">הוצאה היום</div><div class="stat-val">${C}${parseFloat(ins.spend||0).toFixed(2)}</div></div>
+          <div class="stat-box"><div class="stat-lbl">המרות</div><div class="stat-val">${((ins.actions||[]).find(a=>/offsite_conversion|onsite_conversion|purchase|lead/i.test(a.action_type))?.value||0)}</div></div>
+        </div>
+      </div>
+      <div class="ad-foot">
+        <span class="ad-id-txt">ID: ${ad.id}</span>
+        <a class="link-meta" href="https://adsmanager.facebook.com/adsmanager/manage/ads?act=${accNum}&selected_ad_ids=${ad.id}" target="_blank">
+          פתח ב-Meta <svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+        </a>
+      </div>
+    </div>`;
+  }).join('');
+  g.innerHTML = html;
+}
+
+async function loadCampaigns() {
+  // 1. Fetch all campaigns (active + recently paused to show end-date context)
+  const allCampaigns = await gqPaged(`${S.accountId}/campaigns`, {
+    fields: 'id,name,status,effective_status,daily_budget,lifetime_budget,stop_time',
+    limit: 500
+  });
+
+  // Active = ACTIVE effective_status AND (no stop_time OR stop_time hasn't passed yet)
+  const now = new Date();
+  const activeCampaigns = (allCampaigns||[]).filter(c => {
+    if ((c.effective_status||c.status) !== 'ACTIVE') return false;
+    if (c.stop_time) {
+      const end = new Date(c.stop_time);
+      if (end < now) return false;
+    }
+    return true;
+  });
+
+  // 2. Fetch adsets (need for ABO campaigns that have no campaign-level budget)
+  const allAdsets = await gqPaged(`${S.accountId}/adsets`, {
+    fields: 'id,campaign_id,status,effective_status,daily_budget,lifetime_budget',
+    limit: 500
+  });
+  // Only adsets in the full active chain
+  const activeAdsetIds = new Set((S.allAds||[]).map(a => a.adset_id).filter(Boolean));
+  const activeAdsets = (allAdsets||[]).filter(a =>
+    (a.effective_status||a.status) === 'ACTIVE' && activeAdsetIds.has(a.id)
+  );
+  // Group by campaign_id
+  const adsetsByCamp = {};
+  activeAdsets.forEach(a => {
+    (adsetsByCamp[a.campaign_id] = adsetsByCamp[a.campaign_id] || []).push(a);
+  });
+
+  // 3. Insights at campaign level (today + this month)
+  const [todayIns, monthIns] = await Promise.all([
+    gqPaged(`${S.accountId}/insights`, { fields:'campaign_id,spend', level:'campaign', date_preset:'today', limit:500 }),
+    gqPaged(`${S.accountId}/insights`, { fields:'campaign_id,spend', level:'campaign', date_preset:'this_month', limit:500 })
+  ]);
+  const todayMap = Object.fromEntries((todayIns||[]).map(x => [x.campaign_id, parseFloat(x.spend||0)]));
+  const monthMap = Object.fromEntries((monthIns||[]).map(x => [x.campaign_id, parseFloat(x.spend||0)]));
+
+  // 4. Build enriched campaign objects
+  S.campaigns = activeCampaigns.map(c => {
+    const isCBO = !!(c.daily_budget || c.lifetime_budget); // budget set at campaign level
+    let dailyBudget  = c.daily_budget  ? parseInt(c.daily_budget)/100  : null;
+    let lifetimeBudget = c.lifetime_budget ? parseInt(c.lifetime_budget)/100 : null;
+    if (!isCBO) {
+      // ABO: sum adset budgets
+      const adsets = adsetsByCamp[c.id] || [];
+      const dSum = adsets.reduce((s,a) => s + (a.daily_budget ? parseInt(a.daily_budget)/100 : 0), 0);
+      const lSum = adsets.reduce((s,a) => s + (!a.daily_budget && a.lifetime_budget ? parseInt(a.lifetime_budget)/100 : 0), 0);
+      if (dSum > 0) dailyBudget = dSum;
+      if (lSum > 0) lifetimeBudget = lSum;
+    }
+    return {
+      ...c,
+      is_cbo: isCBO,
+      daily_budget_val: dailyBudget,
+      lifetime_budget_val: lifetimeBudget,
+      spend_today: todayMap[c.id] || 0,
+      spend_month: monthMap[c.id] || 0
+    };
+  });
+
+  // 5. Update KPIs
+  document.getElementById('k-camps').textContent = S.campaigns.length;
+  document.getElementById('adset-badge').textContent = S.campaigns.length;
+
+  // Daily budget KPI = sum of all active campaigns' daily budgets
+  let totalDaily = 0;
+  S.campaigns.forEach(c => { if (c.daily_budget_val) totalDaily += c.daily_budget_val; });
+  document.getElementById('k-daily').textContent = S.currency + Math.round(totalDaily).toLocaleString('he-IL');
+  document.getElementById('k-daily-sub').textContent = `${S.campaigns.length} קמפיינים פעילים`;
+
+  renderCampaignBudget(S.campaigns);
+}
+
+function renderCampaignBudget(rows) {
+  const tb = document.getElementById('budget-tbody'), C = S.currency;
+  if (!rows.length) {
+    tb.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--t3)">אין קמפיינים פעילים</td></tr>`;
+    return;
+  }
+  tb.innerHTML = rows.map(c => {
+    const st = c.effective_status || c.status;
+    const pill = st === 'ACTIVE'
+      ? '<span class="pill pill-on">● פעיל</span>'
+      : '<span class="pill pill-pause">⏸ מושהה</span>';
+    const db = c.daily_budget_val;
+    const lb = c.lifetime_budget_val;
+    const todayS = parseFloat(c.spend_today || 0);
+    const monthS = parseFloat(c.spend_month || 0);
+    const pct = db ? Math.min(Math.round((todayS / db) * 100), 100) : 0;
+    const bc = pct > 90 ? 'over' : pct > 70 ? 'warn' : '';
+    const typeTag = c.is_cbo
+      ? '<span style="font-size:10px;font-weight:700;color:var(--accent);background:rgba(168,85,247,.12);padding:2px 6px;border-radius:4px;margin-right:6px">CBO</span>'
+      : '<span style="font-size:10px;font-weight:700;color:var(--t3);background:rgba(255,255,255,.06);padding:2px 6px;border-radius:4px;margin-right:6px">ABO</span>';
+    const dailyCell = db
+      ? `${C}${Math.round(db).toLocaleString('he-IL')}<div class="bar-wrap"><div class="bar-fill ${bc}" style="width:${pct}%"></div></div><div class="bar-pct">${pct}% נוצל היום</div>`
+      : lb
+        ? `<span style="color:var(--t3);font-size:12px">תקציב כולל ${C}${Math.round(lb).toLocaleString('he-IL')}</span>`
+        : '—';
+    const monthEst = db
+      ? C + Math.round(db * 30).toLocaleString('he-IL')
+      : lb ? C + Math.round(lb).toLocaleString('he-IL') : '—';
+    return `<tr>
+      <td>${typeTag}<strong>${escH(c.name)}</strong></td>
+      <td>${pill}</td>
+      <td>${dailyCell}</td>
+      <td>${monthEst}</td>
+      <td>${C}${todayS.toFixed(2)}</td>
+      <td>${C}${monthS.toFixed(2)}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function loadMonthly() {
+  try {
+    const d=await gq(`${S.accountId}/insights`,{fields:'spend',date_preset:'this_month',level:'account'});
+    document.getElementById('k-month').textContent=S.currency+Math.round(parseFloat(d.data?.[0]?.spend||0)).toLocaleString('he-IL');
+  } catch { document.getElementById('k-month').textContent='—'; }
+}
+
+function openPeriodSummary() {
+  const box = document.getElementById('summary-box');
+  box.classList.add('active');
+  box.scrollIntoView({ behavior:'smooth', block:'start' });
+  document.getElementById('summary-period').focus();
+}
+
+function onPeriodChange() {
+  const val = document.getElementById('summary-period').value;
+  document.getElementById('custom-dates').classList.toggle('show', val === 'custom');
+  updateGenerateBtn();
+}
+
+function updateGenerateBtn() {
+  const val = document.getElementById('summary-period').value;
+  const btn = document.getElementById('btn-generate-summary');
+  if (!val) { btn.disabled = true; return; }
+  if (val === 'custom') {
+    const since = document.getElementById('summary-since').value;
+    const until = document.getElementById('summary-until').value;
+    btn.disabled = !(since && until && since <= until);
+  } else { btn.disabled = false; }
+}
+
+function getSelectedPeriod() {
+  const val = document.getElementById('summary-period').value || 'last7';
+  const today = new Date();
+  let since, until, label;
+  if (val==='last7')    { since=dateOffsetISO(today,-6); until=dateISO(today); label='7 ימים אחרונים'; }
+  else if(val==='last14') { since=dateOffsetISO(today,-13); until=dateISO(today); label='14 ימים אחרונים'; }
+  else if(val==='last30') { since=dateOffsetISO(today,-29); until=dateISO(today); label='30 ימים אחרונים'; }
+  else if(val==='last_week') {
+    const day=today.getDay();
+    const lastSunday=new Date(today); lastSunday.setDate(today.getDate()-day-7);
+    const lastSat=new Date(lastSunday); lastSat.setDate(lastSunday.getDate()+6);
+    since=dateISO(lastSunday); until=dateISO(lastSat); label='שבוע שעבר';
+  } else if(val==='this_month') {
+    since=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-01`; until=dateISO(today); label='החודש הנוכחי';
+  } else if(val==='prev_month') {
+    const firstThis=new Date(today.getFullYear(),today.getMonth(),1);
+    const lastPrev=new Date(firstThis); lastPrev.setDate(0);
+    const firstPrev=new Date(lastPrev.getFullYear(),lastPrev.getMonth(),1);
+    since=dateISO(firstPrev); until=dateISO(lastPrev); label='חודש קודם';
+  } else {
+    since=document.getElementById('summary-since').value;
+    until=document.getElementById('summary-until').value;
+    label='תקופה נבחרת';
+    if (!since||!until) throw new Error('בחר תאריך התחלה ותאריך סיום.');
+    if (since>until) throw new Error('תאריך ההתחלה חייב להיות לפני תאריך הסיום.');
+  }
+  return { since, until, label };
+}
+
+async function generatePeriodSummary() {
+  const btn = document.getElementById('btn-generate-summary');
+  const oldHtml = btn.innerHTML;
+  btn.disabled = true; btn.textContent = '⏳ מפיק...';
+  try {
+    const period = getSelectedPeriod();
+    const d = await gq(`${S.accountId}/insights`, {
+      fields:'campaign_id,campaign_name,spend,impressions,reach,clicks,ctr,cpc,cpm,actions,cost_per_action_type',
+      level:'campaign',
+      time_range:JSON.stringify({since:period.since, until:period.until}),
+      limit:500
+    });
+    const rows = (d.data||[]).filter(x=>parseFloat(x.spend||0)>0||parseFloat(x.impressions||0)>0);
+    if (!rows.length) throw new Error('לא נמצאו נתוני ביצועים לתקופה שנבחרה.');
+    rows.sort((a,b)=>parseFloat(b.spend||0)-parseFloat(a.spend||0));
+    let totalSpend=0, totalImp=0, totalClicks=0;
+    rows.forEach(r=>{ totalSpend+=parseFloat(r.spend||0); totalImp+=parseFloat(r.impressions||0); totalClicks+=parseFloat(r.clicks||0); });
+    const totalCtr = totalImp ? (totalClicks/totalImp)*100 : 0;
+    const totalCpc = totalClicks ? totalSpend/totalClicks : 0;
+    const lines = [];
+    lines.push(`סיכום ${period.label} · ${formatHebDate(period.since)}–${formatHebDate(period.until)}`);
+    lines.push('');
+    lines.push(`סה״כ בחשבון: הוצאה ${S.currency}${roundNice(totalSpend)}, חשיפות ${roundNice(totalImp)}, קליקים ${roundNice(totalClicks)}, CTR ${totalCtr.toFixed(2)}%, CPC ${S.currency}${roundNice(totalCpc)}.`);
+    lines.push('');
+    rows.forEach((c,idx) => {
+      const spend=parseFloat(c.spend||0), impressions=parseFloat(c.impressions||0);
+      const reach=parseFloat(c.reach||0), clicks=parseFloat(c.clicks||0);
+      const ctr=parseFloat(c.ctr||0), cpc=parseFloat(c.cpc||0), cpm=parseFloat(c.cpm||0);
+      const result=getMainResult(c.actions, c.cost_per_action_type);
+      lines.push(`${idx+1}. ${c.campaign_name||'קמפיין ללא שם'}`);
+      lines.push(`בתקופה זו השקענו ${S.currency}${roundNice(spend)}. הקמפיין ייצר ${roundNice(impressions)} חשיפות${reach?`, הגיע ל-${roundNice(reach)} אנשים`:''}, קיבל ${roundNice(clicks)} קליקים, CTR של ${ctr.toFixed(2)}%, CPC ממוצע של ${S.currency}${roundNice(cpc)} ו-CPM של ${S.currency}${roundNice(cpm)}.`);
+      if (result.count>0) {
+        const costPart=result.cost>0?` · עלות ממוצעת לתוצאה: ${S.currency}${roundNice(result.cost)}`:'';
+        lines.push(`תוצאה מרכזית: ${roundNice(result.count)} ${result.label}${costPart}.`);
+      } else {
+        lines.push(`תוצאה מרכזית: לא זוהתה תוצאת המרה ספציפית.`);
+      }
+      lines.push('');
+    });
+    const txt = lines.join('\n').trim();
+    document.getElementById('summary-title').textContent = `סיכום ${period.label}`;
+    document.getElementById('summary-text').textContent = txt;
+    document.getElementById('summary-result').style.display = 'block';
+    document.getElementById('summary-export-actions').style.display = 'flex';
+  } catch(e) {
+    showErr(e.message);
+  } finally {
+    btn.disabled = false; btn.innerHTML = oldHtml;
+    updateGenerateBtn();
+  }
+}
+
+function getMainResult(actions=[], costPerActions=[]) {
+  const priority = [
+    { keys:['omni_purchase','purchase'], label:'רכישות' },
+    { keys:['onsite_conversion.lead_grouped','lead','qualified_lead','offsite_conversion.fb_pixel_lead'], label:'לידים' },
+    { keys:['onsite_conversion.messaging_conversation_started_7d','onsite_conversion.messaging_first_reply'], label:'שיחות' },
+    { keys:['complete_registration'], label:'הרשמות' },
+    { keys:['schedule_total','booking','reservation'], label:'הזמנות' },
+    { keys:['link_click'], label:'קליקים על קישור' },
+    { keys:['post_engagement'], label:'מעורבויות' }
+  ];
+  if (!Array.isArray(actions)) actions = [];
+  if (!Array.isArray(costPerActions)) costPerActions = [];
+  for (const item of priority) {
+    for (const key of item.keys) {
+      const found = actions.find(a=>a.action_type===key);
+      if (found && parseFloat(found.value||0)>0) {
+        const costObj = costPerActions.find(c=>c.action_type===key) || costPerActions.find(c=>item.keys.includes(c.action_type));
+        return { count:parseFloat(found.value||0), label:item.label, cost:costObj?parseFloat(costObj.value||0):0 };
+      }
+    }
+  }
+  return { count:0, label:'תוצאות מדווחות', cost:0 };
+}
+
+function copyPeriodSummary() {
+  const txt=document.getElementById('summary-text').textContent||'';
+  if (!txt) return;
+  navigator.clipboard.writeText(txt).then(()=>alert('הסיכום הועתק ללוח.'));
+}
+
+function downloadPeriodSummary() {
+  const txt=document.getElementById('summary-text').textContent||'';
+  if (!txt) return;
+  downloadBlob(txt, `סיכום-תקופה-${safeFileDate()}.txt`, 'text/plain;charset=utf-8');
+}
+
+/* exportCreatives removed — creatives visible in dashboard */
+function exportCreatives() {
+  const btn = document.getElementById('btn-export-creatives');
+  if (!btn) return;
+  const oldHtml = btn.innerHTML;
+  btn.disabled = true; btn.textContent = '⏳ מייצא...';
+  try {
+    const ads = getEligibleActiveAds();
+    if (!ads.length) throw new Error('לא נמצאו מודעות פעילות עם כל השרשרת דולקת.');
+    const C = S.currency;
+    const exportDate = new Date().toLocaleDateString('he-IL', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+
+    const cards = ads.map(ad => {
+      const cr = ad.creative || {};
+      const ins = (ad.insights?.data||[])[0] || {};
+      const as = ad.adset || {};
+      const isVideo = (cr.object_type||'').includes('VIDEO') || !!cr.video_id || !!cr.object_story_spec?.video_data;
+      const imgUrl = getBestCreativeImage(cr) || cr.thumbnail_url || '';
+      const campName = ad.adset?.campaign?.name || '—';
+      const spend = parseFloat(ins.spend||0);
+      const impressions = parseInt(ins.impressions||0);
+      const clicks = parseInt(ins.clicks||0);
+      const ctr = impressions ? ((clicks/impressions)*100).toFixed(2) : '0.00';
+      const cpc = clicks ? (spend/clicks).toFixed(2) : '—';
+      const igLink = cr.instagram_permalink_url ? `<a class="cr-link" href="${escH(cr.instagram_permalink_url)}" target="_blank">🔗 Instagram</a>` : '';
+
+      const mediaEl = imgUrl
+        ? `<img src="${escH(imgUrl)}" alt="${escH(ad.name)}" loading="lazy">`
+        : `<div class="no-prev"><span>אין תצוגה מקדימה</span></div>`;
+      const typeBadge = isVideo
+        ? `<div class="type-badge video">▶ וידאו</div>`
+        : `<div class="type-badge image">🖼 תמונה</div>`;
+
+      return `<div class="cr-card">
+        <div class="cr-media">${mediaEl}${typeBadge}</div>
+        <div class="cr-info">
+          <div class="cr-camp">${escH(campName)}</div>
+          <div class="cr-name">${escH(ad.name)}</div>
+          <div class="cr-adset">📁 ${escH(as.name||'—')}</div>
+          <div class="cr-stats">
+            <div class="stat"><div class="stat-l">הוצאה היום</div><div class="stat-v">${C}${roundNice(spend)}</div></div>
+            <div class="stat"><div class="stat-l">חשיפות</div><div class="stat-v">${impressions.toLocaleString('he-IL')}</div></div>
+            <div class="stat"><div class="stat-l">קליקים</div><div class="stat-v">${clicks.toLocaleString('he-IL')}</div></div>
+            <div class="stat"><div class="stat-l">CTR</div><div class="stat-v">${ctr}%</div></div>
+            <div class="stat"><div class="stat-l">CPC</div><div class="stat-v">${cpc !== '—' ? C+cpc : '—'}</div></div>
+          </div>
+          <div class="cr-actions">
+            ${imgUrl ? `<a class="cr-link" href="${escH(imgUrl)}" target="_blank" download>⬇ הורד קריאייטיב</a>` : ''}
+            ${igLink}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+    const html = `<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ייצוא קריאייטיבים · Think Digital · ${exportDate}</title>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#f3f4f6;font-family:'Assistant',Arial,sans-serif;direction:rtl;color:#111}
+.toolbar{position:sticky;top:0;z-index:10;background:#fff;border-bottom:2px solid #ede9fe;
+  padding:12px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
+  box-shadow:0 2px 10px rgba(124,58,237,.1)}
+.toolbar-logo{font-size:16px;font-weight:800;color:#7c3aed}
+.toolbar-meta{font-size:12px;color:#6b7280}
+.toolbar button{border:0;border-radius:8px;padding:9px 20px;background:#7c3aed;color:#fff;
+  font-family:'Assistant',Arial,sans-serif;font-weight:700;font-size:13px;cursor:pointer}
+.toolbar button:hover{background:#6d28d9}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;padding:24px;max-width:1400px;margin:0 auto}
+.cr-card{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08);
+  border:1.5px solid #e5e7eb;display:flex;flex-direction:column}
+.cr-media{position:relative;background:#f3f4f6;aspect-ratio:9/16;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.cr-media img{width:100%;height:100%;object-fit:contain}
+.no-prev{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:13px}
+.type-badge{position:absolute;top:10px;right:10px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:5px;backdrop-filter:blur(4px)}
+.type-badge.video{background:rgba(0,0,0,.7);color:#fff}
+.type-badge.image{background:rgba(255,255,255,.85);color:#374151}
+.cr-info{padding:14px;display:flex;flex-direction:column;gap:6px;flex:1}
+.cr-camp{font-size:11px;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.4px}
+.cr-name{font-size:13px;font-weight:700;color:#111827;line-height:1.3}
+.cr-adset{font-size:11px;color:#6b7280}
+.cr-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}
+.stat{background:#f9fafb;border-radius:7px;padding:7px 10px}
+.stat-l{font-size:9px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
+.stat-v{font-size:15px;font-weight:800;color:#111}
+.cr-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;padding-top:8px;border-top:1px solid #f3f4f6}
+.cr-link{font-size:12px;font-weight:700;color:#7c3aed;text-decoration:none;padding:5px 10px;
+  border-radius:6px;background:#f5f3ff;transition:background .15s}
+.cr-link:hover{background:#ede9fe}
+@media print{
+  .toolbar{display:none!important}
+  .grid{padding:10px}
+  .cr-card{break-inside:avoid;box-shadow:none}
+}
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <span class="toolbar-logo">Think Digital · ייצוא קריאייטיבים</span>
+  <span class="toolbar-meta">${escH(S.accountName)} · ${ads.length} מודעות · ${exportDate}</span>
+  <button onclick="window.print()">🖨️ שמור PDF</button>
+</div>
+<div class="grid">${cards}</div>
+</body>
+</html>`;
+    downloadBlob(html, `קריאייטיבים-${safeFileDate()}.html`, 'text/html;charset=utf-8');
+  } catch(e) {
+    showErr(e.message);
+  } finally {
+    btn.disabled = false; btn.innerHTML = oldHtml;
+  }
+}
+
+function getEligibleActiveAds() {
+  return (S.allAds||[]).filter(ad => {
+    const adSt = ad.effective_status||ad.status;
+    const asSt = ad.adset?.effective_status||ad.adset?.status;
+    const caSt = ad.adset?.campaign?.effective_status||ad.adset?.campaign?.status;
+    return adSt==='ACTIVE' && asSt==='ACTIVE' && caSt==='ACTIVE';
+  });
+}
+
+function downloadBlob(content, filename, type) {
+  const blob = new Blob([content], {type});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+function dateISO(d) {
+  const x=new Date(d);
+  return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`;
+}
+function dateOffsetISO(d, off) { const x=new Date(d); x.setDate(x.getDate()+off); return dateISO(x); }
+function safeFileDate() { return dateISO(new Date()).replaceAll('-',''); }
+function formatHebDate(iso) {
+  const [y,m,d]=iso.split('-').map(Number);
+  return new Date(y,m-1,d).toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'numeric'});
+}
+function roundNice(n) {
+  n=parseFloat(n||0);
+  if (Math.abs(n)>=100) return Math.round(n).toLocaleString('he-IL');
+  if (Number.isInteger(n)) return n.toLocaleString('he-IL');
+  return n.toFixed(2).replace(/\.00$/,'');
+}
+function switchTab(id,btn) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-'+id).classList.add('active');
+}
+function showErr(msg) {
+  const el=document.getElementById('api-err');
+  if (msg) {
+    el.innerHTML=`<strong>שגיאה בטעינת נתונים:</strong> ${msg} &nbsp;<button onclick="loadAll()" style="margin-right:12px;padding:4px 12px;background:var(--accent);border:none;border-radius:6px;color:#fff;cursor:pointer;font-size:12px;font-family:var(--font)">נסה שוב</button>`;
+    el.style.display='block';
+  } else el.style.display='none';
+}
+function setLoading(on) {
+  const b=document.getElementById('btn-refresh'); if(!b) return;
+  b.disabled=on;
+  b.innerHTML=on
+    ?`<svg viewBox="0 0 24 24" fill="currentColor" class="spin" style="width:13px;height:13px"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg> מרענן`
+    :`<svg viewBox="0 0 24 24" fill="currentColor" style="width:13px;height:13px"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg> רענן`;
+}
+function currSymbol(c) { return {ILS:'₪',USD:'$',EUR:'€',GBP:'£',AUD:'A$',CAD:'C$'}[c]||c+' '; }
+function escH(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ─── MONTHLY REPORT (PPTX) — removed ─────────────────────────────────────
+
+</script>
+</body>
+</html>

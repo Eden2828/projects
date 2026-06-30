@@ -1,0 +1,10 @@
+.env
+*.db
+*.sqlite3
+__pycache__/
+*.pyc
+.venv/
+venv/
+config/accounts.json
+config/users.json
+data/
